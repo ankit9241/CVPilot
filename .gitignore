@@ -31,8 +31,6 @@ dist-ssr
 *.sln
 *.sw?
 
-.lovable
-
 # Environment variables
 .env
 .env.*
