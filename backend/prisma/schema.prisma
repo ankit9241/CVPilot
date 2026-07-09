@@ -1,0 +1,553 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String               @id @default(uuid())
+  email               String               @unique
+  passwordHash        String?
+  provider            AuthProvider         @default(EMAIL)
+  providerId          String?
+  role                UserRole             @default(USER)
+  emailVerified       Boolean              @default(false)
+  billingPlan         BillingPlan          @default(FREE)
+  lastLoginAt         DateTime?
+  deletedAt           DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  applications        Application[]
+  auditLogs           AuditLog[]
+  sessions            GenerationSession[]
+  notifications       Notification[]
+  profile             Profile?
+  refreshTokens       RefreshToken[]
+  vault               ResumeVault?
+  settings            Settings?
+  templatePreferences TemplatePreference[]
+  uploadedResumes     UploadedResume[]
+
+  @@index([email])
+  @@index([provider, providerId])
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+model Profile {
+  id            String        @id @default(uuid())
+  userId        String        @unique
+  fullName      String
+  headline      String?
+  phone         String?
+  location      String?
+  summary       String?
+  avatarUrl     String?
+  completionPct Int           @default(0)
+  deletedAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  achievements  Achievement[]
+  certificates  Certificate[]
+  educations    Education[]
+  experiences   Experience[]
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projects      Project[]
+  skills        Skill[]
+  socialLinks   SocialLink[]
+
+  @@index([userId])
+}
+
+model SocialLink {
+  id        String         @id @default(uuid())
+  profileId String
+  platform  SocialPlatform
+  label     String?
+  url       String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  profile   Profile        @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model Education {
+  id          String    @id @default(uuid())
+  profileId   String
+  school      String
+  degree      String
+  field       String?
+  startDate   DateTime?
+  endDate     DateTime?
+  gpa         String?
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model Experience {
+  id                   String                 @id @default(uuid())
+  profileId            String
+  companyId            String?
+  companyName          String
+  role                 String
+  location             String?
+  startDate            DateTime?
+  endDate              DateTime?
+  isCurrent            Boolean                @default(false)
+  description          String?
+  achievements         String[]               @default([])
+  descriptionEmbedding Unsupported("vector")?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  company              Company?               @relation(fields: [companyId], references: [id])
+  profile              Profile                @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@index([companyId])
+}
+
+model Project {
+  id                   String                 @id @default(uuid())
+  profileId            String
+  name                 String
+  description          String?
+  role                 String?
+  stack                String[]               @default([])
+  githubUrl            String?
+  liveUrl              String?
+  startDate            DateTime?
+  endDate              DateTime?
+  impact               String?
+  achievements         String[]               @default([])
+  descriptionEmbedding Unsupported("vector")?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  profile              Profile                @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model Skill {
+  id        String        @id @default(uuid())
+  profileId String
+  name      String
+  category  SkillCategory @default(OTHER)
+  level     Int?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  profile   Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, name])
+  @@index([profileId, category])
+}
+
+model Certificate {
+  id            String    @id @default(uuid())
+  profileId     String
+  name          String
+  issuer        String
+  issuedAt      DateTime?
+  credentialId  String?
+  credentialUrl String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  profile       Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model Achievement {
+  id        String    @id @default(uuid())
+  profileId String
+  title     String
+  context   String?
+  date      DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model Company {
+  id           String              @id @default(uuid())
+  name         String              @unique
+  website      String?
+  description  String?
+  industry     String?
+  logoUrl      String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  applications Application[]
+  experiences  Experience[]
+  sessions     GenerationSession[]
+  savedResumes SavedResume[]
+}
+
+model GenerationSession {
+  id                     String          @id @default(uuid())
+  userId                 String
+  companyId              String?
+  companyName            String
+  targetRole             String
+  originalJobDescription String
+  parsedJobDescription   String?
+  selectedTemplateId     String?
+  status                 SessionStatus   @default(QUEUED)
+  costInCredits          Int             @default(0)
+  estimatedDuration      Int?
+  startedAt              DateTime?
+  completedAt            DateTime?
+  currentStep            String?
+  errorMessage           String?
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  aiMessages             AIMessage[]
+  atsRuns                ATSRun[]
+  company                Company?        @relation(fields: [companyId], references: [id])
+  template               Template?       @relation(fields: [selectedTemplateId], references: [id])
+  user                   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  versions               ResumeVersion[]
+  workflowLogs           WorkflowLog[]
+
+  @@index([userId, status])
+  @@index([companyId])
+  @@index([selectedTemplateId])
+}
+
+model WorkflowLog {
+  id        String            @id @default(uuid())
+  sessionId String
+  stepName  String?
+  nodeName  String?
+  message   String
+  status    String?
+  timestamp DateTime          @default(now())
+  session   GenerationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, timestamp])
+}
+
+model AIMessage {
+  id        String            @id @default(uuid())
+  sessionId String
+  type      String
+  message   String
+  metadata  Json?
+  timestamp DateTime          @default(now())
+  session   GenerationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, timestamp])
+}
+
+model ResumeVersion {
+  id           String            @id @default(uuid())
+  sessionId    String
+  versionNo    Int
+  label        String?
+  resumeJson   Json
+  latexCode    String?
+  pdfUrl       String?
+  docxUrl      String?
+  htmlSnapshot String?
+  createdAt    DateTime          @default(now())
+  atsRuns      ATSRun[]
+  session      GenerationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  savedResumes SavedResume[]
+
+  @@unique([sessionId, versionNo])
+  @@index([sessionId])
+}
+
+model ATSRun {
+  id                  String            @id @default(uuid())
+  generationSessionId String
+  resumeVersionId     String
+  overallScore        Int
+  keywordScore        Int
+  formattingScore     Int
+  readabilityScore    Int
+  experienceScore     Int
+  suggestions         Json
+  missingKeywords     Json
+  iterationNumber     Int
+  createdAt           DateTime          @default(now())
+  session             GenerationSession @relation(fields: [generationSessionId], references: [id], onDelete: Cascade)
+  version             ResumeVersion     @relation(fields: [resumeVersionId], references: [id], onDelete: Cascade)
+
+  @@index([generationSessionId])
+  @@index([resumeVersionId])
+}
+
+model SavedResume {
+  id           String        @id @default(uuid())
+  vaultId      String
+  versionId    String
+  companyId    String?
+  companyName  String?
+  title        String
+  role         String?
+  isFavorite   Boolean       @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+  company      Company?      @relation(fields: [companyId], references: [id])
+  vault        ResumeVault   @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  version      ResumeVersion @relation(fields: [versionId], references: [id])
+
+  @@index([vaultId])
+  @@index([versionId])
+  @@index([companyId])
+  @@index([deletedAt])
+}
+
+model ResumeVault {
+  id           String        @id @default(uuid())
+  userId       String        @unique
+  name         String        @default("Default Vault")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  savedResumes SavedResume[]
+
+  @@index([userId])
+}
+
+model UploadedResume {
+  id                String   @id @default(uuid())
+  userId            String
+  fileName          String
+  fileUrl           String
+  fileSize          Int?
+  parsedContentJson Json?
+  createdAt         DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Template {
+  id          String               @id @default(uuid())
+  name        String               @unique
+  description String?
+  category    TemplateCategory     @default(MODERN)
+  previewUrl  String?
+  latexSource String?
+  isPremium   Boolean              @default(false)
+  isActive    Boolean              @default(true)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  sessions    GenerationSession[]
+  preferences TemplatePreference[]
+
+  @@index([category, isActive])
+}
+
+model TemplatePreference {
+  id          String   @id @default(uuid())
+  userId      String
+  templateId  String
+  fontFamily  String?
+  fontSize    String?
+  colorScheme String?
+  margins     String?
+  customCss   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  template    Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, templateId])
+}
+
+model Application {
+  id          String             @id @default(uuid())
+  userId      String
+  resumeId    String?
+  companyId   String?
+  companyName String
+  role        String
+  location    String?
+  jobUrl      String?
+  salary      String?
+  status      ApplicationStatus  @default(SAVED)
+  notes       String?
+  appliedAt   DateTime?
+  deletedAt   DateTime?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  company     Company?           @relation(fields: [companyId], references: [id])
+  resume      SavedResume?       @relation(fields: [resumeId], references: [id])
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stages      ApplicationStage[]
+
+  @@index([userId, status])
+  @@index([resumeId])
+  @@index([companyId])
+  @@index([deletedAt])
+}
+
+model ApplicationStage {
+  id            String            @id @default(uuid())
+  applicationId String
+  status        ApplicationStatus
+  note          String?
+  changedAt     DateTime          @default(now())
+  application   Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, changedAt])
+}
+
+model Settings {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  theme              String   @default("system")
+  language           String   @default("en")
+  emailNotifications Boolean  @default(true)
+  productUpdates     Boolean  @default(true)
+  weeklyDigest       Boolean  @default(true)
+  timezone           String   @default("UTC")
+  preferences        Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType @default(SYSTEM)
+  title     String
+  body      String
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read, createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  entityName String?
+  entityId   String?
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId, action, createdAt])
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+}
+
+enum BillingPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum SessionStatus {
+  QUEUED
+  PROCESSING
+  OPTIMIZING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum WorkflowStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum LogLevel {
+  INFO
+  WARN
+  ERROR
+  DEBUG
+}
+
+enum ApplicationStatus {
+  SAVED
+  APPLIED
+  INTERVIEW
+  OFFER
+  REJECTED
+  WITHDRAWN
+}
+
+enum TemplateCategory {
+  MODERN
+  CLASSIC
+  MINIMAL
+  PROFESSIONAL
+  CREATIVE
+  ACADEMIC
+  CORPORATE
+}
+
+enum SkillCategory {
+  FRONTEND
+  BACKEND
+  DATABASE
+  CLOUD
+  DEVOPS
+  LANGUAGE
+  AI
+  TOOL
+  SOFT
+  OTHER
+}
+
+enum NotificationType {
+  RESUME_READY
+  ATS_IMPROVEMENT
+  WORKFLOW_UPDATE
+  SYSTEM
+  DIGEST
+}
+
+enum SocialPlatform {
+  LINKEDIN
+  GITHUB
+  PORTFOLIO
+  LEETCODE
+  TWITTER
+  DRIBBBLE
+  BEHANCE
+  OTHER
+}

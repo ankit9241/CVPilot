@@ -1,0 +1,20 @@
+{
+  "name": "cvpilot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CVPilot monorepo — frontend (TanStack Start) and backend (Express + Prisma). Root only orchestrates; per-app deps live in each workspace.",
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "build:dev": "cd frontend && npm run build:dev",
+    "preview": "cd frontend && npm run preview",
+    "lint": "cd frontend && npm run lint",
+    "format": "cd frontend && npm run format",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "lint:backend": "cd backend && npm run lint",
+    "format:backend": "cd backend && npm run format"
+  }
+}
