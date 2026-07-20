@@ -14,7 +14,8 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
     return fail(res, 'VALIDATION_ERROR', 'Validation failed', 422, err.flatten());
   }
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    if (err.code === 'P2002') return fail(res, 'CONFLICT', 'Unique constraint violated', 409, err.meta);
+    if (err.code === 'P2002')
+      return fail(res, 'CONFLICT', 'Unique constraint violated', 409, err.meta);
     if (err.code === 'P2025') return fail(res, 'NOT_FOUND', 'Record not found', 404);
     return fail(res, 'DB_ERROR', 'Database error', 400, { code: err.code });
   }

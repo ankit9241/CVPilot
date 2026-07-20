@@ -1,0 +1,213 @@
+% Jake's Resume
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\input{glyphtounicode}
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    \textbf{\Huge \scshape Ankit Kumar } \\ \vspace{1pt}
+    \small +91-9241272626 $|$ \href{mailto:}{\underline{  }}
+    
+    
+    
+    
+\end{center}
+
+%-----------SUMMARY-----------
+
+
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    
+    \resumeSubheading
+      { Indian Institute of Technology, Patna }{}
+      { Bachelor of Science  }{ 2024-07 -- 2028-08 }
+    
+  \resumeSubHeadingListEnd
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+  \resumeSubHeadingListStart
+    
+    \resumeSubheading
+      { Software Engineer }{ 2026-02 --  }
+      { Thrive Wellness }{ Remote }
+      \resumeItemListStart
+        
+        \resumeItem{ Revamped 15+ user interfaces using React, TypeScript, and Tailwind CSS, achieving 40\textbackslash\{\}\% improvement in Core Web Vitals and 25\textbackslash\{\}\% increase in user session duration }
+        
+        \resumeItem{ Designed and implemented RESTful APIs with Node.js/Express and GraphQL resolvers, reducing frontend-backend latency by 60\textbackslash\{\}\% through optimized data fetching }
+        
+        \resumeItem{ Collaborated with product stakeholders to deliver 3 major feature releases on schedule, implementing automated testing pipelines (Jest, React Testing Library) achieving 85\textbackslash\{\}\% code coverage }
+        
+      \resumeItemListEnd
+    
+    \resumeSubheading
+      { Software Engineer }{ 2025-09 --  }
+      { Student Technical Council, IIT Patna }{ Patna, Bihar, India }
+      \resumeItemListStart
+        
+        \resumeItem{ Architected and maintained STC platform serving 500+ students across 20+ clubs with JWT authentication and role-based access control using Node.js/Express and MongoDB }
+        
+        \resumeItem{ Optimized database performance by redesigning MongoDB schemas and integrating Redis caching, improving API throughput 3x and reducing p95 latency from 450ms to 120ms }
+        
+        \resumeItem{ Built CI/CD pipelines with GitHub Actions for automated testing and deployment to Render, enabling zero-downtime releases for 12+ annual events }
+        
+      \resumeItemListEnd
+    
+  \resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section{Projects}
+  \resumeSubHeadingListStart
+    
+      \resumeProjectHeading
+          {\textbf{ PodSnap – AI-Powered Podcast to Shorts Generator } $|$ \emph{ Next.js, Node.js, AWS S3, Stripe, WhisperX, Gemini AI, FFmpeg, Modal Serverless, TypeScript, React.js }}{  --  }
+          \resumeItemListStart
+            
+            \resumeItem{ Built end-to-end AI video processing pipeline using WhisperX transcription, Gemini AI moment extraction, and FFmpeg rendering, automating podcast-to-shorts conversion and reducing creator editing time by 10+ hours per episode }
+            
+            \resumeItem{ Architected serverless GPU infrastructure on Modal for real-time transcription and video processing, handling 500MB uploads via AWS S3 pre-signed URLs with Stripe credit-based monetization }
+            
+            \resumeItem{ Developed React/Next.js frontend with TypeScript and Tailwind, implementing real-time progress tracking, credit management, and responsive 9:16 video preview components }
+            
+          \resumeItemListEnd
+    
+      \resumeProjectHeading
+          {\textbf{ Envora } $|$ \emph{ React, Vite, Tailwind CSS, React Router, Axios, Node.js, Express.js, MongoDB, Mongoose, JWT Authentication, bcrypt, Google OAuth }}{  --  }
+          \resumeItemListStart
+            
+            \resumeItem{ Designed secure developer vault for environment variable management using React, Vite, and Node.js/Express with JWT authentication and bcrypt encryption, replacing insecure .env file practices }
+            
+            \resumeItem{ Implemented project-section data architecture with MongoDB/Mongoose, enabling multi-project credential organization and Google OAuth integration for seamless cross-device access }
+            
+            \resumeItem{ Built RESTful API with Express.js featuring role-based access control and automated secret rotation, achieving sub-100ms response times for credential retrieval }
+            
+          \resumeItemListEnd
+    
+  \resumeSubHeadingListEnd
+
+%-----------PROGRAMMING SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+      
+      \textbf{ FRONTEND }{: React } \\
+      
+      \textbf{ LANGUAGE }{: TypeScript } \\
+      
+      \textbf{ FRONTEND }{: Tailwind CSS } \\
+      
+      \textbf{ FRONTEND }{: Next.js } \\
+      
+      \textbf{ FRONTEND }{: shadcn/ui } \\
+      
+      \textbf{ FRONTEND }{: Vite } \\
+      
+      \textbf{ FRONTEND }{: Framer Motion } \\
+      
+      \textbf{ FRONTEND }{: Lottie } \\
+      
+      \textbf{ BACKEND }{: Node.js } \\
+      
+      \textbf{ BACKEND }{: Express.js } \\
+      
+      \textbf{ BACKEND }{: Firebase } \\
+      
+      \textbf{ BACKEND }{: FastAPI } \\
+      
+      \textbf{ BACKEND }{: MongoDB } \\
+      
+      \textbf{ CLOUD }{: Render } \\
+      
+      \textbf{ BACKEND }{: GraphQL } \\
+      
+    }}
+ \end{itemize}
+
+%-------------------------------------------
+\end{document}

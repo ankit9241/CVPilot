@@ -13,5 +13,15 @@ export const isoDate = z
   .datetime({ offset: true })
   .or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/));
 
+export const lenientUrl = z.preprocess((val) => {
+  if (typeof val !== 'string') return val;
+  const trimmed = val.trim();
+  if (!trimmed) return undefined;
+  if (!/^https?:\/\//i.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+  return trimmed;
+}, z.string().url());
+
 export type IdParam = z.infer<typeof idParam>;
 export type PaginationQuery = z.infer<typeof paginationQuery>;

@@ -30,6 +30,7 @@ model User {
   settings            Settings?
   templatePreferences TemplatePreference[]
   uploadedResumes     UploadedResume[]
+  storageFiles        StorageFile[]
 
   @@index([email])
   @@index([provider, providerId])
@@ -109,10 +110,12 @@ model Experience {
   companyId            String?
   companyName          String
   role                 String
+  employmentType       String?
   location             String?
   startDate            DateTime?
   endDate              DateTime?
   isCurrent            Boolean                @default(false)
+  technologiesUsed     String[]               @default([])
   description          String?
   achievements         String[]               @default([])
   descriptionEmbedding Unsupported("vector")?
@@ -132,6 +135,8 @@ model Project {
   description          String?
   role                 String?
   stack                String[]               @default([])
+  featured             Boolean                @default(false)
+  imageUrls            String[]               @default([])
   githubUrl            String?
   liveUrl              String?
   startDate            DateTime?
@@ -152,6 +157,7 @@ model Skill {
   name      String
   category  SkillCategory @default(OTHER)
   level     Int?
+  sortOrder Int           @default(0)
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   profile   Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
@@ -166,6 +172,7 @@ model Certificate {
   name          String
   issuer        String
   issuedAt      DateTime?
+  expiresAt     DateTime?
   credentialId  String?
   credentialUrl String?
   createdAt     DateTime  @default(now())
@@ -180,7 +187,9 @@ model Achievement {
   profileId String
   title     String
   context   String?
+  description String?
   date      DateTime?
+  url       String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
@@ -235,14 +244,19 @@ model GenerationSession {
 }
 
 model WorkflowLog {
-  id        String            @id @default(uuid())
-  sessionId String
-  stepName  String?
-  nodeName  String?
-  message   String
-  status    String?
-  timestamp DateTime          @default(now())
-  session   GenerationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  id           String            @id @default(uuid())
+  sessionId    String
+  stepName     String?
+  nodeName     String?
+  message      String
+  status       String?
+  timestamp    DateTime          @default(now())
+  startedAt    DateTime?
+  completedAt  DateTime?
+  duration     Float?
+  retryCount   Int               @default(0)
+  errorMessage String?
+  session      GenerationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId, timestamp])
 }
@@ -344,6 +358,24 @@ model UploadedResume {
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model StorageFile {
+  id           String          @id @default(uuid())
+  userId       String
+  fileType     StorageFileType
+  originalName  String
+  storageKey    String          @unique
+  publicUrl     String
+  mimeType     String
+  size         Int
+  checksum     String?
+  deletedAt    DateTime?
+  createdAt    DateTime        @default(now())
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, fileType, createdAt])
+  @@index([userId, fileType, checksum])
 }
 
 model Template {
@@ -527,6 +559,9 @@ enum SkillCategory {
   CLOUD
   DEVOPS
   LANGUAGE
+  FRAMEWORK
+  LIBRARY
+  AI_ML
   AI
   TOOL
   SOFT
@@ -545,9 +580,24 @@ enum SocialPlatform {
   LINKEDIN
   GITHUB
   PORTFOLIO
+  WEBSITE
   LEETCODE
+  CODEFORCES
+  CODECHEF
+  HACKERRANK
+  MEDIUM
+  DEV
   TWITTER
   DRIBBBLE
   BEHANCE
   OTHER
+}
+
+enum StorageFileType {
+  PROFILE_PICTURE
+  UPLOADED_RESUME
+  RESUME_TEMPLATE
+  GENERATED_PDF
+  GENERATED_DOCX
+  GENERATED_LATEX
 }

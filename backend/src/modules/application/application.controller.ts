@@ -29,7 +29,10 @@ export class ApplicationController extends BaseController {
   });
 
   updateStatus = asyncHandler(async (req: Request, res: Response) => {
-    return this.sendOk(res, this.service.updateStatus(req.params.id, req.body.status, req.body.note));
+    return this.sendOk(
+      res,
+      this.service.updateStatus(req.params.id, req.body.status, req.body.note),
+    );
   });
 
   remove = asyncHandler(async (req: Request, res: Response) => {

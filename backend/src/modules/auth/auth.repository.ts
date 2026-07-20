@@ -9,15 +9,73 @@ export class AuthRepository extends BaseRepository<UserDelegate> {
   }
 
   findById(id: string) {
-    return this.delegate.findUnique({ where: { id } });
+    return this.delegate.findUnique({
+      where: { id },
+      include: {
+        profile: true,
+      },
+    });
   }
 
   findByEmail(email: string) {
-    return this.delegate.findUnique({ where: { email } });
+    return this.delegate.findUnique({
+      where: { email },
+      include: {
+        profile: true,
+      },
+    });
   }
 
   create(data: { email: string; passwordHash?: string | null; fullName?: string }) {
-    return this.delegate.create({ data });
+    return this.delegate.create({
+      data: {
+        email: data.email,
+        passwordHash: data.passwordHash,
+        profile: {
+          create: {
+            fullName: data.fullName || 'User',
+          },
+        },
+        vault: {
+          create: {
+            name: 'Default Vault',
+          },
+        },
+      },
+      include: {
+        profile: true,
+      },
+    });
+  }
+
+  createGoogleUser(data: {
+    email: string;
+    fullName: string;
+    avatarUrl?: string;
+    providerId: string;
+  }) {
+    return this.delegate.create({
+      data: {
+        email: data.email,
+        provider: 'GOOGLE',
+        providerId: data.providerId,
+        emailVerified: true,
+        profile: {
+          create: {
+            fullName: data.fullName,
+            avatarUrl: data.avatarUrl,
+          },
+        },
+        vault: {
+          create: {
+            name: 'Default Vault',
+          },
+        },
+      },
+      include: {
+        profile: true,
+      },
+    });
   }
 
   update(id: string, data: Record<string, unknown>) {

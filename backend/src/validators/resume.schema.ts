@@ -5,6 +5,7 @@ export const createResumeSchema = z.object({
   company: z.string().max(160).optional(),
   role: z.string().max(160).optional(),
   templateId: z.string().uuid().optional(),
+  versionId: z.string().uuid().optional(),
 });
 
 export const updateResumeSchema = createResumeSchema.partial().extend({

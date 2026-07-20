@@ -1,0 +1,213 @@
+% Jake's Resume
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\input{glyphtounicode}
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    \textbf{\Huge \scshape Ankit Kumar } \\ \vspace{1pt}
+    \small +91-9241272626 $|$ \href{mailto:}{\underline{  }}
+    
+    
+    
+    
+\end{center}
+
+%-----------SUMMARY-----------
+
+
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    
+    \resumeSubheading
+      { Indian Institute of Technology, Patna }{}
+      { Bachelor of Science  }{ 2024-07 -- 2028-08 }
+    
+  \resumeSubHeadingListEnd
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+  \resumeSubHeadingListStart
+    
+    \resumeSubheading
+      { Full Stack Developer }{ 2026-02 --  }
+      { Thrive Wellness }{ Remote }
+      \resumeItemListStart
+        
+        \resumeItem{ Revamped UIs using React, TypeScript, Tailwind CSS, improving engagement 25\textbackslash\{\}\% and brand consistency across 10+ pages. }
+        
+        \resumeItem{ Built component library with Radix UI and shadcn/ui, cutting feature dev time 30\textbackslash\{\}\% and achieving WCAG 2.1 AA compliance. }
+        
+        \resumeItem{ Integrated Firebase and GraphQL APIs for real-time sync, reducing page load latency 40\textbackslash\{\}\%. }
+        
+      \resumeItemListEnd
+    
+    \resumeSubheading
+      { Full Stack Developer }{ 2025-09 --  }
+      { Student Technical Council, IIT Patna }{ Patna, Bihar, India }
+      \resumeItemListStart
+        
+        \resumeItem{ Architected full-stack platform (Next.js, Node.js, MongoDB) automating event workflows, reducing admin overhead 50\textbackslash\{\}\%. }
+        
+        \resumeItem{ Designed RESTful and GraphQL endpoints enabling real-time updates for registrations and notifications. }
+        
+        \resumeItem{ Established CI/CD with GitHub Actions and automated testing (Jest, RTL), achieving 85\textbackslash\{\}\% coverage and zero-downtime deploys. }
+        
+      \resumeItemListEnd
+    
+  \resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section{Projects}
+  \resumeSubHeadingListStart
+    
+      \resumeProjectHeading
+          {\textbf{ PodSnap – AI-Powered Podcast to Shorts Generator } $|$ \emph{ Next.js, Node.js, AWS S3, Stripe, WhisperX, Gemini AI, FFmpeg, Modal Serverless, TypeScript, React }}{  --  }
+          \resumeItemListStart
+            
+            \resumeItem{ Built SaaS platform (Next.js, Node.js, AWS S3, Stripe) automating podcast-to-shorts with WhisperX/Gemini AI, saving creators 10+ hrs/episode. }
+            
+            \resumeItem{ Implemented secure Stripe payments and serverless functions handling 1,000+ transactions with 99.9\textbackslash\{\}\% uptime. }
+            
+            \resumeItem{ Optimized FFmpeg/AWS Lambda video pipeline, cutting transcoding costs 60\textbackslash\{\}\% and supporting 50+ concurrent users. }
+            
+          \resumeItemListEnd
+    
+      \resumeProjectHeading
+          {\textbf{ Envora } $|$ \emph{ React, Vite, Tailwind CSS, Node.js, Express.js, MongoDB, JWT, bcrypt, Google OAuth }}{  --  }
+          \resumeItemListStart
+            
+            \resumeItem{ Developed encrypted secrets vault (React, Vite, Node.js) for 200+ developers enabling secure API key storage and rotation. }
+            
+            \resumeItem{ Designed RBAC with audit logging meeting SOC 2 standards, reducing credential leakage 90\textbackslash\{\}\%. }
+            
+            \resumeItem{ Built CLI and VS Code extension driving 80\textbackslash\{\}\% adoption within first month. }
+            
+          \resumeItemListEnd
+    
+  \resumeSubHeadingListEnd
+
+%-----------PROGRAMMING SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+      
+      \textbf{ FRONTEND }{: React } \\
+      
+      \textbf{ LANGUAGE }{: TypeScript } \\
+      
+      \textbf{ FRONTEND }{: NextJS } \\
+      
+      \textbf{ FRONTEND }{: Tailwind } \\
+      
+      \textbf{ FRONTEND }{: shadcn } \\
+      
+      \textbf{ FRONTEND }{: radix } \\
+      
+      \textbf{ FRONTEND }{: framer motion } \\
+      
+      \textbf{ FRONTEND }{: vite } \\
+      
+      \textbf{ BACKEND }{: nodeJS } \\
+      
+      \textbf{ BACKEND }{: expressJS } \\
+      
+      \textbf{ BACKEND }{: firebase } \\
+      
+      \textbf{ BACKEND }{: MongoDB } \\
+      
+      \textbf{ BACKEND }{: GraphQL } \\
+      
+      \textbf{ LANGUAGE }{: Rust } \\
+      
+      \textbf{ FRONTEND }{: WebAssembly } \\
+      
+    }}
+ \end{itemize}
+
+%-------------------------------------------
+\end{document}

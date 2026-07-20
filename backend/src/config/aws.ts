@@ -10,7 +10,9 @@ export const awsConfig = {
   paths: {
     profileImages: 'profile-images',
     uploadedResumes: 'uploaded-resumes',
-    generatedPdfs: 'generated-pdfs',
+    generatedResumes: 'generated-resumes',
+    generatedDocx: 'generated-docx',
+    generatedLatex: 'generated-latex',
     templates: 'templates',
   },
 } as const;

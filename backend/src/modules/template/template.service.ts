@@ -1,5 +1,6 @@
 import { BaseService } from '../../common/base.service';
 import { dummyTemplates } from '../../constants/dummy-data';
+import { prisma } from '../../prisma/client';
 import { templateRepository, TemplateRepository } from './template.repository';
 
 export class TemplateService extends BaseService {
@@ -7,14 +8,32 @@ export class TemplateService extends BaseService {
     super();
   }
 
-  list = (filter: { category?: string; isPremium?: boolean } = {}) =>
-    dummyTemplates.filter(
-      (t) =>
-        (!filter.category || t.category === filter.category) &&
-        (filter.isPremium === undefined || t.isPremium === filter.isPremium),
-    );
+  async list(filter: { category?: any; isPremium?: boolean } = {}) {
+    const list = await prisma.template.findMany({
+      where: {
+        isActive: true,
+        ...(filter.category ? { category: filter.category } : {}),
+        ...(filter.isPremium !== undefined ? { isPremium: filter.isPremium } : {}),
+      },
+    });
 
-  get = (id: string) => dummyTemplates.find((t) => t.id === id) ?? dummyTemplates[0];
+    if (list.length === 0) {
+      return dummyTemplates.filter(
+        (t) =>
+          (!filter.category || t.category === filter.category) &&
+          (filter.isPremium === undefined || t.isPremium === filter.isPremium),
+      );
+    }
+    return list;
+  }
+
+  async get(id: string) {
+    const t = await prisma.template.findUnique({ where: { id } });
+    if (!t) {
+      return dummyTemplates.find((x) => x.id === id) || dummyTemplates[0];
+    }
+    return t;
+  }
 }
 
 export const templateService = new TemplateService();

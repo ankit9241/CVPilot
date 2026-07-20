@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PlaneTakeoff, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "../store/auth-store";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — CVPilot" }] }),
@@ -12,13 +13,17 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const [state, setState] = useState<"idle" | "loading" | "success">("idle");
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuthStore();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      navigate({ to: "/dashboard" });
+    }
+  }, [isLoading, isAuthenticated, navigate]);
 
   const handleGoogle = () => {
     setState("loading");
-    setTimeout(() => {
-      setState("success");
-      setTimeout(() => navigate({ to: "/dashboard" }), 900);
-    }, 1600);
+    window.location.href = "http://localhost:4000/api/auth/google";
   };
 
   return (

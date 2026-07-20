@@ -1,32 +1,41 @@
 import type { Request, Response } from 'express';
 import { BaseController } from '../../common/base.controller';
 import { asyncHandler } from '../../utils/async-handler';
-import { workflowService, WorkflowService } from './workflow.service';
+import { generationSessionService } from './generation-session.service';
+import {
+  generationSessionRepository,
+  workflowLogRepository,
+} from './generation-session.repository';
+import { NotFoundError, UnauthorizedError } from '../../utils/errors';
 
 export class WorkflowController extends BaseController {
-  constructor(protected readonly service: WorkflowService = workflowService) {
-    super();
-  }
-
-  list = asyncHandler(async (_req: Request, res: Response) => {
-    return this.sendOk(res, this.service.list());
+  initiate = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user?.sub) {
+      throw new UnauthorizedError('Unauthorized');
+    }
+    const session = await generationSessionService.initiate(req.user.sub, req.body.input || {});
+    return this.sendCreated(res, session);
   });
 
-  get = asyncHandler(async (req: Request, res: Response) => {
-    return this.sendOk(res, this.service.get(req.params.id));
+  getSession = asyncHandler(async (req: Request, res: Response) => {
+    const session = await generationSessionRepository.findById(req.params.id);
+    if (!session) {
+      throw new NotFoundError('Session not found');
+    }
+    return this.sendOk(res, session);
   });
 
-  logs = asyncHandler(async (req: Request, res: Response) => {
-    return this.sendOk(res, this.service.logs(req.params.id));
+  getLogs = asyncHandler(async (req: Request, res: Response) => {
+    const logs = await workflowLogRepository.findBySessionId(req.params.id);
+    return this.sendOk(res, logs);
   });
 
-  start = asyncHandler(async (req: Request, res: Response) => {
-    return this.sendCreated(res, this.service.start(req.body));
-  });
-
-  cancel = asyncHandler(async (req: Request, res: Response) => {
-    this.service.cancel(req.params.id);
-    return this.sendNoContent(res);
+  execute = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user?.sub) {
+      throw new UnauthorizedError('Unauthorized');
+    }
+    const result = await generationSessionService.execute(req.params.id, req.user.sub);
+    return this.sendOk(res, result);
   });
 }
 

@@ -13,16 +13,29 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { mainNav, bottomNav } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "../../store/auth-store";
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const { user, logout } = useAuthStore();
+
   const isActive = (url: string) =>
     url === "/dashboard" ? pathname === url : pathname.startsWith(url);
+
+  const getInitials = (name?: string) => {
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -105,17 +118,23 @@ export function AppSidebar() {
           )}
         >
           <Avatar className="h-8 w-8 shrink-0 border border-border">
+            {user?.profile?.avatarUrl && (
+              <AvatarImage src={user.profile.avatarUrl} alt={user.profile.fullName} />
+            )}
             <AvatarFallback className="bg-primary/10 text-[11px] font-semibold text-primary">
-              AL
+              {getInitials(user?.profile?.fullName)}
             </AvatarFallback>
           </Avatar>
           {!collapsed && (
             <>
               <div className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-[13px] font-medium">Alex Larsen</span>
-                <span className="truncate text-[11px] text-muted-foreground">alex@cvpilot.io</span>
+                <span className="truncate text-[13px] font-medium">
+                  {user?.profile?.fullName || "User"}
+                </span>
+                <span className="truncate text-[11px] text-muted-foreground">{user?.email}</span>
               </div>
               <button
+                onClick={logout}
                 className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
                 aria-label="Log out"
               >

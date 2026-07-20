@@ -29,7 +29,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { templates } from "@/constants/dummy-data";
+import { templates } from "@/constants/templates";
 
 export const Route = createFileRoute("/")({
   head: () => ({

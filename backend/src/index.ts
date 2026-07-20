@@ -8,7 +8,9 @@ import { env } from './config/env';
 import { logger } from './logger/logger';
 import { errorHandler, notFoundHandler, requestLogger, globalRateLimiter } from './middleware';
 import api from './routes';
-import { connectDatabase, disconnectDatabase } from './db/prisma';
+import { connectDatabase, disconnectDatabase, prisma } from './db/prisma';
+import { initializeAIModule } from './ai/init';
+import { seedTemplates } from './templates';
 
 export function createApp(): Application {
   const app = express();
@@ -39,9 +41,24 @@ export function createApp(): Application {
 
 async function bootstrap() {
   const app = createApp();
+
+  // Initialize AI module with LLM provider
+  try {
+    initializeAIModule();
+  } catch (err) {
+    logger.error('AI module initialization failed', {
+      err: err instanceof Error ? err.message : String(err),
+    });
+    process.exit(1);
+  }
+
   try {
     await connectDatabase();
     logger.info('Database connected');
+
+    // Seed templates
+    await seedTemplates(prisma);
+    logger.info('Templates seeded successfully');
   } catch (err) {
     logger.warn('Database connection failed – continuing without DB (dummy mode)', {
       err: err instanceof Error ? err.message : String(err),
@@ -69,5 +86,4 @@ async function bootstrap() {
 if (require.main === module) {
   void bootstrap();
 }
-// Trigger restart
-
+// Trigger server reload

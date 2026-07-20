@@ -1,1 +1,4 @@
-export { applicationRepository, ApplicationRepository } from '../modules/application/application.repository';
+export {
+  applicationRepository,
+  ApplicationRepository,
+} from '../modules/application/application.repository';

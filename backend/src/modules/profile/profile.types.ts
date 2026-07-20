@@ -13,6 +13,7 @@ export interface ProfileDomain {
 }
 
 export interface ProfileCompletion {
-  completion: number;
+  completionPct: number;
   missing: string[];
+  sections?: Record<string, number>;
 }

@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Check,
@@ -8,8 +9,6 @@ import {
   PlaneTakeoff,
   Plus,
   Trash2,
-  Pencil,
-  Upload,
   Sparkles,
   User,
   Link as LinkIcon,
@@ -21,24 +20,17 @@ import {
   Trophy,
   FileCheck,
   X,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import {
-  currentUser,
-  education,
-  experience,
-  projects,
-  skills as skillsData,
-  certificates,
-  achievements,
-  socialLinks,
-} from "@/constants/dummy-data";
+import { useAuthStore } from "../store/auth-store";
+import { api } from "../lib/api";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({ meta: [{ title: "Get started — CVPilot" }] }),
@@ -57,14 +49,100 @@ const stepsMeta = [
   { id: 9, title: "Review", icon: Award, required: true },
 ];
 
+// ─── shared state lifted to page level ───────────────────────────────────────
+interface BasicData {
+  fullName: string;
+  phone: string;
+  headline: string;
+  location: string;
+  summary: string;
+}
+
 function OnboardingPage() {
   const [step, setStep] = useState(1);
+  const [saving, setSaving] = useState(false);
+  const [finishing, setFinishing] = useState(false);
   const navigate = useNavigate();
+  const { user, isLoading, isAuthenticated } = useAuthStore();
   const total = stepsMeta.length;
   const progress = Math.round((step / total) * 100);
 
-  const next = () => setStep((s) => Math.min(total, s + 1));
+  // Basic info state (step 1) — lifted so Save&Continue can POST it
+  const [basic, setBasic] = useState<BasicData>({
+    fullName: "",
+    phone: "",
+    headline: "",
+    location: "",
+    summary: "",
+  });
+
+  // Pre-fill from Google profile once user loads
+  useEffect(() => {
+    if (user) {
+      setBasic({
+        fullName: user.profile?.fullName ?? "",
+        phone: user.profile?.phone ?? "",
+        headline: user.profile?.headline ?? "",
+        location: user.profile?.location ?? "",
+        summary: (user.profile as any)?.summary ?? "",
+      });
+    }
+  }, [user]);
+
+  // Auth guards
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) navigate({ to: "/login" });
+    if (!isLoading && isAuthenticated && (user?.profile?.completionPct ?? 0) > 0)
+      navigate({ to: "/dashboard" });
+  }, [isLoading, isAuthenticated, user, navigate]);
+
+  // Save current step data then advance
+  const handleNext = async () => {
+    setSaving(true);
+    try {
+      if (step === 1) {
+        await api.put("/profile", {
+          fullName: basic.fullName,
+          phone: basic.phone,
+          headline: basic.headline,
+          location: basic.location,
+          summary: basic.summary,
+        });
+      }
+      // For steps 2-8, data is saved inline via their own Add/Delete handlers
+      setStep((s) => Math.min(total, s + 1));
+    } catch {
+      // non-blocking
+      setStep((s) => Math.min(total, s + 1));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const prev = () => setStep((s) => Math.max(1, s - 1));
+
+  const handleFinish = async () => {
+    setFinishing(true);
+    try {
+      // Recalculate completion server-side
+      const result: any = await api.get("/profile/completion");
+      const pct = result?.completionPct ?? 100;
+      await api.put("/profile", { completionPct: Math.max(pct, 10) });
+    } catch {
+      // non-blocking
+    } finally {
+      setFinishing(false);
+      navigate({ to: "/dashboard" });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -83,8 +161,8 @@ function OnboardingPage() {
             <span className="h-3 w-px bg-border" />
             <span>{progress}% complete</span>
           </div>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/dashboard">Skip setup</Link>
+          <Button variant="ghost" size="sm" onClick={handleFinish} disabled={finishing}>
+            Skip setup
           </Button>
         </div>
         <div className="h-1 w-full bg-border">
@@ -98,7 +176,7 @@ function OnboardingPage() {
       </header>
 
       <div className="container-page grid flex-1 grid-cols-1 gap-8 py-10 lg:grid-cols-[260px_1fr] lg:py-14">
-        {/* Stepper */}
+        {/* Stepper sidebar */}
         <aside className="hidden lg:block">
           <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
             Setup
@@ -160,7 +238,7 @@ function OnboardingPage() {
               transition={{ duration: 0.25, ease: "easeOut" }}
               className="mx-auto max-w-2xl"
             >
-              {step === 1 && <StepBasic />}
+              {step === 1 && <StepBasic basic={basic} setBasic={setBasic} />}
               {step === 2 && <StepSocial />}
               {step === 3 && <StepEducation />}
               {step === 4 && <StepExperience />}
@@ -182,21 +260,28 @@ function OnboardingPage() {
                 </Button>
                 <div className="flex items-center gap-2">
                   {step > 1 && step < total && !stepsMeta[step - 1].required && (
-                    <Button variant="ghost" size="sm" onClick={next}>
+                    <Button variant="ghost" size="sm" onClick={() => setStep((s) => s + 1)}>
                       Skip
                     </Button>
                   )}
                   {step < total ? (
-                    <Button size="sm" onClick={next} className="gap-1.5">
+                    <Button size="sm" onClick={handleNext} disabled={saving} className="gap-1.5">
+                      {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
                       Save & continue <ArrowRight className="h-3.5 w-3.5" />
                     </Button>
                   ) : (
                     <Button
                       size="sm"
-                      onClick={() => navigate({ to: "/dashboard" })}
+                      onClick={handleFinish}
+                      disabled={finishing}
                       className="gap-1.5"
                     >
-                      Finish setup <Sparkles className="h-3.5 w-3.5" />
+                      {finishing ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3.5 w-3.5" />
+                      )}
+                      Finish setup
                     </Button>
                   )}
                 </div>
@@ -208,6 +293,8 @@ function OnboardingPage() {
     </div>
   );
 }
+
+// ─── helpers ─────────────────────────────────────────────────────────────────
 
 function StepHeader({
   eyebrow,
@@ -247,7 +334,28 @@ function Field({
   );
 }
 
-function StepBasic() {
+function EmptyState({ label }: { label: string }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-border bg-muted/30 py-8 text-center">
+      <p className="text-[13px] text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+// ─── Step 1: Basic Info ───────────────────────────────────────────────────────
+
+function StepBasic({ basic, setBasic }: { basic: any; setBasic: (v: any) => void }) {
+  const { user } = useAuthStore();
+  const initials = (basic.fullName || user?.email || "U")
+    .split(" ")
+    .map((w: string) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setBasic({ ...basic, [k]: e.target.value });
+
   return (
     <div>
       <StepHeader
@@ -257,36 +365,72 @@ function StepBasic() {
       />
       <div className="mt-8 flex items-center gap-4 rounded-2xl border border-border bg-card p-4">
         <Avatar className="h-16 w-16 border border-border">
+          {user?.profile?.avatarUrl && <AvatarImage src={user.profile.avatarUrl} />}
           <AvatarFallback className="bg-primary/10 text-[16px] font-semibold text-primary">
-            {currentUser.initials}
+            {initials}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1">
           <div className="text-[13px] font-medium">Profile photo</div>
           <div className="text-[12px] text-muted-foreground">
-            JPG or PNG · 400×400px recommended
+            Synced from Google · 400×400px recommended
           </div>
         </div>
-        <Button size="sm" variant="outline" className="gap-1.5">
-          <Upload className="h-3.5 w-3.5" /> Upload
-        </Button>
       </div>
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label="Full name">
-          <Input defaultValue={currentUser.name} className="h-10" />
+          <Input
+            value={basic.fullName}
+            onChange={set("fullName")}
+            className="h-10"
+            placeholder="Jane Doe"
+          />
         </Field>
         <Field label="Email">
-          <Input defaultValue={currentUser.email} className="h-10" />
+          <Input
+            value={user?.email ?? ""}
+            disabled
+            className="h-10 cursor-not-allowed bg-muted/50"
+          />
         </Field>
         <Field label="Phone">
-          <Input defaultValue={currentUser.phone} className="h-10" />
+          <Input
+            value={basic.phone}
+            onChange={set("phone")}
+            className="h-10"
+            placeholder="+91 98765 43210"
+          />
         </Field>
-        <Field label="Current role">
-          <Input defaultValue={currentUser.role} className="h-10" />
+        <Field label="Current role / headline">
+          <Input
+            value={basic.headline}
+            onChange={set("headline")}
+            className="h-10"
+            placeholder="e.g. Software Engineer"
+          />
         </Field>
         <div className="sm:col-span-2">
           <Field label="Location">
-            <Input defaultValue={currentUser.location} className="h-10" />
+            <Input
+              value={basic.location}
+              onChange={set("location")}
+              className="h-10"
+              placeholder="e.g. Bangalore, India"
+            />
+          </Field>
+        </div>
+        <div className="sm:col-span-2">
+          <Field
+            label="Summary"
+            hint="2–3 sentences about you. Will appear at the top of every resume."
+          >
+            <Textarea
+              value={basic.summary}
+              onChange={set("summary")}
+              rows={3}
+              className="resize-none"
+              placeholder="I'm a product-minded engineer passionate about..."
+            />
           </Field>
         </div>
       </div>
@@ -294,26 +438,70 @@ function StepBasic() {
   );
 }
 
+// ─── Step 2: Social Links ─────────────────────────────────────────────────────
+
+const SOCIAL_PLATFORMS = [
+  { key: "LINKEDIN", label: "LinkedIn", placeholder: "https://linkedin.com/in/..." },
+  { key: "GITHUB", label: "GitHub", placeholder: "https://github.com/..." },
+  { key: "PORTFOLIO", label: "Portfolio", placeholder: "https://yoursite.com" },
+  { key: "TWITTER", label: "Twitter / X", placeholder: "https://twitter.com/..." },
+  { key: "LEETCODE", label: "LeetCode", placeholder: "https://leetcode.com/..." },
+];
+
 function StepSocial() {
+  const [links, setLinks] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState<string | null>(null);
+
+  // Load existing
+  useEffect(() => {
+    api
+      .get<any[]>("/profile/social-links")
+      .then((data) => {
+        const map: Record<string, string> = {};
+        data.forEach((l: any) => {
+          map[l.platform] = l.url;
+        });
+        setLinks(map);
+      })
+      .catch(() => {});
+  }, []);
+
+  const saveLink = async (platform: string, url: string) => {
+    if (!url.trim()) return;
+    setSaving(platform);
+    try {
+      await api.post("/profile/social-links", { platform, url: url.trim() });
+    } catch {
+      // ignore duplicate / validation errors
+    } finally {
+      setSaving(null);
+    }
+  };
+
   return (
     <div>
       <StepHeader
         eyebrow="Step 2 of 9"
         title="Social links"
-        description="Add the ones that matter. Skip the rest — it's fine."
+        description="Add the ones that matter. They auto-save when you move to the next field."
       />
       <div className="mt-8 space-y-3">
-        {socialLinks.map((s) => (
+        {SOCIAL_PLATFORMS.map((s) => (
           <div
             key={s.key}
-            className="grid grid-cols-[110px_1fr] items-center gap-3 rounded-lg border border-border bg-card p-3"
+            className="grid grid-cols-[110px_1fr_auto] items-center gap-3 rounded-lg border border-border bg-card p-3"
           >
             <Label className="text-[13px] font-medium">{s.label}</Label>
             <Input
-              defaultValue={s.value}
+              value={links[s.key] ?? ""}
               placeholder={s.placeholder}
+              onChange={(e) => setLinks({ ...links, [s.key]: e.target.value })}
+              onBlur={(e) => saveLink(s.key, e.target.value)}
               className="h-9 border-0 bg-transparent shadow-none focus-visible:ring-0"
             />
+            {saving === s.key && (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+            )}
           </div>
         ))}
       </div>
@@ -321,7 +509,64 @@ function StepSocial() {
   );
 }
 
+// ─── Step 3: Education ────────────────────────────────────────────────────────
+
+interface EduItem {
+  id?: string;
+  institution: string;
+  degree: string;
+  fieldOfStudy: string;
+  startYear: string;
+  endYear: string;
+  grade: string;
+}
+const emptyEdu = (): EduItem => ({
+  institution: "",
+  degree: "",
+  fieldOfStudy: "",
+  startYear: "",
+  endYear: "",
+  grade: "",
+});
+
 function StepEducation() {
+  const [items, setItems] = useState<EduItem[]>([]);
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState<EduItem>(emptyEdu());
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setItems(await api.get<EduItem[]>("/profile/education"));
+    } catch {}
+  }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await api.post("/profile/education", form);
+      await load();
+      setForm(emptyEdu());
+      setAdding(false);
+    } catch {
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const remove = async (id: string) => {
+    try {
+      await api.delete(`/profile/education/${id}`);
+      await load();
+    } catch {}
+  };
+
+  const set = (k: keyof EduItem) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm({ ...form, [k]: e.target.value });
+
   return (
     <div>
       <StepHeader
@@ -330,39 +575,172 @@ function StepEducation() {
         description="Add every degree, bootcamp or programme worth mentioning."
       />
       <div className="mt-8 space-y-3">
-        {education.map((e) => (
+        {items.length === 0 && !adding && (
+          <EmptyState label="No education added yet — click below to add." />
+        )}
+        {items.map((e) => (
           <div
             key={e.id}
-            className="group rounded-2xl border border-border bg-card p-5 shadow-subtle transition-all hover:shadow-soft"
+            className="group rounded-2xl border border-border bg-card p-5 shadow-subtle"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-[14px] font-semibold">{e.school}</div>
+                <div className="text-[14px] font-semibold">{e.institution}</div>
                 <div className="mt-0.5 text-[13px] text-foreground/80">{e.degree}</div>
                 <div className="text-[12px] text-muted-foreground">
-                  {e.field} · {e.start} – {e.end} · GPA {e.gpa}
+                  {e.fieldOfStudy} · {e.startYear} – {e.endYear}
+                  {e.grade ? ` · GPA ${e.grade}` : ""}
                 </div>
               </div>
-              <div className="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                  <Pencil className="h-3.5 w-3.5" />
-                </Button>
-                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 text-destructive opacity-0 transition-opacity group-hover:opacity-100"
+                onClick={() => e.id && remove(e.id)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
             </div>
           </div>
         ))}
-        <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-4 text-[13px] font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground">
-          <Plus className="h-4 w-4" /> Add education
-        </button>
+
+        {adding && (
+          <div className="rounded-2xl border border-primary/40 bg-card p-5 shadow-subtle">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="School / University">
+                <Input
+                  value={form.institution}
+                  onChange={set("institution")}
+                  className="h-9"
+                  placeholder="MIT"
+                />
+              </Field>
+              <Field label="Degree">
+                <Input
+                  value={form.degree}
+                  onChange={set("degree")}
+                  className="h-9"
+                  placeholder="B.Tech"
+                />
+              </Field>
+              <Field label="Field of study">
+                <Input
+                  value={form.fieldOfStudy}
+                  onChange={set("fieldOfStudy")}
+                  className="h-9"
+                  placeholder="Computer Science"
+                />
+              </Field>
+              <Field label="GPA / Grade">
+                <Input
+                  value={form.grade}
+                  onChange={set("grade")}
+                  className="h-9"
+                  placeholder="3.8"
+                />
+              </Field>
+              <Field label="Start year">
+                <Input
+                  value={form.startYear}
+                  onChange={set("startYear")}
+                  className="h-9"
+                  placeholder="2020"
+                />
+              </Field>
+              <Field label="End year">
+                <Input
+                  value={form.endYear}
+                  onChange={set("endYear")}
+                  className="h-9"
+                  placeholder="2024"
+                />
+              </Field>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <Button size="sm" onClick={save} disabled={saving} className="gap-1.5">
+                {saving && <Loader2 className="h-3 w-3 animate-spin" />} Save
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setAdding(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!adding && (
+          <button
+            onClick={() => setAdding(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-4 text-[13px] font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          >
+            <Plus className="h-4 w-4" /> Add education
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
+// ─── Step 4: Experience ───────────────────────────────────────────────────────
+
+interface ExpItem {
+  id?: string;
+  company: string;
+  title: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  current: boolean;
+  description: string;
+}
+const emptyExp = (): ExpItem => ({
+  company: "",
+  title: "",
+  location: "",
+  startDate: "",
+  endDate: "",
+  current: false,
+  description: "",
+});
+
 function StepExperience() {
+  const [items, setItems] = useState<ExpItem[]>([]);
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState<ExpItem>(emptyExp());
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setItems(await api.get<ExpItem[]>("/profile/experience"));
+    } catch {}
+  }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await api.post("/profile/experience", form);
+      await load();
+      setForm(emptyExp());
+      setAdding(false);
+    } catch {
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const remove = async (id: string) => {
+    try {
+      await api.delete(`/profile/experience/${id}`);
+      await load();
+    } catch {}
+  };
+
+  const set =
+    (k: keyof ExpItem) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setForm({ ...form, [k]: e.target.value });
+
   return (
     <div>
       <StepHeader
@@ -370,149 +748,467 @@ function StepExperience() {
         title="Experience"
         description="Every role, every impact — as a timeline you can edit."
       />
-      <div className="relative mt-8 space-y-4 pl-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:bg-border">
-        {experience.map((x) => (
+      <div className="relative mt-8 space-y-4 pl-6 before:absolute before:bottom-2 before:left-2 before:top-2 before:w-px before:bg-border">
+        {items.length === 0 && !adding && (
+          <EmptyState label="No experience added yet — click below to add." />
+        )}
+        {items.map((x) => (
           <div
             key={x.id}
-            className="relative rounded-2xl border border-border bg-card p-5 shadow-subtle"
+            className="group relative rounded-2xl border border-border bg-card p-5 shadow-subtle"
           >
             <span className="absolute -left-6 top-6 grid h-4 w-4 place-items-center rounded-full border-2 border-primary bg-background" />
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-[14px] font-semibold">{x.role}</div>
+                <div className="text-[14px] font-semibold">{x.title}</div>
                 <div className="text-[13px] text-muted-foreground">
-                  {x.company} · {x.location}
+                  {x.company}
+                  {x.location ? ` · ${x.location}` : ""}
                 </div>
                 <div className="mt-0.5 text-[12px] text-muted-foreground">
-                  {x.start} – {x.end}
+                  {x.startDate} – {x.current ? "Present" : x.endDate}
                 </div>
               </div>
-              <div className="flex gap-1">
-                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                  <Pencil className="h-3.5 w-3.5" />
-                </Button>
-                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 text-destructive opacity-0 transition-opacity group-hover:opacity-100"
+                onClick={() => x.id && remove(x.id)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
             </div>
-            <p className="mt-3 text-[13px] leading-relaxed text-foreground/80">{x.description}</p>
-            <ul className="mt-3 space-y-1.5">
-              {x.achievements.map((a) => (
-                <li key={a} className="flex items-start gap-2 text-[12.5px] text-muted-foreground">
-                  <Check className="mt-0.5 h-3 w-3 shrink-0 text-primary" /> {a}
-                </li>
-              ))}
-            </ul>
+            {x.description && (
+              <p className="mt-3 text-[13px] leading-relaxed text-foreground/80">{x.description}</p>
+            )}
           </div>
         ))}
-        <button className="relative flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-4 text-[13px] font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground">
-          <span className="absolute -left-6 top-1/2 grid h-4 w-4 -translate-y-1/2 place-items-center rounded-full border-2 border-dashed border-border bg-background" />
-          <Plus className="h-4 w-4" /> Add experience
-        </button>
+
+        {adding && (
+          <div className="relative rounded-2xl border border-primary/40 bg-card p-5 shadow-subtle">
+            <span className="absolute -left-6 top-6 grid h-4 w-4 place-items-center rounded-full border-2 border-dashed border-border bg-background" />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="Job title">
+                <Input
+                  value={form.title}
+                  onChange={set("title")}
+                  className="h-9"
+                  placeholder="Software Engineer"
+                />
+              </Field>
+              <Field label="Company">
+                <Input
+                  value={form.company}
+                  onChange={set("company")}
+                  className="h-9"
+                  placeholder="Google"
+                />
+              </Field>
+              <Field label="Location">
+                <Input
+                  value={form.location}
+                  onChange={set("location")}
+                  className="h-9"
+                  placeholder="Remote / Bangalore"
+                />
+              </Field>
+              <Field label="Start date">
+                <Input
+                  value={form.startDate}
+                  onChange={set("startDate")}
+                  className="h-9"
+                  placeholder="Jan 2022"
+                />
+              </Field>
+              <Field label="End date">
+                <Input
+                  value={form.endDate}
+                  onChange={set("endDate")}
+                  className="h-9"
+                  placeholder="Present"
+                  disabled={form.current}
+                />
+              </Field>
+              <div className="flex items-center gap-2 pt-5">
+                <input
+                  type="checkbox"
+                  id="current"
+                  checked={form.current}
+                  onChange={(e) => setForm({ ...form, current: e.target.checked })}
+                  className="accent-primary"
+                />
+                <label htmlFor="current" className="text-[13px]">
+                  Currently working here
+                </label>
+              </div>
+              <div className="sm:col-span-2">
+                <Field label="Description / achievements">
+                  <Textarea
+                    value={form.description}
+                    onChange={set("description")}
+                    rows={3}
+                    className="resize-none"
+                    placeholder="Describe your responsibilities and impact..."
+                  />
+                </Field>
+              </div>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <Button size="sm" onClick={save} disabled={saving} className="gap-1.5">
+                {saving && <Loader2 className="h-3 w-3 animate-spin" />} Save
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setAdding(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!adding && (
+          <button
+            onClick={() => setAdding(true)}
+            className="relative flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-4 text-[13px] font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          >
+            <span className="absolute -left-6 top-1/2 grid h-4 w-4 -translate-y-1/2 place-items-center rounded-full border-2 border-dashed border-border bg-background" />
+            <Plus className="h-4 w-4" /> Add experience
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
+// ─── Step 5: Projects ─────────────────────────────────────────────────────────
+
+interface ProjItem {
+  id?: string;
+  name: string;
+  role: string;
+  description: string;
+  techStack: string;
+  githubUrl: string;
+  liveUrl: string;
+  startDate: string;
+  endDate: string;
+}
+const emptyProj = (): ProjItem => ({
+  name: "",
+  role: "",
+  description: "",
+  techStack: "",
+  githubUrl: "",
+  liveUrl: "",
+  startDate: "",
+  endDate: "",
+});
+
 function StepProjects() {
+  const [items, setItems] = useState<ProjItem[]>([]);
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState<ProjItem>(emptyProj());
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setItems(await api.get<ProjItem[]>("/profile/projects"));
+    } catch {}
+  }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const techStackArr = form.techStack
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+      await api.post("/profile/projects", { ...form, techStack: techStackArr });
+      await load();
+      setForm(emptyProj());
+      setAdding(false);
+    } catch {
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const remove = async (id: string) => {
+    try {
+      await api.delete(`/profile/projects/${id}`);
+      await load();
+    } catch {}
+  };
+
+  const set =
+    (k: keyof ProjItem) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setForm({ ...form, [k]: e.target.value });
+
   return (
     <div>
       <StepHeader
         eyebrow="Step 5 of 9"
         title="Projects"
-        description="Ship-worthy work you want the world (and recruiters) to see."
+        description="Ship-worthy work you want recruiters to see."
       />
       <div className="mt-8 grid grid-cols-1 gap-3">
-        {projects.map((p) => (
+        {items.length === 0 && !adding && (
+          <EmptyState label="No projects added yet — click below to add." />
+        )}
+        {items.map((p) => (
           <div
             key={p.id}
-            className="rounded-2xl border border-border bg-card p-5 shadow-subtle transition-all hover:shadow-soft"
+            className="group rounded-2xl border border-border bg-card p-5 shadow-subtle transition-all hover:shadow-soft"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-[14px] font-semibold">{p.name}</div>
-                <div className="text-[12px] text-muted-foreground">
-                  {p.role} · {p.duration}
-                </div>
+                <div className="text-[12px] text-muted-foreground">{p.role}</div>
               </div>
-              <div className="flex gap-1">
-                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                  <Pencil className="h-3.5 w-3.5" />
-                </Button>
-                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 text-destructive opacity-0 transition-opacity group-hover:opacity-100"
+                onClick={() => p.id && remove(p.id)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
             </div>
             <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
               {p.description}
             </p>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {p.stack.map((t) => (
-                <Badge key={t} variant="secondary" className="rounded-full text-[11px] font-normal">
-                  {t}
-                </Badge>
-              ))}
-            </div>
-            <div className="mt-3 flex flex-wrap gap-4 text-[12px] text-muted-foreground">
-              {p.github && <span>↗ {p.github}</span>}
-              {p.live && <span>↗ {p.live}</span>}
-              <span>Impact: {p.impact}</span>
-            </div>
+            {p.techStack && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {(Array.isArray(p.techStack) ? p.techStack : String(p.techStack).split(",")).map(
+                  (t: string) => (
+                    <Badge
+                      key={t}
+                      variant="secondary"
+                      className="rounded-full text-[11px] font-normal"
+                    >
+                      {t.trim()}
+                    </Badge>
+                  ),
+                )}
+              </div>
+            )}
           </div>
         ))}
-        <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-4 text-[13px] font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground">
-          <Plus className="h-4 w-4" /> Add project
-        </button>
+
+        {adding && (
+          <div className="rounded-2xl border border-primary/40 bg-card p-5">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="Project name">
+                <Input
+                  value={form.name}
+                  onChange={set("name")}
+                  className="h-9"
+                  placeholder="CVPilot"
+                />
+              </Field>
+              <Field label="Your role">
+                <Input
+                  value={form.role}
+                  onChange={set("role")}
+                  className="h-9"
+                  placeholder="Full-stack Developer"
+                />
+              </Field>
+              <Field label="Start date">
+                <Input
+                  value={form.startDate}
+                  onChange={set("startDate")}
+                  className="h-9"
+                  placeholder="Jun 2023"
+                />
+              </Field>
+              <Field label="End date">
+                <Input
+                  value={form.endDate}
+                  onChange={set("endDate")}
+                  className="h-9"
+                  placeholder="Present"
+                />
+              </Field>
+              <Field label="GitHub URL">
+                <Input
+                  value={form.githubUrl}
+                  onChange={set("githubUrl")}
+                  className="h-9"
+                  placeholder="https://github.com/..."
+                />
+              </Field>
+              <Field label="Live URL">
+                <Input
+                  value={form.liveUrl}
+                  onChange={set("liveUrl")}
+                  className="h-9"
+                  placeholder="https://..."
+                />
+              </Field>
+              <div className="sm:col-span-2">
+                <Field label="Tech stack" hint="Comma-separated: React, Node.js, PostgreSQL">
+                  <Input
+                    value={form.techStack}
+                    onChange={set("techStack")}
+                    className="h-9"
+                    placeholder="React, TypeScript, PostgreSQL"
+                  />
+                </Field>
+              </div>
+              <div className="sm:col-span-2">
+                <Field label="Description">
+                  <Textarea
+                    value={form.description}
+                    onChange={set("description")}
+                    rows={3}
+                    className="resize-none"
+                    placeholder="What problem did it solve? What was the impact?"
+                  />
+                </Field>
+              </div>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <Button size="sm" onClick={save} disabled={saving} className="gap-1.5">
+                {saving && <Loader2 className="h-3 w-3 animate-spin" />} Save
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setAdding(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!adding && (
+          <button
+            onClick={() => setAdding(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-4 text-[13px] font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          >
+            <Plus className="h-4 w-4" /> Add project
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
+// ─── Step 6: Skills ───────────────────────────────────────────────────────────
+
+const SKILL_CATEGORIES = [
+  "Frontend",
+  "Backend",
+  "Database",
+  "Cloud",
+  "DevOps",
+  "AI",
+  "Language",
+  "Tool",
+  "Soft",
+  "Other",
+];
+
 function StepSkills() {
+  const [skills, setSkills] = useState<Array<{ id: string; name: string; category: string }>>([]);
   const [input, setInput] = useState("");
-  const [state, setState] = useState(skillsData);
+  const [category, setCategory] = useState("Frontend");
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setSkills(await api.get<any[]>("/profile/skills"));
+    } catch {}
+  }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const addSkill = async () => {
+    if (!input.trim()) return;
+    setSaving(true);
+    try {
+      await api.post("/profile/skills", { name: input.trim(), category: category.toUpperCase() });
+      await load();
+      setInput("");
+    } catch {
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeSkill = async (id: string) => {
+    try {
+      await api.delete(`/profile/skills/${id}`);
+      await load();
+    } catch {}
+  };
+
+  const grouped = SKILL_CATEGORIES.reduce(
+    (acc, cat) => {
+      const items = skills.filter((s) => s.category.toUpperCase() === cat.toUpperCase());
+      if (items.length > 0) acc[cat] = items;
+      return acc;
+    },
+    {} as Record<string, typeof skills>,
+  );
+
   return (
     <div>
       <StepHeader
         eyebrow="Step 6 of 9"
         title="Skills"
-        description="Group by category. Type + Enter to add a tag."
+        description="Add your skills grouped by category."
       />
       <div className="mt-8 space-y-4">
-        {Object.entries(state).map(([cat, tags]) => (
+        {/* Add skill input */}
+        <div className="flex gap-2 rounded-2xl border border-border bg-card p-4">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="h-9 rounded-md border border-border bg-background px-2 text-[12px] text-foreground"
+          >
+            {SKILL_CATEGORIES.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addSkill();
+              }
+            }}
+            placeholder="Type skill name + Enter"
+            className="h-9 flex-1"
+          />
+          <Button size="sm" onClick={addSkill} disabled={saving} className="gap-1">
+            {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}{" "}
+            Add
+          </Button>
+        </div>
+
+        {skills.length === 0 && <EmptyState label="No skills added yet." />}
+        {Object.entries(grouped).map(([cat, items]) => (
           <div key={cat} className="rounded-2xl border border-border bg-card p-5">
             <div className="text-[13px] font-semibold">{cat}</div>
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {tags.map((t) => (
+              {items.map((s) => (
                 <span
-                  key={t}
+                  key={s.id}
                   className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[12px]"
                 >
-                  {t}
+                  {s.name}
                   <button
-                    onClick={() => setState({ ...state, [cat]: tags.filter((x) => x !== t) })}
+                    onClick={() => removeSkill(s.id)}
                     className="text-muted-foreground transition-colors hover:text-destructive"
-                    aria-label={`Remove ${t}`}
+                    aria-label={`Remove ${s.name}`}
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </span>
               ))}
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && input.trim()) {
-                    e.preventDefault();
-                    setState({ ...state, [cat]: [...tags, input.trim()] });
-                    setInput("");
-                  }
-                }}
-                placeholder="Add tag…"
-                className="min-w-[120px] flex-1 bg-transparent text-[12px] outline-none placeholder:text-muted-foreground"
-              />
             </div>
           </div>
         ))}
@@ -521,43 +1217,217 @@ function StepSkills() {
   );
 }
 
+// ─── Step 7: Certificates ─────────────────────────────────────────────────────
+
+interface CertItem {
+  id?: string;
+  name: string;
+  issuingOrg: string;
+  issueDate: string;
+  credentialId: string;
+  credentialUrl: string;
+}
+const emptyCert = (): CertItem => ({
+  name: "",
+  issuingOrg: "",
+  issueDate: "",
+  credentialId: "",
+  credentialUrl: "",
+});
+
 function StepCertificates() {
+  const [items, setItems] = useState<CertItem[]>([]);
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState<CertItem>(emptyCert());
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setItems(await api.get<CertItem[]>("/profile/certificates"));
+    } catch {}
+  }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await api.post("/profile/certificates", form);
+      await load();
+      setForm(emptyCert());
+      setAdding(false);
+    } catch {
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const remove = async (id: string) => {
+    try {
+      await api.delete(`/profile/certificates/${id}`);
+      await load();
+    } catch {}
+  };
+
+  const set = (k: keyof CertItem) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm({ ...form, [k]: e.target.value });
+
   return (
     <div>
       <StepHeader
         eyebrow="Step 7 of 9"
         title="Certificates"
-        description="Add credentials and upload proof if you'd like."
+        description="Add credentials you've earned."
       />
       <div className="mt-8 space-y-3">
-        {certificates.map((c) => (
+        {items.length === 0 && !adding && <EmptyState label="No certificates added yet." />}
+        {items.map((c) => (
           <div
             key={c.id}
-            className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-card p-5"
+            className="group flex items-start justify-between gap-3 rounded-2xl border border-border bg-card p-5"
           >
             <div>
               <div className="text-[14px] font-semibold">{c.name}</div>
               <div className="text-[12.5px] text-muted-foreground">
-                {c.issuer} · {c.date}
+                {c.issuingOrg} · {c.issueDate}
               </div>
-              <div className="mt-1 font-mono text-[11px] text-muted-foreground">
-                ID: {c.credential}
-              </div>
+              {c.credentialId && (
+                <div className="mt-1 font-mono text-[11px] text-muted-foreground">
+                  ID: {c.credentialId}
+                </div>
+              )}
             </div>
-            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 w-8 p-0 text-destructive opacity-0 transition-opacity group-hover:opacity-100"
+              onClick={() => c.id && remove(c.id)}
+            >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
         ))}
-        <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-6 text-[13px] font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground">
-          <Upload className="h-4 w-4" /> Add certificate · drop file or click
-        </button>
+
+        {adding && (
+          <div className="rounded-2xl border border-primary/40 bg-card p-5">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field label="Certificate name">
+                <Input
+                  value={form.name}
+                  onChange={set("name")}
+                  className="h-9"
+                  placeholder="AWS Solutions Architect"
+                />
+              </Field>
+              <Field label="Issuing organisation">
+                <Input
+                  value={form.issuingOrg}
+                  onChange={set("issuingOrg")}
+                  className="h-9"
+                  placeholder="Amazon Web Services"
+                />
+              </Field>
+              <Field label="Issue date">
+                <Input
+                  value={form.issueDate}
+                  onChange={set("issueDate")}
+                  className="h-9"
+                  placeholder="Mar 2024"
+                />
+              </Field>
+              <Field label="Credential ID">
+                <Input
+                  value={form.credentialId}
+                  onChange={set("credentialId")}
+                  className="h-9"
+                  placeholder="ABC-12345"
+                />
+              </Field>
+              <div className="sm:col-span-2">
+                <Field label="Credential URL">
+                  <Input
+                    value={form.credentialUrl}
+                    onChange={set("credentialUrl")}
+                    className="h-9"
+                    placeholder="https://..."
+                  />
+                </Field>
+              </div>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <Button size="sm" onClick={save} disabled={saving} className="gap-1.5">
+                {saving && <Loader2 className="h-3 w-3 animate-spin" />} Save
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setAdding(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!adding && (
+          <button
+            onClick={() => setAdding(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-6 text-[13px] font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          >
+            <Plus className="h-4 w-4" /> Add certificate
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
+// ─── Step 8: Achievements ─────────────────────────────────────────────────────
+
+interface AchItem {
+  id?: string;
+  title: string;
+  date: string;
+  description: string;
+}
+const emptyAch = (): AchItem => ({ title: "", date: "", description: "" });
+
 function StepAchievements() {
+  const [items, setItems] = useState<AchItem[]>([]);
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState<AchItem>(emptyAch());
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setItems(await api.get<AchItem[]>("/profile/achievements"));
+    } catch {}
+  }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await api.post("/profile/achievements", form);
+      await load();
+      setForm(emptyAch());
+      setAdding(false);
+    } catch {
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const remove = async (id: string) => {
+    try {
+      await api.delete(`/profile/achievements/${id}`);
+      await load();
+    } catch {}
+  };
+
+  const set =
+    (k: keyof AchItem) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setForm({ ...form, [k]: e.target.value });
+
   return (
     <div>
       <StepHeader
@@ -566,48 +1436,156 @@ function StepAchievements() {
         description="Awards, honours, moments that shaped your career."
       />
       <div className="mt-8 grid grid-cols-1 gap-3">
-        {achievements.map((a) => (
-          <div key={a.id} className="rounded-2xl border border-border bg-card p-5">
+        {items.length === 0 && !adding && <EmptyState label="No achievements added yet." />}
+        {items.map((a) => (
+          <div key={a.id} className="group rounded-2xl border border-border bg-card p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-[14px] font-semibold">{a.title}</div>
                 <div className="text-[12.5px] text-muted-foreground">{a.date}</div>
               </div>
-              <Trophy className="h-4 w-4 text-primary" strokeWidth={1.5} />
+              <div className="flex items-center gap-1">
+                <Trophy className="h-4 w-4 text-primary" strokeWidth={1.5} />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 w-8 p-0 text-destructive opacity-0 transition-opacity group-hover:opacity-100"
+                  onClick={() => a.id && remove(a.id)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
-            <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">{a.context}</p>
+            {a.description && (
+              <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+                {a.description}
+              </p>
+            )}
           </div>
         ))}
-        <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-4 text-[13px] font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground">
-          <Plus className="h-4 w-4" /> Add achievement
-        </button>
+
+        {adding && (
+          <div className="rounded-2xl border border-primary/40 bg-card p-5">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <Field label="Achievement title">
+                  <Input
+                    value={form.title}
+                    onChange={set("title")}
+                    className="h-9"
+                    placeholder="Best Paper Award · IEEE 2024"
+                  />
+                </Field>
+              </div>
+              <Field label="Date">
+                <Input
+                  value={form.date}
+                  onChange={set("date")}
+                  className="h-9"
+                  placeholder="Dec 2024"
+                />
+              </Field>
+              <div className="sm:col-span-2">
+                <Field label="Context / description">
+                  <Textarea
+                    value={form.description}
+                    onChange={set("description")}
+                    rows={2}
+                    className="resize-none"
+                    placeholder="Briefly describe the achievement..."
+                  />
+                </Field>
+              </div>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <Button size="sm" onClick={save} disabled={saving} className="gap-1.5">
+                {saving && <Loader2 className="h-3 w-3 animate-spin" />} Save
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setAdding(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!adding && (
+          <button
+            onClick={() => setAdding(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-4 text-[13px] font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          >
+            <Plus className="h-4 w-4" /> Add achievement
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
+// ─── Step 9: Review ───────────────────────────────────────────────────────────
+
 function StepReview({ onEdit }: { onEdit: (n: number) => void }) {
-  const completion = 92;
+  const { user } = useAuthStore();
+  const [counts, setCounts] = useState({
+    social: 0,
+    edu: 0,
+    exp: 0,
+    proj: 0,
+    skills: 0,
+    certs: 0,
+    ach: 0,
+  });
+  const [completion, setCompletion] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const [social, edu, exp, proj, skills, certs, ach, comp] = await Promise.all([
+          api.get<any[]>("/profile/social-links").catch(() => []),
+          api.get<any[]>("/profile/education").catch(() => []),
+          api.get<any[]>("/profile/experience").catch(() => []),
+          api.get<any[]>("/profile/projects").catch(() => []),
+          api.get<any[]>("/profile/skills").catch(() => []),
+          api.get<any[]>("/profile/certificates").catch(() => []),
+          api.get<any[]>("/profile/achievements").catch(() => []),
+          api.get<any>("/profile/completion").catch(() => ({ completionPct: 0 })),
+        ]);
+        setCounts({
+          social: social.length,
+          edu: edu.length,
+          exp: exp.length,
+          proj: proj.length,
+          skills: skills.length,
+          certs: certs.length,
+          ach: ach.length,
+        });
+        setCompletion(comp?.completionPct ?? 0);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
   const rows = [
-    { n: 1, label: "Basic info", value: currentUser.name, ok: true },
+    { n: 1, label: "Basic info", value: user?.profile?.fullName || user?.email || "—" },
+    { n: 2, label: "Social links", value: `${counts.social} added` },
+    { n: 3, label: "Education", value: `${counts.edu} ${counts.edu === 1 ? "entry" : "entries"}` },
+    { n: 4, label: "Experience", value: `${counts.exp} ${counts.exp === 1 ? "role" : "roles"}` },
     {
-      n: 2,
-      label: "Social links",
-      value: `${socialLinks.filter((s) => s.value).length} added`,
-      ok: true,
+      n: 5,
+      label: "Projects",
+      value: `${counts.proj} ${counts.proj === 1 ? "project" : "projects"}`,
     },
-    { n: 3, label: "Education", value: `${education.length} entries`, ok: true },
-    { n: 4, label: "Experience", value: `${experience.length} roles`, ok: true },
-    { n: 5, label: "Projects", value: `${projects.length} projects`, ok: true },
+    { n: 6, label: "Skills", value: `${counts.skills} skills` },
+    { n: 7, label: "Certificates", value: `${counts.certs} certificates` },
     {
-      n: 6,
-      label: "Skills",
-      value: `${Object.values(skillsData).flat().length} tags across ${Object.keys(skillsData).length} categories`,
-      ok: true,
+      n: 8,
+      label: "Achievements",
+      value: `${counts.ach} ${counts.ach === 1 ? "entry" : "entries"}`,
     },
-    { n: 7, label: "Certificates", value: `${certificates.length} certificates`, ok: true },
-    { n: 8, label: "Achievements", value: `${achievements.length} entries`, ok: true },
   ];
+
   return (
     <div>
       <StepHeader
@@ -616,39 +1594,48 @@ function StepReview({ onEdit }: { onEdit: (n: number) => void }) {
         description="A quick summary before you enter your workspace."
       />
       <div className="mt-8 rounded-2xl border border-border bg-card p-6 shadow-subtle">
-        <div className="flex items-center gap-4">
-          <div className="relative h-16 w-16">
-            <svg viewBox="0 0 36 36" className="h-16 w-16 -rotate-90">
-              <circle
-                cx="18"
-                cy="18"
-                r="16"
-                fill="none"
-                stroke="var(--color-muted)"
-                strokeWidth="3"
-              />
-              <circle
-                cx="18"
-                cy="18"
-                r="16"
-                fill="none"
-                stroke="var(--color-primary)"
-                strokeWidth="3"
-                strokeDasharray={`${(completion / 100) * 100.5} 100.5`}
-                strokeLinecap="round"
-              />
-            </svg>
-            <div className="absolute inset-0 grid place-items-center text-[13px] font-semibold">
-              {completion}%
+        {loading ? (
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <span className="text-[13px] text-muted-foreground">
+              Calculating profile completion…
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-4">
+            <div className="relative h-16 w-16">
+              <svg viewBox="0 0 36 36" className="h-16 w-16 -rotate-90">
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="16"
+                  fill="none"
+                  stroke="var(--color-muted)"
+                  strokeWidth="3"
+                />
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="16"
+                  fill="none"
+                  stroke="var(--color-primary)"
+                  strokeWidth="3"
+                  strokeDasharray={`${(completion / 100) * 100.5} 100.5`}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 grid place-items-center text-[13px] font-semibold">
+                {completion}%
+              </div>
+            </div>
+            <div className="flex-1">
+              <div className="text-[15px] font-semibold">Profile complete</div>
+              <div className="text-[12.5px] text-muted-foreground">
+                Great start. You can refine anything anytime from your profile.
+              </div>
             </div>
           </div>
-          <div className="flex-1">
-            <div className="text-[15px] font-semibold">Profile complete</div>
-            <div className="text-[12.5px] text-muted-foreground">
-              Great start. You can refine anything anytime from your profile.
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       <div className="mt-4 divide-y divide-border rounded-2xl border border-border bg-card">

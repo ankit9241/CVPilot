@@ -9,11 +9,14 @@ export class TemplateController extends BaseController {
   }
 
   list = asyncHandler(async (req: Request, res: Response) => {
-    return this.sendOk(res, this.service.list(req.query as { category?: string; isPremium?: boolean }));
+    return this.sendOk(
+      res,
+      await this.service.list(req.query as { category?: string; isPremium?: boolean }),
+    );
   });
 
   get = asyncHandler(async (req: Request, res: Response) => {
-    return this.sendOk(res, this.service.get(req.params.id));
+    return this.sendOk(res, await this.service.get(req.params.id));
   });
 }
 

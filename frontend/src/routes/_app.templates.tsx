@@ -8,7 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { templates } from "@/constants/dummy-data";
+import { templates } from "@/constants/templates";
+import { useAuthStore } from "@/store/auth-store";
+import { api } from "@/lib/api";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/_app/templates")({
   head: () => ({ meta: [{ title: "Templates — CVPilot" }] }),
@@ -20,6 +23,24 @@ function TemplatesPage() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set(["t1", "t3"]));
   const [preview, setPreview] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
+  const { user } = useAuthStore();
+  const [experiences, setExperiences] = useState<any[]>([]);
+
+  useEffect(() => {
+    api
+      .get<any[]>("/profile/experience")
+      .then((res) => setExperiences(res || []))
+      .catch(() => {});
+  }, []);
+
+  const formatYear = (dateStr?: string) => {
+    if (!dateStr) return "";
+    try {
+      return new Date(dateStr).getFullYear().toString();
+    } catch {
+      return dateStr;
+    }
+  };
 
   const filtered = templates.filter((t) => t.name.toLowerCase().includes(filter.toLowerCase()));
 
@@ -161,24 +182,38 @@ function TemplatesPage() {
           </DialogHeader>
           <div className="mx-auto aspect-[8.5/11] w-full max-w-[520px] rounded-lg border border-border bg-background p-8">
             <div className="text-center">
-              <div className="text-[18px] font-semibold tracking-tight">Alex Larsen</div>
+              <div className="text-[18px] font-semibold tracking-tight">
+                {user?.profile?.fullName || "Your Name"}
+              </div>
               <div className="mt-0.5 text-[11px] text-muted-foreground">
-                alex@cvpilot.io · San Francisco
+                {user?.email || "your.email@example.com"}
+                {user?.profile?.location ? ` · ${user.profile.location}` : ""}
               </div>
             </div>
-            <div className="mt-6 border-t border-border pt-4">
+            <div className="mt-6 border-t border-border pt-4 text-left">
               <div className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Experience
               </div>
               <div className="mt-3 space-y-2">
-                <div>
-                  <div className="text-[12px] font-semibold">Senior Product Engineer · Linear</div>
-                  <div className="text-[10.5px] text-foreground/80">Jan 2023 – Present</div>
-                </div>
-                <div>
-                  <div className="text-[12px] font-semibold">Product Engineer · Stripe</div>
-                  <div className="text-[10.5px] text-foreground/80">Jun 2020 – Dec 2022</div>
-                </div>
+                {experiences.length === 0 ? (
+                  <div className="text-[11px] text-muted-foreground py-2 text-center">
+                    No experience records. Complete your profile to preview.
+                  </div>
+                ) : (
+                  experiences.slice(0, 2).map((x) => {
+                    const start = x.startDate ? formatYear(x.startDate) : "";
+                    const end = x.isCurrent ? "Present" : x.endDate ? formatYear(x.endDate) : "";
+                    const range = [start, end].filter(Boolean).join(" – ");
+                    return (
+                      <div key={x.id}>
+                        <div className="text-[12px] font-semibold">
+                          {x.role} · {x.companyName}
+                        </div>
+                        <div className="text-[10.5px] text-foreground/80">{range}</div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>

@@ -31,6 +31,9 @@ export function fail(
   status = 400,
   details?: unknown,
 ) {
-  const body: ApiFailure = { success: false, error: { code, message, ...(details ? { details } : {}) } };
+  const body: ApiFailure = {
+    success: false,
+    error: { code, message, ...(details ? { details } : {}) },
+  };
   return res.status(status).json(body);
 }

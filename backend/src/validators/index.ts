@@ -6,6 +6,8 @@ export * from './education.schema';
 export * from './experience.schema';
 export * from './project.schema';
 export * from './skill.schema';
+export * from './certificate.schema';
+export * from './achievement.schema';
 export * from './resume.schema';
 export * from './application.schema';
 export * from './settings.schema';

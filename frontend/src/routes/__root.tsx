@@ -13,6 +13,8 @@ import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CommandPalette } from "@/components/shared/command-palette";
+import { api } from "../lib/api";
+import { useAuthStore, type User } from "../store/auth-store";
 
 function NotFoundComponent() {
   return (
@@ -123,6 +125,30 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { setUser, setLoading } = useAuthStore();
+
+  useEffect(() => {
+    async function initAuth() {
+      try {
+        // Try to load session with existing accessToken cookie
+        const user = await api.get<User>("/auth/me");
+        setUser(user);
+      } catch {
+        // accessToken may be expired — try a silent refresh using the refreshToken cookie
+        try {
+          await api.post("/auth/refresh", {});
+          const user = await api.get<User>("/auth/me");
+          setUser(user);
+        } catch {
+          // Both tokens invalid — user is logged out
+          setUser(null);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    initAuth();
+  }, [setUser, setLoading]);
 
   return (
     <QueryClientProvider client={queryClient}>

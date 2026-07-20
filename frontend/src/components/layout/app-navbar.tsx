@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Bell, Search } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -12,6 +12,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { mainNav, bottomNav } from "@/constants/navigation";
+import { useAuthStore } from "../../store/auth-store";
 
 function usePageTitle() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
@@ -23,6 +24,17 @@ function usePageTitle() {
 
 export function AppNavbar() {
   const title = usePageTitle();
+  const { user } = useAuthStore();
+
+  const getInitials = (name?: string) => {
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+  };
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md">
@@ -71,8 +83,11 @@ export function AppNavbar() {
         <Separator orientation="vertical" className="mx-1 h-5" />
 
         <Avatar className="h-8 w-8 border border-border">
+          {user?.profile?.avatarUrl && (
+            <AvatarImage src={user.profile.avatarUrl} alt={user.profile.fullName} />
+          )}
           <AvatarFallback className="bg-primary/10 text-[11px] font-semibold text-primary">
-            AL
+            {getInitials(user?.profile?.fullName)}
           </AvatarFallback>
         </Avatar>
       </div>

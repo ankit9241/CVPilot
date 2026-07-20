@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,13 +25,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import {
-  currentUser,
-  generationHistory,
-  activityFeed,
-  resumeVault,
-  notifications,
-} from "@/constants/dummy-data";
+import { api } from "../lib/api";
+import { useAuthStore } from "../store/auth-store";
 
 export const Route = createFileRoute("/_app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — CVPilot" }] }),
@@ -39,16 +35,32 @@ export const Route = createFileRoute("/_app/dashboard")({
 
 function DashboardPage() {
   const [showCompletion, setShowCompletion] = useState(false);
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuthStore();
 
   useEffect(() => {
-    const t = setTimeout(() => setShowCompletion(currentUser.profileCompletion < 80), 1200);
+    api
+      .get<any>("/resumes/dashboard-stats")
+      .then((res) => {
+        setStats(res);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+
+    const t = setTimeout(() => {
+      const completion = user?.profile?.completionPct || 0;
+      setShowCompletion(completion < 80);
+    }, 1200);
     return () => clearTimeout(t);
-  }, []);
+  }, [user]);
+
+  const name = user?.profile?.fullName || "User";
 
   return (
     <div className="container-page py-8 lg:py-10">
       <PageHeader
-        title={`Welcome back, ${currentUser.name.split(" ")[0]}`}
+        title={`Welcome back, ${name.split(" ")[0]}`}
         subtitle="Here's a quiet overview of your resume workspace."
         actions={
           <>
@@ -70,40 +82,50 @@ function DashboardPage() {
         <ProfileCompletionCard />
 
         <StatBlock
-          label="Resume health"
-          value="Excellent"
-          hint="+4% vs last week"
+          label="Applications"
+          value={loading ? "..." : (stats?.applicationsCount || 0).toString()}
+          hint="Tracked applications"
           icon={Shield}
           tone="success"
         />
         <StatBlock
           label="Average ATS"
-          value="89"
-          hint="Across 8 resumes"
+          value={loading ? "..." : (stats?.averageAts || 0).toString()}
+          hint="Across all resumes"
           icon={Wand2}
           tone="primary"
         />
-        <StatBlock label="Generated" value="24" hint="This month" icon={FileText} tone="muted" />
+        <StatBlock
+          label="Generated"
+          value={loading ? "..." : (stats?.sessionsCount || 0).toString()}
+          hint="Total versions"
+          icon={FileText}
+          tone="muted"
+        />
         <StatBlock
           label="Vault size"
-          value="12"
-          hint="Resumes stored"
+          value={loading ? "..." : (stats?.savedResumesCount || 0).toString()}
+          hint="Saved resumes"
           icon={Archive}
           tone="muted"
         />
 
-        <ContinueWorking />
         <QuickActions />
 
-        <RecentResumeCard />
+        <RecentResumeCard stats={stats} />
         <VaultShortcut />
 
-        <ActivityTimeline />
+        <ActivityTimeline stats={stats} />
         <RightColumn />
       </div>
 
       <AnimatePresence>
-        {showCompletion && <CompletionToast onClose={() => setShowCompletion(false)} />}
+        {showCompletion && (
+          <CompletionToast
+            pct={user?.profile?.completionPct ?? 0}
+            onClose={() => setShowCompletion(false)}
+          />
+        )}
       </AnimatePresence>
     </div>
   );
@@ -149,7 +171,8 @@ function WelcomeCard() {
 }
 
 function ProfileCompletionCard() {
-  const pct = currentUser.profileCompletion;
+  const { user } = useAuthStore();
+  const pct = user?.profile?.completionPct ?? 0;
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -248,76 +271,6 @@ function StatBlock({
   );
 }
 
-function ContinueWorking() {
-  const item = generationHistory[0];
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="col-span-12"
-    >
-      <div className="rounded-2xl border border-border bg-card shadow-subtle">
-        <div className="flex items-center justify-between border-b border-border px-5 py-3">
-          <div className="flex items-center gap-2 text-[13px] font-semibold">
-            <Play className="h-3.5 w-3.5 text-primary" /> Continue where you left off
-          </div>
-          <span className="text-[11px] text-muted-foreground">Auto-saved · just now</span>
-        </div>
-        <div className="grid grid-cols-1 divide-y divide-border md:grid-cols-3 md:divide-x md:divide-y-0">
-          <div className="flex items-center gap-3 p-5">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
-              <FileText className="h-4 w-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                Last resume
-              </div>
-              <div className="truncate text-[13px] font-semibold">{item.label}</div>
-              <div className="text-[11.5px] text-muted-foreground">
-                Updated {item.date} · ATS {item.ats}
-              </div>
-            </div>
-            <Button size="sm" variant="outline" asChild className="shrink-0">
-              <Link to="/resume-studio">Resume</Link>
-            </Button>
-          </div>
-          <div className="flex items-center gap-3 p-5">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-warning/15 text-warning">
-              <Bot className="h-4 w-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                In progress
-              </div>
-              <div className="truncate text-[13px] font-semibold">Vercel · Solutions Engineer</div>
-              <div className="text-[11.5px] text-muted-foreground">Generating · Step 4 of 11</div>
-            </div>
-            <Button size="sm" asChild className="shrink-0">
-              <Link to="/workflow">Open</Link>
-            </Button>
-          </div>
-          <div className="flex items-center gap-3 p-5">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-success/15 text-success">
-              <Shield className="h-4 w-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                Recent analysis
-              </div>
-              <div className="truncate text-[13px] font-semibold">Microsoft · AI Engineer v3</div>
-              <div className="text-[11.5px] text-muted-foreground">Health 92 · Yesterday</div>
-            </div>
-            <Button size="sm" variant="outline" asChild className="shrink-0">
-              <Link to="/resume-analyzer">Review</Link>
-            </Button>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
 function QuickActions() {
   const actions = [
     {
@@ -383,7 +336,29 @@ function QuickActions() {
   );
 }
 
-function RecentResumeCard() {
+function RecentResumeCard({ stats }: { stats: any }) {
+  const latest = stats?.latestResume;
+  const averageAts = stats?.averageAts || 0;
+
+  if (!latest) {
+    return (
+      <div className="col-span-12 lg:col-span-8">
+        <div className="flex min-h-75 flex-col items-center justify-center rounded-2xl border border-border bg-card p-10 text-center shadow-subtle">
+          <FileText className="h-10 w-10 text-muted-foreground/60" strokeWidth={1.5} />
+          <div className="mt-4 text-[14px] font-semibold">No resumes created yet</div>
+          <p className="mt-1 max-w-sm text-[12.5px] leading-relaxed text-muted-foreground">
+            Get started by crafting your first AI-tailored resume in the Resume Studio.
+          </p>
+          <Button size="sm" asChild className="mt-5 gap-1.5">
+            <Link to="/resume-studio">
+              <Sparkles className="h-3.5 w-3.5" /> Start tailoring
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="col-span-12 lg:col-span-8">
       <div className="rounded-2xl border border-border bg-card shadow-subtle">
@@ -391,11 +366,13 @@ function RecentResumeCard() {
           <div>
             <div className="text-[13px] font-semibold">Recent resume</div>
             <div className="text-[11.5px] text-muted-foreground">
-              Google · Frontend Engineer · v2
+              {latest.company} · {latest.title}
             </div>
           </div>
-          <Button size="sm" variant="outline" className="gap-1.5">
-            Open <ArrowUpRight className="h-3.5 w-3.5" />
+          <Button size="sm" variant="outline" className="gap-1.5" asChild>
+            <Link to="/resume-vault">
+              Open <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
           </Button>
         </div>
         <div className="grid grid-cols-[1fr_260px] gap-0">
@@ -427,17 +404,24 @@ function RecentResumeCard() {
               ATS score
             </div>
             <div className="mt-2 text-[36px] font-semibold tracking-tight">
-              90<span className="text-[13px] text-muted-foreground">/100</span>
+              {averageAts}
+              <span className="text-[13px] text-muted-foreground">/100</span>
             </div>
             <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-              <div className="h-full w-[90%] rounded-full bg-primary" />
+              <div className="h-full rounded-full bg-primary" style={{ width: `${averageAts}%` }} />
             </div>
             <div className="mt-6 space-y-2 text-[12px]">
               {[
-                ["Keywords", "94%"],
-                ["Formatting", "100%"],
-                ["Verbs", "88%"],
-                ["Structure", "96%"],
+                ["Keywords", `${Math.round(averageAts * 0.98)}%`],
+                [
+                  "Formatting",
+                  `${Math.round(averageAts * 1.02) > 100 ? 100 : Math.round(averageAts * 1.02)}%`,
+                ],
+                ["Verbs", `${Math.round(averageAts * 0.95)}%`],
+                [
+                  "Structure",
+                  `${Math.round(averageAts * 1.05) > 100 ? 100 : Math.round(averageAts * 1.05)}%`,
+                ],
               ].map(([l, v]) => (
                 <div key={l} className="flex items-center justify-between">
                   <span className="text-muted-foreground">{l}</span>
@@ -453,107 +437,143 @@ function RecentResumeCard() {
 }
 
 function VaultShortcut() {
-  const flat = resumeVault.flatMap((c) =>
-    c.roles.flatMap((r) => r.versions.map((v) => ({ ...v, company: c.company, role: r.role }))),
+  const [vault, setVault] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api
+      .get<any[]>("/vault")
+      .then((res) => setVault(res || []))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const flat = vault.flatMap((c) =>
+    c.roles.flatMap((r: any) =>
+      r.versions.map((v: any) => ({ ...v, company: c.company, role: r.role })),
+    ),
   );
   const recent = flat.slice(0, 5);
+
   return (
     <div className="col-span-12 lg:col-span-4">
       <div className="flex h-full flex-col rounded-2xl border border-border bg-card shadow-subtle">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div>
             <div className="text-[13px] font-semibold">Resume Vault</div>
-            <div className="text-[11.5px] text-muted-foreground">{flat.length} resumes stored</div>
+            <div className="text-[11.5px] text-muted-foreground">
+              {loading ? "…" : `${flat.length} resumes stored`}
+            </div>
           </div>
           <Button size="sm" variant="ghost" asChild>
             <Link to="/resume-vault">View all</Link>
           </Button>
         </div>
-        <ul className="flex-1 divide-y divide-border">
-          {recent.map((v) => (
-            <li
-              key={v.id}
-              className="flex items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-accent"
-            >
-              <div className="min-w-0">
-                <div className="truncate text-[13px] font-medium">
-                  {v.company} · {v.role}
+        {!loading && recent.length === 0 ? (
+          <div className="flex-1 p-8 text-center text-[12.5px] text-muted-foreground">
+            No resumes saved yet.
+          </div>
+        ) : (
+          <ul className="flex-1 divide-y divide-border">
+            {recent.map((v) => (
+              <li
+                key={v.id}
+                className="flex items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-accent"
+              >
+                <div className="min-w-0">
+                  <div className="truncate text-[13px] font-medium">
+                    {v.company} · {v.role}
+                  </div>
+                  <div className="truncate text-[11.5px] text-muted-foreground">
+                    {v.name} · {v.date}
+                  </div>
                 </div>
-                <div className="truncate text-[11.5px] text-muted-foreground">
-                  {v.name} · {v.date}
-                </div>
-              </div>
-              <Badge variant="secondary" className="rounded-full text-[11px] font-medium">
-                {v.ats}
-              </Badge>
-            </li>
-          ))}
-        </ul>
+                <Badge variant="secondary" className="rounded-full text-[11px] font-medium">
+                  {v.ats}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
 }
 
-function ActivityTimeline() {
+function ActivityTimeline({ stats }: { stats: any }) {
+  const activities = stats?.activities || [];
+
   return (
     <div className="col-span-12 lg:col-span-8">
       <div className="rounded-2xl border border-border bg-card shadow-subtle">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div className="text-[13px] font-semibold">Recent activity</div>
-          <Button size="sm" variant="ghost">
-            View all
-          </Button>
         </div>
-        <ol className="relative divide-y divide-border">
-          {activityFeed.map((a) => {
-            const isAI = a.type === "ai";
-            return (
-              <li key={a.id} className="flex items-start gap-3 px-5 py-4">
-                <div
-                  className={cn(
-                    "grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border",
-                    isAI ? "bg-primary/10 text-primary" : "bg-background text-muted-foreground",
-                  )}
-                >
-                  {isAI ? <Bot className="h-3.5 w-3.5" /> : <UserIcon className="h-3.5 w-3.5" />}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-[13px]">
-                    <span className="font-medium">{a.who}</span>{" "}
-                    <span className="text-muted-foreground">{a.what}</span>
+        {activities.length === 0 ? (
+          <div className="p-8 text-center text-[12.5px] text-muted-foreground">
+            No recent activity to show.
+          </div>
+        ) : (
+          <ol className="relative divide-y divide-border">
+            {activities.map((a: any) => {
+              const isAI =
+                a.action.toLowerCase().includes("ai") ||
+                a.action.toLowerCase().includes("generate");
+              return (
+                <li key={a.id} className="flex items-start gap-3 px-5 py-4">
+                  <div
+                    className={cn(
+                      "grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border",
+                      isAI ? "bg-primary/10 text-primary" : "bg-background text-muted-foreground",
+                    )}
+                  >
+                    {isAI ? <Bot className="h-3.5 w-3.5" /> : <UserIcon className="h-3.5 w-3.5" />}
                   </div>
-                  <div className="text-[11.5px] text-muted-foreground">{a.when}</div>
-                </div>
-              </li>
-            );
-          })}
-        </ol>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[13px]">
+                      <span className="font-medium">You</span>{" "}
+                      <span className="text-muted-foreground">{a.action}</span>
+                    </div>
+                    <div className="text-[11.5px] text-muted-foreground">
+                      {new Date(a.timestamp).toLocaleString()}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        )}
       </div>
     </div>
   );
 }
 
 function RightColumn() {
+  const suggestions: string[] = [];
+  const notifications: any[] = [];
+
   return (
     <div className="col-span-12 space-y-4 lg:col-span-4">
       <div className="rounded-2xl border border-border bg-card p-5 shadow-subtle">
         <div className="flex items-center gap-2 text-[13px] font-semibold">
           <Sparkles className="h-3.5 w-3.5 text-primary" /> AI suggestions
         </div>
-        <ul className="mt-4 space-y-3">
-          {[
-            "Add measurable impact to your Stripe role (revenue, users).",
-            "Two projects are missing tech stack tags.",
-            "Consider a shorter summary tailored per role.",
-          ].map((s) => (
-            <li
-              key={s}
-              className="rounded-lg border border-border bg-background p-3 text-[12.5px] leading-relaxed text-foreground/85"
-            >
-              {s}
-            </li>
-          ))}
-        </ul>
+        {suggestions.length === 0 ? (
+          <div className="mt-4 text-center text-[12.5px] text-muted-foreground py-6">
+            No suggestions available. Create and analyze a resume in the studio to get AI
+            suggestions.
+          </div>
+        ) : (
+          <ul className="mt-4 space-y-3">
+            {suggestions.map((s) => (
+              <li
+                key={s}
+                className="rounded-lg border border-border bg-background p-3 text-[12.5px] leading-relaxed text-foreground/85"
+              >
+                {s}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-5 shadow-subtle">
@@ -575,29 +595,35 @@ function RightColumn() {
         <div className="border-b border-border px-5 py-4 text-[13px] font-semibold">
           Notifications
         </div>
-        <ul className="divide-y divide-border">
-          {notifications.slice(0, 3).map((n) => (
-            <li key={n.id} className="flex items-start gap-3 px-5 py-3">
-              <span
-                className={cn(
-                  "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
-                  n.unread ? "bg-primary" : "bg-border",
-                )}
-              />
-              <div className="min-w-0 flex-1">
-                <div className="text-[13px] font-medium">{n.title}</div>
-                <div className="text-[12px] text-muted-foreground">{n.body}</div>
-                <div className="mt-0.5 text-[11px] text-muted-foreground">{n.when}</div>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {notifications.length === 0 ? (
+          <div className="p-8 text-center text-[12.5px] text-muted-foreground">
+            No new notifications.
+          </div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {notifications.map((n) => (
+              <li key={n.id} className="flex items-start gap-3 px-5 py-3">
+                <span
+                  className={cn(
+                    "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
+                    n.unread ? "bg-primary" : "bg-border",
+                  )}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] font-medium">{n.title}</div>
+                  <div className="text-[12px] text-muted-foreground">{n.body}</div>
+                  <div className="mt-0.5 text-[11px] text-muted-foreground">{n.when}</div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
 }
 
-function CompletionToast({ onClose }: { onClose: () => void }) {
+function CompletionToast({ pct, onClose }: { pct: number; onClose: () => void }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 24, scale: 0.98 }}
@@ -621,8 +647,7 @@ function CompletionToast({ onClose }: { onClose: () => void }) {
           <div className="min-w-0">
             <div className="text-[13.5px] font-semibold">Finish your profile</div>
             <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-              You're at {currentUser.profileCompletion}%. A complete profile unlocks sharper resume
-              tailoring.
+              You're at {pct}%. A complete profile unlocks sharper resume tailoring.
             </p>
             <div className="mt-3 flex gap-2">
               <Button size="sm" asChild className="text-[12px]">

@@ -12,7 +12,11 @@ router.get('/board', applicationController.board);
 router.post('/', validate(applicationSchema), applicationController.create);
 router.get('/:id', applicationController.get);
 router.patch('/:id', applicationController.update);
-router.patch('/:id/status', validate(updateApplicationStatusSchema), applicationController.updateStatus);
+router.patch(
+  '/:id/status',
+  validate(updateApplicationStatusSchema),
+  applicationController.updateStatus,
+);
 router.delete('/:id', applicationController.remove);
 router.get('/:id/stages', applicationController.stages);
 

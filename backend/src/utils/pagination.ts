@@ -21,10 +21,6 @@ export function normalizePagination(input: PaginationInput = {}): {
   return { page, pageSize, skip: (page - 1) * pageSize, take: pageSize };
 }
 
-export function buildPaginationMeta(
-  total: number,
-  page: number,
-  pageSize: number,
-): PaginationMeta {
+export function buildPaginationMeta(total: number, page: number, pageSize: number): PaginationMeta {
   return { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) };
 }

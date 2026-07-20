@@ -2,7 +2,14 @@ import { BaseService } from '../../common/base.service';
 import { dummyApplicationStages, dummyApplications } from '../../constants/dummy-data';
 import { applicationRepository, ApplicationRepository } from './application.repository';
 
-const KANBAN_STATUSES = ['SAVED', 'APPLIED', 'INTERVIEW', 'OFFER', 'REJECTED', 'WITHDRAWN'] as const;
+const KANBAN_STATUSES = [
+  'SAVED',
+  'APPLIED',
+  'INTERVIEW',
+  'OFFER',
+  'REJECTED',
+  'WITHDRAWN',
+] as const;
 
 export class ApplicationService extends BaseService {
   constructor(protected readonly repository: ApplicationRepository = applicationRepository) {
@@ -22,7 +29,11 @@ export class ApplicationService extends BaseService {
     status: 'SAVED',
     ...data,
   });
-  update = (id: string, data: Record<string, unknown>) => ({ ...dummyApplications[0], id, ...data });
+  update = (id: string, data: Record<string, unknown>) => ({
+    ...dummyApplications[0],
+    id,
+    ...data,
+  });
   updateStatus = (id: string, status: string, note?: string) => ({
     ...dummyApplications[0],
     id,

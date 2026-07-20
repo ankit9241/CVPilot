@@ -9,9 +9,8 @@ export const validate =
   (req: Request, _res: Response, next: NextFunction): void => {
     const result = schema.safeParse(req[source]);
     if (!result.success) {
-      return next(
-        new ValidationError('Validation failed', result.error.flatten()),
-      );
+      console.error('Validation failed details:', JSON.stringify(result.error.format(), null, 2));
+      return next(new ValidationError('Validation failed', result.error.flatten()));
     }
     // Overwrite with parsed (coerced) data.
     (req as unknown as Record<Source, unknown>)[source] = result.data;

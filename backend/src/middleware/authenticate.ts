@@ -3,11 +3,17 @@ import { verifyAccessToken } from '../auth/jwt';
 import { UnauthorizedError } from '../utils/errors';
 
 export function authenticate(req: Request, _res: Response, next: NextFunction): void {
+  let token = req.cookies?.accessToken;
   const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) {
-    return next(new UnauthorizedError('Missing bearer token'));
+
+  if (!token && header?.startsWith('Bearer ')) {
+    token = header.slice('Bearer '.length).trim();
   }
-  const token = header.slice('Bearer '.length).trim();
+
+  if (!token) {
+    return next(new UnauthorizedError('Missing authentication token'));
+  }
+
   try {
     req.user = verifyAccessToken(token);
     next();
@@ -18,10 +24,16 @@ export function authenticate(req: Request, _res: Response, next: NextFunction): 
 
 // Optional variant – attaches user if present, never rejects.
 export function attachUserIfPresent(req: Request, _res: Response, next: NextFunction): void {
+  let token = req.cookies?.accessToken;
   const header = req.headers.authorization;
-  if (header?.startsWith('Bearer ')) {
+
+  if (!token && header?.startsWith('Bearer ')) {
+    token = header.slice(7).trim();
+  }
+
+  if (token) {
     try {
-      req.user = verifyAccessToken(header.slice(7).trim());
+      req.user = verifyAccessToken(token);
     } catch {
       /* silent */
     }

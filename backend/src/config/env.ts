@@ -57,6 +57,11 @@ export const env = {
   log: {
     level: optional('LOG_LEVEL', 'info'),
   },
+
+  ai: {
+    // development = 3 merged LLM calls, production = full 9-call granular graph
+    mode: optional('AI_MODE', 'production') as 'development' | 'production',
+  },
 } as const;
 
 export type Env = typeof env;

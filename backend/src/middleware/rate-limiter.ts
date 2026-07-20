@@ -6,6 +6,7 @@ export const globalRateLimiter = rateLimit({
   max: appConfig.rateLimit.max,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'development',
 });
 
 export const authRateLimiter = rateLimit({
@@ -13,4 +14,5 @@ export const authRateLimiter = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'development',
 });

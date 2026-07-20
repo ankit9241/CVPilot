@@ -21,8 +21,7 @@ export const dummyProfile = {
   headline: 'Senior Product Engineer',
   phone: '+1 (415) 555-0134',
   location: 'San Francisco, CA',
-  summary:
-    'Product-minded engineer focused on delightful, high-performance interfaces.',
+  summary: 'Product-minded engineer focused on delightful, high-performance interfaces.',
   avatarUrl: null,
   completion: 68,
   createdAt: '2024-06-01T10:00:00.000Z',
@@ -30,9 +29,27 @@ export const dummyProfile = {
 };
 
 export const dummySocialLinks = [
-  { id: 'sl-1', profileId: dummyProfile.id, platform: 'LINKEDIN', url: 'https://linkedin.com/in/alexlarsen', label: 'LinkedIn' },
-  { id: 'sl-2', profileId: dummyProfile.id, platform: 'GITHUB', url: 'https://github.com/alexlarsen', label: 'GitHub' },
-  { id: 'sl-3', profileId: dummyProfile.id, platform: 'PORTFOLIO', url: 'https://alexlarsen.dev', label: 'Portfolio' },
+  {
+    id: 'sl-1',
+    profileId: dummyProfile.id,
+    platform: 'LINKEDIN',
+    url: 'https://linkedin.com/in/alexlarsen',
+    label: 'LinkedIn',
+  },
+  {
+    id: 'sl-2',
+    profileId: dummyProfile.id,
+    platform: 'GITHUB',
+    url: 'https://github.com/alexlarsen',
+    label: 'GitHub',
+  },
+  {
+    id: 'sl-3',
+    profileId: dummyProfile.id,
+    platform: 'PORTFOLIO',
+    url: 'https://alexlarsen.dev',
+    label: 'Portfolio',
+  },
 ];
 
 export const dummyEducation = [
@@ -113,10 +130,42 @@ export const dummyAchievements = [
 ];
 
 export const dummyTemplates = [
-  { id: 'tpl-modern', name: 'Modern', category: 'MODERN', tag: 'Popular', isPremium: false, previewUrl: null, tone: 'Balanced grid, generous whitespace.' },
-  { id: 'tpl-classic', name: 'Classic', category: 'CLASSIC', tag: 'Timeless', isPremium: false, previewUrl: null, tone: 'Serif-first, editorial rhythm.' },
-  { id: 'tpl-jake', name: 'Jake', category: 'MINIMAL', tag: 'Engineer favourite', isPremium: false, previewUrl: null, tone: 'Compact single-page density.' },
-  { id: 'tpl-professional', name: 'Professional', category: 'PROFESSIONAL', tag: 'Executive', isPremium: true, previewUrl: null, tone: 'Confident header, quiet body.' },
+  {
+    id: 'tpl-modern',
+    name: 'Modern',
+    category: 'MODERN',
+    tag: 'Popular',
+    isPremium: false,
+    previewUrl: null,
+    tone: 'Balanced grid, generous whitespace.',
+  },
+  {
+    id: 'tpl-classic',
+    name: 'Classic',
+    category: 'CLASSIC',
+    tag: 'Timeless',
+    isPremium: false,
+    previewUrl: null,
+    tone: 'Serif-first, editorial rhythm.',
+  },
+  {
+    id: 'tpl-jake',
+    name: 'Jake',
+    category: 'MINIMAL',
+    tag: 'Engineer favourite',
+    isPremium: false,
+    previewUrl: null,
+    tone: 'Compact single-page density.',
+  },
+  {
+    id: 'tpl-professional',
+    name: 'Professional',
+    category: 'PROFESSIONAL',
+    tag: 'Executive',
+    isPremium: true,
+    previewUrl: null,
+    tone: 'Confident header, quiet body.',
+  },
 ];
 
 export const dummyResumes = [
@@ -151,8 +200,24 @@ export const dummyResumes = [
 ];
 
 export const dummyResumeVersions = [
-  { id: 'rv-1', resumeId: 'res-1', label: 'Base', version: 1, atsScore: 84, contentJson: {}, createdAt: '2024-02-08T00:00:00.000Z' },
-  { id: 'rv-2', resumeId: 'res-1', label: 'Tailored', version: 2, atsScore: 90, contentJson: {}, createdAt: '2024-02-14T00:00:00.000Z' },
+  {
+    id: 'rv-1',
+    resumeId: 'res-1',
+    label: 'Base',
+    version: 1,
+    atsScore: 84,
+    contentJson: {},
+    createdAt: '2024-02-08T00:00:00.000Z',
+  },
+  {
+    id: 'rv-2',
+    resumeId: 'res-1',
+    label: 'Tailored',
+    version: 2,
+    atsScore: 90,
+    contentJson: {},
+    createdAt: '2024-02-14T00:00:00.000Z',
+  },
 ];
 
 export const dummyAtsReport = {
@@ -183,8 +248,22 @@ export const dummyWorkflowRuns = [
 ];
 
 export const dummyWorkflowLogs = [
-  { id: 'wl-1', runId: 'wf-1', step: 'Master Profile', level: 'INFO', message: 'Reading profile, projects and skills…', at: now() },
-  { id: 'wl-2', runId: 'wf-1', step: 'Company Analysis', level: 'INFO', message: 'Researching company signals and tone.', at: now() },
+  {
+    id: 'wl-1',
+    runId: 'wf-1',
+    step: 'Master Profile',
+    level: 'INFO',
+    message: 'Reading profile, projects and skills…',
+    at: now(),
+  },
+  {
+    id: 'wl-2',
+    runId: 'wf-1',
+    step: 'Company Analysis',
+    level: 'INFO',
+    message: 'Researching company signals and tone.',
+    at: now(),
+  },
 ];
 
 export const dummyApplications = [
@@ -217,7 +296,14 @@ export const dummyApplications = [
 ];
 
 export const dummyApplicationStages = [
-  { id: 'stage-1', applicationId: 'app-1', from: 'APPLIED', to: 'INTERVIEW', note: 'Screening call scheduled', at: '2024-02-20T00:00:00.000Z' },
+  {
+    id: 'stage-1',
+    applicationId: 'app-1',
+    from: 'APPLIED',
+    to: 'INTERVIEW',
+    note: 'Screening call scheduled',
+    at: '2024-02-20T00:00:00.000Z',
+  },
 ];
 
 export const dummySettings = {

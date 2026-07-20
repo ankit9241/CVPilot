@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   CommandDialog,
@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/command";
 import { mainNav, bottomNav } from "@/constants/navigation";
 import { useUIStore } from "@/store/ui-store";
-import { resumeVault, templates } from "@/constants/dummy-data";
+import { templates } from "@/constants/templates";
+import { api } from "@/lib/api";
 import {
   Sparkles,
   Upload,
@@ -51,7 +52,20 @@ export function CommandPalette() {
     else toast(label);
   };
 
-  const companies = resumeVault.map((c) => c.company);
+  const [companies, setCompanies] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (commandMenuOpen) {
+      api
+        .get<any[]>("/vault")
+        .then((res) => {
+          if (res) {
+            setCompanies(Array.from(new Set(res.map((c) => c.company))));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [commandMenuOpen]);
 
   return (
     <CommandDialog open={commandMenuOpen} onOpenChange={setCommandMenuOpen}>

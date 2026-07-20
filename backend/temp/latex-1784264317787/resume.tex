@@ -1,0 +1,209 @@
+% Jake's Resume
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\input{glyphtounicode}
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    \textbf{\Huge \scshape Ankit Kumar } \\ \vspace{1pt}
+    \small +91-9241272626 $|$ \href{mailto:}{\underline{  }}
+    
+    
+    
+    
+\end{center}
+
+%-----------SUMMARY-----------
+
+
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    
+    \resumeSubheading
+      { Indian Institute of Technology, Patna }{}
+      { Bachelor of Science  }{ 2024-07 -- 2028-08 }
+    
+  \resumeSubHeadingListEnd
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+  \resumeSubHeadingListStart
+    
+    \resumeSubheading
+      { Frontend Engineer }{ 2026-02 --  }
+      { Thrive Wellness }{ Remote }
+      \resumeItemListStart
+        
+        \resumeItem{ Architected responsive React/TypeScript interfaces using Tailwind CSS and Next.js, improving user engagement by 30\textbackslash\{\}\% and ensuring cross-browser compatibility. }
+        
+        \resumeItem{ Designed RESTful APIs with Node.js and GraphQL endpoints, reducing frontend bundle size by 25\textbackslash\{\}\%. }
+        
+        \resumeItem{ Established automated testing pipelines (Jest, Cypress) achieving 90\textbackslash\{\}\% code coverage. }
+        
+      \resumeItemListEnd
+    
+    \resumeSubheading
+      { Frontend Engineer (Student Leadership) }{ 2025-09 --  }
+      { Student Technical Council, IIT Patna }{ Patna, Bihar, India }
+      \resumeItemListStart
+        
+        \resumeItem{ Built high-traffic React/TypeScript platform serving 500+ concurrent users with 99.9\textbackslash\{\}\% uptime. }
+        
+        \resumeItem{ Implemented secure JWT/OAuth authentication and RBAC, reducing unauthorized access to zero. }
+        
+        \resumeItem{ Optimized MongoDB queries and integrated Redis caching, decreasing API latency by 40\textbackslash\{\}\% and increasing throughput 3x. }
+        
+      \resumeItemListEnd
+    
+  \resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section{Projects}
+  \resumeSubHeadingListStart
+    
+      \resumeProjectHeading
+          {\textbf{ PodSnap – AI-Powered Podcast to Shorts Generator } $|$ \emph{ Next.js, Node.js, AWS S3, Stripe, WhisperX, Gemini AI, FFmpeg, Modal Serverless, TypeScript, React.js }}{  --  }
+          \resumeItemListStart
+            
+            \resumeItem{ Engineered full-stack AI SaaS with Next.js/TypeScript/React, automating podcast-to-shorts conversion saving 10+ hours/episode. }
+            
+            \resumeItem{ Architected serverless AI pipeline on Modal GPU with WhisperX and Gemini AI, processing 500MB+ files via AWS S3 pre-signed URLs. }
+            
+            \resumeItem{ Integrated Stripe credit-based monetization and CI/CD with automated testing for production deployment. }
+            
+          \resumeItemListEnd
+    
+      \resumeProjectHeading
+          {\textbf{ Envora } $|$ \emph{ React, Vite, Tailwind CSS, React Router, Axios, Node.js, Express.js, MongoDB, Mongoose, JWT Authentication, bcrypt, Google OAuth }}{  --  }
+          \resumeItemListStart
+            
+            \resumeItem{ Developed secure developer vault with React/Vite/TypeScript for encrypted env variable management across projects. }
+            
+            \resumeItem{ Implemented end-to-end encryption with bcrypt and JWT auth, integrated Google OAuth for cross-device SSO. }
+            
+            \resumeItem{ Designed RESTful APIs with Node.js/Express/MongoDB achieving sub-100ms credential retrieval. }
+            
+          \resumeItemListEnd
+    
+  \resumeSubHeadingListEnd
+
+%-----------PROGRAMMING SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+      
+      \textbf{ FRONTEND }{: React } \\
+      
+      \textbf{ LANGUAGE }{: TypeScript } \\
+      
+      \textbf{ FRONTEND }{: Tailwind CSS } \\
+      
+      \textbf{ FRONTEND }{: Next.js } \\
+      
+      \textbf{ FRONTEND }{: shadcn/ui } \\
+      
+      \textbf{ FRONTEND }{: Vite } \\
+      
+      \textbf{ FRONTEND }{: Framer Motion } \\
+      
+      \textbf{ FRONTEND }{: Lottie } \\
+      
+      \textbf{ API }{: GraphQL } \\
+      
+      \textbf{ TESTING }{: Jest } \\
+      
+      \textbf{ TESTING }{: Cypress } \\
+      
+      \textbf{ LANGUAGE }{: Rust } \\
+      
+      \textbf{ LANGUAGE }{: WebAssembly } \\
+      
+    }}
+ \end{itemize}
+
+%-------------------------------------------
+\end{document}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -31,7 +32,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { currentUser } from "@/constants/dummy-data";
+import { api } from "../lib/api";
+import { useAuthStore } from "../store/auth-store";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/_app/settings")({
   head: () => ({ meta: [{ title: "Settings — CVPilot" }] }),
@@ -153,42 +157,92 @@ function Row({
 }
 
 function ProfilePanel() {
+  const { user, setUser } = useAuthStore();
+  const [fullName, setFullName] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [location, setLocation] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (user?.profile) {
+      setFullName(user.profile.fullName || "");
+      setHeadline(user.profile.headline || "");
+      setLocation(user.profile.location || "");
+    }
+  }, [user]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const updatedProfile = await api.put<any>("/profile", {
+        fullName,
+        headline,
+        location,
+      });
+      setUser({
+        ...user!,
+        profile: updatedProfile,
+      });
+      toast.success("Profile saved successfully");
+    } catch (e) {
+      toast.error("Failed to save profile changes");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const getInitials = (name?: string) => {
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+  };
+
   return (
     <Card
       title="Profile"
       description="Public info visible on shared resumes and profile links."
-      footer={<Button size="sm">Save changes</Button>}
+      footer={
+        <Button size="sm" onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : "Save changes"}
+        </Button>
+      }
     >
       <div className="flex items-center gap-4 rounded-xl border border-border bg-background p-4">
         <Avatar className="h-14 w-14 border border-border">
+          {user?.profile?.avatarUrl && <AvatarImage src={user.profile.avatarUrl} alt={fullName} />}
           <AvatarFallback className="bg-primary/10 text-[15px] font-semibold text-primary">
-            {currentUser.initials}
+            {getInitials(fullName)}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1">
           <div className="text-[13px] font-medium">Profile photo</div>
           <div className="text-[12px] text-muted-foreground">JPG or PNG · 400 × 400px</div>
         </div>
-        <Button size="sm" variant="outline" className="gap-1.5">
-          <Camera className="h-3.5 w-3.5" /> Change
-        </Button>
       </div>
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label className="text-[12px]">Full name</Label>
-          <Input defaultValue={currentUser.name} className="h-10" />
+          <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="h-10" />
         </div>
         <div className="space-y-1.5">
           <Label className="text-[12px]">Email</Label>
-          <Input defaultValue={currentUser.email} className="h-10" />
+          <Input
+            value={user?.email || ""}
+            disabled
+            className="h-10 bg-muted/50 cursor-not-allowed"
+          />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-[12px]">Role</Label>
-          <Input defaultValue={currentUser.role} className="h-10" />
+          <Label className="text-[12px]">Role / Headline</Label>
+          <Input value={headline} onChange={(e) => setHeadline(e.target.value)} className="h-10" />
         </div>
         <div className="space-y-1.5">
           <Label className="text-[12px]">Location</Label>
-          <Input defaultValue={currentUser.location} className="h-10" />
+          <Input value={location} onChange={(e) => setLocation(e.target.value)} className="h-10" />
         </div>
       </div>
     </Card>
@@ -227,25 +281,15 @@ function SecurityPanel() {
       </Card>
       <Card title="Sessions" description="Devices where you're currently signed in.">
         <ul className="divide-y divide-border">
-          {[
-            { d: "MacBook Pro · San Francisco", w: "This device · Active now" },
-            { d: "iPhone 15 · San Francisco", w: "Active 2h ago" },
-            { d: "Chrome · New York", w: "Active 3d ago" },
-          ].map((s, i) => (
+          {[{ d: "Active Browser Session", w: "This device · Active now" }].map((s, i) => (
             <li key={s.d} className="flex items-center justify-between gap-3 py-3">
               <div>
-                <div className="text-[13px] font-medium">{s.d}</div>
+                <div className="text-[13px] font-semibold">{s.d}</div>
                 <div className="text-[11.5px] text-muted-foreground">{s.w}</div>
               </div>
-              {i === 0 ? (
-                <Badge variant="secondary" className="rounded-full text-[11px]">
-                  Current
-                </Badge>
-              ) : (
-                <Button size="sm" variant="ghost" className="text-[12px] text-destructive">
-                  Sign out
-                </Button>
-              )}
+              <Badge variant="secondary" className="rounded-full text-[11px]">
+                Current
+              </Badge>
             </li>
           ))}
         </ul>
@@ -304,9 +348,10 @@ function PreferencesPanel() {
 }
 
 function ConnectedPanel() {
+  const { user } = useAuthStore();
   const accounts = [
-    { n: "Google", d: "alex@cvpilot.io", c: true },
-    { n: "GitHub", d: "@alexlarsen", c: true },
+    { n: "Google", d: user?.email || "Not connected", c: !!user?.email },
+    { n: "GitHub", d: "Not connected", c: false },
     { n: "LinkedIn", d: "Not connected", c: false },
     { n: "Slack", d: "Not connected", c: false },
   ];

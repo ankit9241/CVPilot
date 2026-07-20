@@ -7,10 +7,16 @@ import { startWorkflowSchema } from '../validators/workflow.schema';
 const router: Router = Router();
 router.use(authenticate);
 
-router.get('/', workflowController.list);
-router.post('/', validate(startWorkflowSchema), workflowController.start);
-router.get('/:id', workflowController.get);
-router.get('/:id/logs', workflowController.logs);
-router.post('/:id/cancel', workflowController.cancel);
+// Initiate a new generation session
+router.post('/', validate(startWorkflowSchema), workflowController.initiate);
+
+// Get an existing session
+router.get('/:id', workflowController.getSession);
+
+// Get workflow logs for a session
+router.get('/:id/logs', workflowController.getLogs);
+
+// Execute the workflow and get prepared ResumeContext
+router.post('/:id/execute', workflowController.execute);
 
 export default router;

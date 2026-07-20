@@ -9,4 +9,6 @@ export const educationSchema = z.object({
   gpa: z.string().max(20).optional(),
   description: z.string().max(1000).optional(),
 });
+export const educationUpdateSchema = educationSchema.partial();
 export type EducationInput = z.infer<typeof educationSchema>;
+export type EducationUpdateInput = z.infer<typeof educationUpdateSchema>;

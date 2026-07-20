@@ -24,25 +24,34 @@ export interface EducationDto {
 }
 
 export interface ExperienceDto {
-  company: string;
+  company?: string;
+  companyName?: string;
+  position?: string;
   role: string;
+  employmentType?: string;
   location?: string;
   startDate?: string;
   endDate?: string;
   isCurrent?: boolean;
+  currentCompany?: boolean;
   description?: string;
+  technologiesUsed?: string[];
   achievements?: string[];
 }
 
 export interface ProjectDto {
+  title?: string;
   name: string;
   description?: string;
   role?: string;
+  technologies?: string[];
   stack?: string[];
   githubUrl?: string;
   liveUrl?: string;
   startDate?: string;
   endDate?: string;
+  featured?: boolean;
+  imageUrls?: string[];
   impact?: string;
   achievements?: string[];
 }
@@ -51,12 +60,14 @@ export interface SkillDto {
   name: string;
   category?: string;
   level?: number;
+  sortOrder?: number;
 }
 
 export interface CertificateDto {
   name: string;
   issuer: string;
   issuedAt?: string;
+  expiresAt?: string;
   credentialId?: string;
   credentialUrl?: string;
 }
@@ -64,5 +75,7 @@ export interface CertificateDto {
 export interface AchievementDto {
   title: string;
   context?: string;
+  description?: string;
   date?: string;
+  url?: string;
 }
