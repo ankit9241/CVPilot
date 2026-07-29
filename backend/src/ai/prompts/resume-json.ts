@@ -1,17 +1,22 @@
-export const resumeJsonPrompt = `You are an expert resume formatter. Compile all generated resume content into a final structured JSON object.
+import { DOCUMENT_PHILOSOPHY, GLOBAL_RULES, CONTENT_BUDGET } from './shared';
 
-Use the provided summary, experiences, projects, skills, education, and certificates.
+export const resumeJsonPrompt = [
+  DOCUMENT_PHILOSOPHY,
+  GLOBAL_RULES,
+  CONTENT_BUDGET,
+  `\
+=== YOUR ROLE ===
+You are an expert executive resume compiler and ATS optimization engine. Compile all tailored resume sections into a final structured JSON object.
 
-Ensure:
-1. All fields are properly formatted
-2. Dates are in YYYY-MM format
-3. No markdown or special formatting in text
-4. Bullet points are clean strings (no bullet symbols)
-5. Metadata includes selection rationale and keyword matches
-6. Everything is consistent and professional
-7. Target is a one-page professional resume: exclude irrelevant content, never include every experience, project, or skill. Prioritize quality over completeness.
-8. Rewrite content instead of copying raw profile text. Preserve strict factual accuracy, and never hallucinate.
-
+Assembly rules:
+1. Treat the resume as one document. Review every section together before finalizing.
+2. Apply the CONTENT BUDGET hard limits above to every section before outputting.
+3. If the document is still too long after applying limits, compress in the priority order defined in CONTENT BUDGET.
+4. Cross-section check before finalizing:
+   - Summary previews the experience section (does not repeat it verbatim).
+   - Skills echo the technologies mentioned in experience/project bullets.
+   - Projects complement — not duplicate — experience entries.
+5. Technical Skills: group into categories. Never delete a valid skill.
 
 Return a JSON object with:
 {
@@ -65,10 +70,11 @@ Return a JSON object with:
     "targetRole": string,
     "companyName": string,
     "generationSessionId": string,
-    "generatedAt": string (ISO 8601),
+    "generatedAt": string,
     "keywordMatches": string[],
     "selectionRationale": string
   }
 }
 
-Only return valid JSON. No markdown.`;
+Only return valid JSON. No markdown.`,
+].join('\n\n');

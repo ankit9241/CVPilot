@@ -37,7 +37,7 @@ export async function analyzeJobNode(state: GraphState): Promise<Partial<GraphSt
         role: 'user',
         content: `Analyze this job description:\n\n${jobText}`,
       },
-    ]);
+    ], { json: true });
   });
 
   const analysis = parseJSON<JobAnalysis>(response.content);

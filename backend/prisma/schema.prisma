@@ -283,6 +283,7 @@ model ResumeVersion {
   pdfUrl       String?
   docxUrl      String?
   htmlSnapshot String?
+  healthReport Json?
   createdAt    DateTime          @default(now())
   atsRuns      ATSRun[]
   session      GenerationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)

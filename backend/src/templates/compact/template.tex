@@ -1,0 +1,123 @@
+% Compact ATS Resume Layout
+\documentclass[letterpaper,10pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{geometry}
+
+% Load Helvetica sans-serif font for readability at smaller sizes
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+
+% Narrow margins for maximum page space utilization
+\geometry{left=0.4in, top=0.4in, right=0.4in, bottom=0.4in}
+\pagestyle{fancy}
+\fancyhf{} 
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\urlstyle{same}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Section Titles: Compact bold with tight underline
+\titleformat{\section}{
+  \small\bfseries\raggedright
+}{}{0em}{}[\color{black}\titlerule]
+
+% Custom Spacing Macros
+\newcommand{\resumeHeader}[2]{
+  \begin{center}
+      {\Large\bfseries #1} \\ \vspace{2pt}
+      \small{#2}
+  \end{center}
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{\small#1} & \small#3 \\
+      \textit{\small#2} & \textit{\small#4} \\
+    \end{tabular*}
+}
+
+\newcommand{\resumeEducationSubheading}[4]{
+  \item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{\small#1} & \small#3 \\
+      \textit{\small#2} & \small{#4} \\
+    \end{tabular*}
+}
+
+\newcommand{\resumeProjectHeading}[3]{
+  \item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{\small#1} & \small#3 \\
+      \small{\emph{#2}} & \\
+    \end{tabular*}
+}
+
+\newcommand{\resumeSkillGroup}[2]{
+  \item\small{
+    \textbf{\small#1}{: #2}
+  }
+}
+
+\newcommand{\resumeCertificationHeading}[2]{
+  \item
+    \begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{\small#1} & \textit{\small#2} \\
+    \end{tabular*}
+}
+
+\newcommand{\resumeAchievementItem}[1]{
+  \item\small{
+    {#1}
+  }
+}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.12in, label={}, nosep, itemsep=4pt]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=0.12in, label=\textbullet{}, nosep, itemsep=1pt, topsep=1pt]}
+\newcommand{\resumeItemListEnd}{\end{itemize}}
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1}
+  }
+}
+
+\begin{document}
+
+{{{layoutOverrides}}}
+
+{{{headerComponent}}}
+
+{{#hasSummary}}
+\section{Summary}
+\vspace{1pt}
+\small{
+  {{summary}}
+}
+{{/hasSummary}}
+
+{{{experienceComponent}}}
+
+{{{projectComponent}}}
+
+{{{skillsComponent}}}
+
+{{{educationComponent}}}
+
+{{{footerComponent}}}
+
+\end{document}

@@ -1,0 +1,16 @@
+{{#hasProjects}}
+\section{Projects}
+\resumeSubHeadingListStart
+  {{#projects}}
+  \resumeProjectHeading
+    { {{name}} }
+    { {{{technologies}}} }
+    { {{startDate}} -- {{endDate}} }
+  \resumeItemListStart
+    {{#bulletPoints}}
+    \resumeItem{ {{.}} }
+    {{/bulletPoints}}
+  \resumeItemListEnd
+  {{/projects}}
+\resumeSubHeadingListEnd
+{{/hasProjects}}

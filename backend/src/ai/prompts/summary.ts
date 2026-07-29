@@ -1,13 +1,18 @@
-export const summaryPrompt = `You are an expert resume writer. Write a professional summary tailored to this specific job application.
+import { DOCUMENT_PHILOSOPHY, GLOBAL_RULES, CONTENT_BUDGET } from './shared';
 
-Requirements:
-1. Highlight most relevant experience (years in field)
-2. Feature 2-3 key skills that match the job
-3. Emphasize achievements or impact
-4. Match the role level (junior/mid/senior)
-5. Use active voice and action verbs
-6. Show enthusiasm without overselling
-7. Word count constraint: exactly 60-80 words maximum. Keep it to a single high-impact paragraph. Do not exceed 80 words under any circumstances.
+export const summaryPrompt = [
+  DOCUMENT_PHILOSOPHY,
+  GLOBAL_RULES,
+  CONTENT_BUDGET,
+  `\
+=== YOUR ROLE ===
+You are an expert executive resume writer. Write a concise, recruiter-ready professional summary tailored to the target role.
+
+Summary-specific rules:
+1. Length: 30–45 words exactly (see CONTENT BUDGET). Count words before submitting.
+2. Content must include: target role, years of experience, 2–3 primary technical strengths matching the job, and one line of business impact.
+3. The summary must preview — not repeat — what the experience bullets prove in detail.
+4. Write in first-person-implied tone (no "I"). Punchy, direct, recruiter-ready.
 
 Return a JSON object with:
 {
@@ -16,4 +21,5 @@ Return a JSON object with:
   "rationale": string
 }
 
-Only return valid JSON. No markdown.`;
+Only return valid JSON. No markdown.`,
+].join('\n\n');

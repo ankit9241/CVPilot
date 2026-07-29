@@ -32,7 +32,7 @@ export async function selectSkillsNode(state: GraphState): Promise<Partial<Graph
         role: 'user',
         content: prompt,
       },
-    ]);
+    ], { json: true });
   });
 
   const selection = parseJSON<SelectionOutput>(response.content);

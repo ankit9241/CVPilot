@@ -1,12 +1,17 @@
-export const selectExperiencesPrompt = `You are a resume strategist. Select the most relevant work experiences for this specific job application.
+import { DOCUMENT_PHILOSOPHY } from './shared';
 
-Selection criteria:
-1. Relevance to target role and skills
-2. Recency (prefer recent experiences)
-3. Impact and achievements (quantifiable results)
-4. Progression and growth shown
-5. Maximum 3-4 experiences (current first, never exceed 4 experiences total)
+export const selectExperiencesPrompt = [
+  DOCUMENT_PHILOSOPHY,
+  `\
+=== YOUR ROLE ===
+You are a resume strategist. Select the most relevant work experiences for this specific job application.
 
+Selection rules:
+1. Relevance to target role and required skills — this is the primary criterion.
+2. Recency — prefer more recent experiences when relevance is equal.
+3. Impact — prefer experiences with quantifiable achievements.
+4. Career progression — prefer experiences that show growth toward the target role.
+5. Count — select exactly 2–3 experiences (current/most recent first, never exceed 4).
 
 Return a JSON object with:
 {
@@ -28,4 +33,5 @@ Return a JSON object with:
   "summary": string
 }
 
-Only return valid JSON. No markdown.`;
+Only return valid JSON. No markdown.`,
+].join('\n\n');

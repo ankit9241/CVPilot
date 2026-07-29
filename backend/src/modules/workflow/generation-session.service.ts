@@ -378,10 +378,10 @@ export class GenerationSessionService extends BaseService {
           // Record run info temporarily (will save to database after version is created due to FK constraints)
           runsToSave.push({
             overallScore: report.overallScore,
-            keywordScore: report.scores.keywords,
-            formattingScore: report.scores.formatting,
-            readabilityScore: report.scores.readability,
-            experienceScore: report.scores.experience,
+            keywordScore: report.scoreBreakdown.keywordMatch,
+            formattingScore: report.scoreBreakdown.formatting,
+            readabilityScore: report.scoreBreakdown.readability,
+            experienceScore: report.scoreBreakdown.experienceRelevance,
             suggestions: report as any,
             missingKeywords: report.missingKeywords as any,
             iterationNumber: iteration,

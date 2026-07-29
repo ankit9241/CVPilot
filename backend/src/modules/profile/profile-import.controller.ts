@@ -23,12 +23,19 @@ export class ProfileImportController extends BaseController {
       throw new BadRequestError('Invalid importerType. Must be "resume" or "linkedin".');
     }
 
-    const parsed = await profileImportService.parseImportFile(
-      file.buffer,
-      file.mimetype,
-      importerType,
-      file.originalname,
-    );
+    let parsed: any;
+    try {
+      parsed = await profileImportService.parseImportFile(
+        file.buffer,
+        file.mimetype,
+        importerType,
+        file.originalname,
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error during file parsing';
+      console.error('[ProfileImport] parse error:', msg);
+      throw new BadRequestError(msg);
+    }
 
     return this.sendOk(res, parsed);
   });

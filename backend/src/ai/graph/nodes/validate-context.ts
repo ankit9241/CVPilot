@@ -42,7 +42,7 @@ export async function validateContextNode(state: GraphState): Promise<Partial<Gr
         role: 'user',
         content: `Validate this ResumeContext:\n\n${contextSummary}`,
       },
-    ]);
+    ], { json: true });
   });
 
   const validation = parseJSON<ValidationOutput>(response.content);

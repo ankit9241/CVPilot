@@ -1,0 +1,12 @@
+{{#hasEducation}}
+\section{Education}
+\resumeSubHeadingListStart
+  {{#education}}
+  \resumeEducationSubheading
+    { {{school}} }
+    { {{degree}}{{#field}} in {{field}}{{/field}} }
+    { {{startDate}} -- {{endDate}} }
+    { {{#gpa}}CGPA: {{gpa}}{{/gpa}} }
+  {{/education}}
+\resumeSubHeadingListEnd
+{{/hasEducation}}

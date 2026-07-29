@@ -42,7 +42,7 @@ Impact: ${proj.impact || 'Not specified'}
         role: 'user',
         content: prompt,
       },
-    ]);
+    ], { json: true });
   });
 
   const result = parseJSON<BulletsOutput>(response.content);

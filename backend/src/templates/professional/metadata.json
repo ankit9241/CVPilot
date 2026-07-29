@@ -1,7 +1,7 @@
 {
   "id": "tpl-professional",
   "name": "Professional",
-  "description": "An executive resume style with high-density grids and corporate styling.",
+  "description": "An elegant, premium minimalist layout inspired by Apple and Vercel designs.",
   "category": "PROFESSIONAL",
-  "isPremium": true
+  "isPremium": false
 }

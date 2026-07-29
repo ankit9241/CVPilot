@@ -1,12 +1,20 @@
-export const selectProjectsPrompt = `You are a portfolio strategist. Select the most impressive projects that demonstrate relevant skills for this job.
+import { DOCUMENT_PHILOSOPHY } from './shared';
 
-Selection criteria:
-1. Technical relevance to job requirements
-2. Complexity and scale of project
-3. Impact and outcomes (users, metrics, adoption)
-4. Tech stack alignment with job
-5. Maximum 2-3 projects (featured first, never exceed 3 projects total)
+export const selectProjectsPrompt = [
+  DOCUMENT_PHILOSOPHY,
+  `\
+=== YOUR ROLE ===
+You are a resume strategist. Select the most relevant projects for this specific job application.
 
+Selection rules:
+1. Select 2–3 projects that best match the target role's requirements.
+2. Projects must complement — not duplicate — the selected experience entries.
+3. Prefer projects that demonstrate technical depth the experience section does not already cover.
+
+Technology stack rules:
+- Compress each project's stack to the 5 most important technologies only.
+- Priority order: Primary Framework → Language → Backend → Database → Cloud/Infra.
+- Never list minor utility libraries or transitive dependencies.
 
 Return a JSON object with:
 {
@@ -16,7 +24,7 @@ Return a JSON object with:
       "name": string,
       "description": string,
       "role": string,
-      "technologies": string[],
+      "technologies": string[] (max 5 primary technologies),
       "bulletPoints": string[],
       "impact": string,
       "relevanceScore": number (0-100),
@@ -26,4 +34,5 @@ Return a JSON object with:
   "summary": string
 }
 
-Only return valid JSON. No markdown.`;
+Only return valid JSON. No markdown.`,
+].join('\n\n');

@@ -2,6 +2,7 @@ import { getLLMClient } from '../../ai/llm/client';
 import { parseJSON } from '../../ai/utils/json-parser';
 import { GeneratedResume } from '../../ai/types';
 import { ATSReport } from './ats.types';
+import { calculateYoE } from '../../utils/date';
 
 export class ResumeOptimizationService {
   /**
@@ -70,8 +71,11 @@ Respond with the compressed resume JSON. The output MUST follow the exact same J
     report: ATSReport,
     targetScore: number
   ): { needsOptimization: boolean; feedback: any } {
+    const bd = report.scoreBreakdown;
+
     const feedback: any = {
       overallScore: report.overallScore,
+      scoreBreakdown: bd,
       missingKeywords: report.missingKeywords || [],
       resumeTooLong: false,
       removeLowestPriorityProject: false,
@@ -82,17 +86,30 @@ Respond with the compressed resume JSON. The output MUST follow the exact same J
 
     let needsOptimization = false;
 
-    // 1. Check score
+    // 1. Check overall score
     if (report.overallScore < targetScore) {
       needsOptimization = true;
     }
 
-    // 2. Check page constraints
+    // 2. Check weakest scoring categories for targeted fixes
+    if (bd.keywordMatch < 12) { // < 60% of max 20
+      feedback.needsKeywordWork = true;
+      needsOptimization = true;
+    }
+    if (bd.skillsMatch < 9) { // < 60% of max 15
+      feedback.needsSkillWork = true;
+      needsOptimization = true;
+    }
+    if (bd.impact < 3) { // < 60% of max 5
+      feedback.needsImpactWork = true;
+      needsOptimization = true;
+    }
+
+    // 3. Check page constraints
     const experiences = resumeJson.experiences || [];
     const projects = resumeJson.projects || [];
     const skills = resumeJson.skills || [];
     const summary = resumeJson.summary || '';
-    const yoe = this.calculateYoE(experiences);
 
     if (experiences.length > 3) {
       feedback.resumeTooLong = true;
@@ -110,7 +127,6 @@ Respond with the compressed resume JSON. The output MUST follow the exact same J
       needsOptimization = true;
     }
 
-    // Check bullet counts
     for (const exp of experiences) {
       if (exp.bulletPoints && exp.bulletPoints.length > 3) {
         feedback.resumeTooLong = true;
@@ -126,14 +142,13 @@ Respond with the compressed resume JSON. The output MUST follow the exact same J
       }
     }
 
-    // Check summary lines
     const summaryLines = summary.split(/[.\n]+/).filter((line) => line.trim().length > 0).length;
     if (summaryLines > 3) {
       feedback.resumeTooLong = true;
       needsOptimization = true;
     }
 
-    // 3. Missing keywords check
+    // 4. Missing keywords
     if (report.missingKeywords && report.missingKeywords.length > 0) {
       needsOptimization = true;
     }
@@ -150,9 +165,11 @@ Respond with the compressed resume JSON. The output MUST follow the exact same J
     report: ATSReport,
     feedback: any
   ): Promise<GeneratedResume> {
-    const prompt = `You are an expert technical resume optimization editor.
-Your job is to optimize a candidate's resume based on detailed ATS report feedback to improve its match score.
+    const bd = report.scoreBreakdown;
 
+    const prompt = `You are an expert resume optimizer. You receive a resume, an ATS report, and a job description. Your job is to fix real weaknesses identified by the ATS — not to blindly increase keyword density.
+
+=== INPUTS ===
 Job Description:
 ${resumeContext.originalJobDescription}
 
@@ -160,27 +177,35 @@ Current Resume JSON:
 ${JSON.stringify(resumeJson, null, 2)}
 
 ATS Report:
-- Overall Score: ${report.overallScore}
+- Overall: ${report.overallScore}/100
+- Parseability: ${bd.parseability}/15
+- Formatting: ${bd.formatting}/15
+- Keyword Match: ${bd.keywordMatch}/20
+- Skills Match: ${bd.skillsMatch}/15
+- Experience Relevance: ${bd.experienceRelevance}/15
+- Education: ${bd.education}/5
+- Grammar & Spelling: ${bd.grammarSpelling}/5
+- Readability: ${bd.readability}/5
+- Impact & Quantification: ${bd.impact}/5
 - Missing Keywords: ${JSON.stringify(report.missingKeywords)}
-- Suggestions: ${JSON.stringify(report.suggestions)}
-- Warnings: ${JSON.stringify(report.warnings)}
+- Warnings: ${JSON.stringify(report.warnings.slice(0, 10))}
 
-Target structured feedback instructions:
+Target feedback:
 ${JSON.stringify(feedback, null, 2)}
 
-CRITICAL OPTIMIZATION RULES:
-1. ONLY improve weak sections listed in the suggestions/warnings or missing keywords.
-2. PROFESSIONAL SUMMARY:
-   - Keep the summary strictly under 45 words. Ensure it includes: Role, Years of experience, Primary tech, Domain, and Strengths.
-3. BULLETS & ACHIEVEMENTS:
-   - Enforce the STAR formula: Action Verb -> Technology -> Quantifiable Impact.
-   - Max 3 bullets per experience, and max 3 bullets per project. Each bullet max 22 words.
-   - Remove passive language (e.g., "worked on", "assisted").
-4. REMOVE DUPLICATION:
-   - Ensure there is absolutely no overlap between sections.
-   - Delete experience and project introductory descriptions; use ONLY bullets.
-5. NEVER invent or fabricate any experiences, credentials, projects, or metrics.
-6. Maintain the exact same JSON schema and key names as the input.
+=== RULES ===
+- Do not blindly increase keywords. Fix only real weaknesses.
+- Never stuff keywords — natural inclusion only.
+- Never invent experience, credentials, projects, or metrics.
+- Maintain the exact same JSON schema and key names as the input.
+
+=== PRIORITIES (in order) ===
+1. Missing required skills — integrate naturally into summary or experience bullets.
+2. Weak summary — rewrite to be punchy, 30–45 words, role + tech + impact.
+3. Long bullets — trim to 15–20 words. Remove filler, merge repetitive ideas.
+4. Poor readability — replace passive voice, remove weak verbs, add action verbs.
+5. Missing quantified impact — strengthen metrics language where factual.
+6. Weak action verbs — replace "worked on", "responsible for", "helped" with strong verbs.
 
 Respond with the optimized resume JSON. Do not write any other explanation or text.`;
 
@@ -208,17 +233,7 @@ Respond with the optimized resume JSON. Do not write any other explanation or te
    * Helper to calculate Candidate total YoE
    */
   private calculateYoE(experiences: any[]): number {
-    let totalMonths = 0;
-    for (const exp of experiences) {
-      const start = exp.startDate ? new Date(exp.startDate) : null;
-      const end = exp.isCurrent || !exp.endDate ? new Date() : new Date(exp.endDate);
-
-      if (start && !isNaN(start.getTime()) && !isNaN(end.getTime())) {
-        const diffMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-        totalMonths += Math.max(0, diffMonths);
-      }
-    }
-    return Math.round((totalMonths / 12) * 10) / 10;
+    return calculateYoE(experiences);
   }
 }
 

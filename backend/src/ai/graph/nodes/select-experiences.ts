@@ -34,7 +34,7 @@ export async function selectExperiencesNode(state: GraphState): Promise<Partial<
         role: 'user',
         content: prompt,
       },
-    ]);
+    ], { json: true });
   });
 
   const selection = parseJSON<SelectionOutput>(response.content);

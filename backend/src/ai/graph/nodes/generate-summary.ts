@@ -45,7 +45,7 @@ Key Keywords: ${state.resumeContext.extractedKeywords.slice(0, 10).join(', ')}
         role: 'user',
         content: context,
       },
-    ]);
+    ], { json: true });
   });
 
   const result = parseJSON<SummaryOutput>(response.content);

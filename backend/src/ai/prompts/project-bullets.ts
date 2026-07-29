@@ -1,14 +1,28 @@
-export const projectBulletsPrompt = `You are an expert resume writer. Create compelling bullet points for portfolio projects.
+import { DOCUMENT_PHILOSOPHY, GLOBAL_RULES, CONTENT_BUDGET } from './shared';
 
-For each project, create EXACTLY 2-3 bullet points (MAXIMUM 3, never exceed 3 bullet points) that:
-1. Start with action verbs (Built, Designed, Created, etc.)
-2. Explain the problem solved or outcome delivered
-3. Highlight relevant technologies used
-4. Include metrics of success (users, performance gain, adoption)
-5. Are 1-2 lines max (concise)
-6. Focus on skills matching the target job
-7. Use professional tone
-8. Do not copy raw profile text; rewrite content instead to optimize for the target job while preserving strict factual accuracy. Never hallucinate.
+export const projectBulletsPrompt = [
+  DOCUMENT_PHILOSOPHY,
+  GLOBAL_RULES,
+  CONTENT_BUDGET,
+  `\
+=== YOUR ROLE ===
+You are an expert executive resume writer. Write compelling, high-impact bullet points for portfolio projects.
+
+=== BULLET RULES ===
+- Maximum 3 bullets per project.
+- Maximum 20 words each. Keep uniform length.
+- Structure each bullet: Problem → Solution → Impact.
+
+=== TECH STACK RULES ===
+- Maximum 5 technologies per project.
+- Rank by priority: Framework → Language → Backend → Database → Cloud.
+- Do not include every dependency or utility library.
+- Only list primary technologies that demonstrate relevant depth.
+
+=== NEVER DO ===
+- Repeat the project name or description inside a bullet.
+- Repeat technologies already stated in the project header.
+- Write a bullet that only describes an activity without its outcome.
 
 Return a JSON object with:
 {
@@ -21,4 +35,5 @@ Return a JSON object with:
   }
 }
 
-Only return valid JSON. No markdown.`;
+Only return valid JSON. No markdown.`,
+].join('\n\n');

@@ -1,11 +1,18 @@
-export const selectSkillsPrompt = `You are a skills strategist. Select and prioritize skills that best match the target job.
+import { DOCUMENT_PHILOSOPHY } from './shared';
 
-Selection criteria:
-1. Required skills for the target role (must-have first)
-2. Highest relevance to job description
-3. Demonstrated proficiency (from experience/projects)
-4. Balanced skill categories (frontend, backend, tools, soft skills)
-5. Maximum 12-15 skills total
+export const selectSkillsPrompt = [
+  DOCUMENT_PHILOSOPHY,
+  `\
+=== YOUR ROLE ===
+You are a technical skills strategist. Organize and categorize all legitimate user skills.
+
+=== RULES ===
+- Preserve ALL valid skills. Do not aggressively remove skills.
+- Only clean up: remove exact duplicates, merge aliases (e.g. "NodeJS" → "Node.js"), correct naming inconsistencies.
+- Group into the following categories only:
+  Languages · Frontend · Backend · Database · Cloud · DevOps · AI/ML · Tools
+- Do not invent new categories.
+- Do not remove a skill just because it seems uncommon.
 
 Return a JSON object with:
 {
@@ -23,4 +30,5 @@ Return a JSON object with:
   "keyMatches": string[]
 }
 
-Only return valid JSON. No markdown.`;
+Only return valid JSON. No markdown.`,
+].join('\n\n');

@@ -42,7 +42,7 @@ Skills Used: ${exp.bulletPoints.join(', ') || 'N/A'}
         role: 'user',
         content: prompt,
       },
-    ]);
+    ], { json: true });
   });
 
   const result = parseJSON<BulletsOutput>(response.content);

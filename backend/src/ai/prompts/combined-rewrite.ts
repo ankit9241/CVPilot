@@ -1,45 +1,47 @@
-export const combinedRewritePrompt = `You are a professional resume writer. You must rewrite the summary, experience bullets, and project bullets to be highly professional, recruiter-ready, and tailored for the target job role. Return ONLY a single JSON object.
+import { DOCUMENT_PHILOSOPHY, GLOBAL_RULES, CONTENT_BUDGET } from './shared';
 
-CRITICAL: Do NOT write any introduction, thinking process, markdown formatting blocks (like \`\`\`json), or explanations. Start your response immediately with the character '{' and end with '}'.
+export const combinedRewritePrompt = [
+  DOCUMENT_PHILOSOPHY,
+  GLOBAL_RULES,
+  CONTENT_BUDGET,
+  `\
+=== YOUR ROLE ===
+You are a professional resume writer. Rewrite the summary, experience bullets, and project bullets to be highly professional, recruiter-ready, and tailored for the target role. Return ONLY a single JSON object.
 
-=== QUALITY & REWRITING RULES ===
-1. PROFESSIONAL SUMMARY:
-   - Write a professional summary that is STRICTLY between 35 and 45 words (maximum 45 words).
-   - It MUST include: Target Role, Years of Experience, Primary Technologies, Domain, and Key Strength.
-   - Do NOT write a generic, flowery, or boring summary. Make it punchy and recruiter-ready.
-   - Example: "Frontend Engineer with 5+ years of experience specializing in React, TypeScript, and design systems. Proven track record building high-performance developer tools and accessible cloud consoles at scale."
+CRITICAL: Do NOT write any introduction, thinking process, markdown formatting (like \`\`\`json), or explanations. Start your response immediately with '{' and end with '}'.
 
-2. STAR-METHOD BULLET POINTS:
-   - Max 3 bullets per experience, and max 3 bullets per project.
-   - Every bullet MUST follow this formula: Action Verb -> Technology/Tool used -> Quantifiable Impact/Result.
-   - Example: "Architected scalable React dashboard components using TypeScript, reducing client-side load times by 35%."
-   - Avoid weak passive voice (e.g., "worked on", "assisted in", "responsible for"). Use strong action verbs (e.g., "engineered", "revamped", "spearheaded").
-   - Prefer quantified achievements (e.g., "improving test coverage by 85%", "handling 10k+ concurrent requests").
+=== SECTION-SPECIFIC RULES ===
 
-3. NO DUPLICATION:
-   - Do NOT repeat the company name, project name, or role name in the bullet points.
-   - Do NOT repeat the same achievement across different bullets or sections.
-   - Keep bullet points completely independent and concise (max 22 words per bullet).
+PROFESSIONAL SUMMARY
+- 30–45 words exactly (see CONTENT BUDGET). Count words before finalizing.
+- Must include: Target Role, Years of Experience, Primary Technologies, Domain, and one Key Strength.
+- Must preview — not repeat word-for-word — the experience bullets below it.
+- Example: "Frontend Engineer with 5+ years specializing in React, TypeScript, and design systems. Proven track record building high-performance developer tools and accessible cloud consoles at scale."
 
-4. NO INTRODUCTORY PARAGRAPHS OR CODES:
-   - Rewritten bullets must be ready to drop directly into bullet lists. Do not include paragraphs, introductory text, or side comments.
+BULLET POINTS (STAR METHOD)
+- Exactly 3 bullets per experience entry. Exactly 3 per project entry (see CONTENT BUDGET).
+- Each bullet: 15–20 words. Count words per bullet.
+- Structure: Action Verb → Technology/Tool → Quantifiable Impact/Result.
+- Example: "Architected scalable React dashboard components using TypeScript, reducing client-side load times by 35%."
+- Prefer quantified outcomes: "improving test coverage by 85%", "handling 10k+ concurrent requests".
+- Project bullets must showcase depth that complements — not repeats — experience bullets.
 
 === REQUIRED JSON SCHEMA ===
 {
   "summary": {
-    "summary": string (rewritten summary under 45 words),
-    "keywords": string[] (keywords from the job description used in the summary),
-    "rationale": string (brief explanation of tailoring)
+    "summary": string (rewritten summary, 30–45 words exactly),
+    "keywords": string[] (job description keywords used in the summary),
+    "rationale": string (brief explanation of how the summary serves the whole document)
   },
   "experienceBullets": {
     "experiences": {
-      "<companyName>-<role>": string[] (array of rewritten bullet points, max 3 bullets, e.g. "Thrive Wellness-Software Engineer")
+      "<companyName>-<role>": string[] (array of exactly 3 rewritten bullet points, each 15–20 words)
     }
   },
   "projectBullets": {
     "projects": {
-      "<projectName>": string[] (array of rewritten bullet points, max 3 bullets)
+      "<projectName>": string[] (array of exactly 3 rewritten bullet points, each 15–20 words)
     }
   }
-}`;
-
+}`,
+].join('\n\n');

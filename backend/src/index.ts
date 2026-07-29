@@ -86,4 +86,4 @@ async function bootstrap() {
 if (require.main === module) {
   void bootstrap();
 }
-// Trigger server reload
+// Trigger server restart

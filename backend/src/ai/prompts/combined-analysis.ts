@@ -1,13 +1,22 @@
-export const combinedAnalysisPrompt = `You are a structured data extractor. You must analyze the input profile and job description, perform the following analysis tasks, and return ONLY a single JSON object.
+import { DOCUMENT_PHILOSOPHY, CONTENT_BUDGET } from './shared';
 
-CRITICAL: Do NOT write any introduction, thinking process, markdown formatting blocks (like \`\`\`json), or explanations. Start your response immediately with the character '{' and end with '}'.
+export const combinedAnalysisPrompt = [
+  DOCUMENT_PHILOSOPHY,
+  CONTENT_BUDGET,
+  `\
+=== YOUR ROLE ===
+You are a structured data extractor. Analyze the input profile and job description, perform all analysis tasks below, and return ONLY a single JSON object.
+
+CRITICAL: Do NOT write any introduction, thinking process, markdown formatting (like \`\`\`json), or explanations. Start your response immediately with '{' and end with '}'.
+
+When making selections, apply the DOCUMENT PHILOSOPHY above — choose experiences, projects, and skills that form a coherent whole, not independently optimal isolated choices.
 
 === ANALYSIS TASKS ===
-1. VALIDATION: Validate the input Profile. Check if "fullName", "headline", "professionalSummary", at least one experience or education, and the target role/company are present. Return a "validation" object.
-2. JOB ANALYSIS: Extract hard/soft skills, experience years required, key responsibilities, must-have/nice-to-have requirements, role level, and a brief summary from the job description. Return a "jobAnalysis" object.
-3. EXPERIENCES: Select the most relevant experience IDs (from the [ID: ...] tags) that align with the job description. Select exactly 2 experiences (current first) to fit a tight 1-page resume budget.
-4. PROJECTS: Select the most relevant project IDs (from the [ID: ...] tags). Select exactly 2 projects.
-5. SKILLS: Select the most relevant skill IDs (from the [ID: ...] tags). Select exactly 12-15 skills.
+1. VALIDATION: Validate the input profile. Check if "fullName", "headline", "professionalSummary", at least one experience or education entry, and the target role/company are present.
+2. JOB ANALYSIS: Extract hard/soft skills, years of experience required, key responsibilities, must-have/nice-to-have requirements, role level, and a brief summary.
+3. EXPERIENCES: Select exactly 2 experience IDs (from [ID: ...] tags) that best serve the whole-document narrative. Current/most recent first.
+4. PROJECTS: Select exactly 2 project IDs that complement — not duplicate — the selected experiences.
+5. SKILLS: Select exactly 12–15 skill IDs ranked by relevance to the job description.
 
 === REQUIRED JSON SCHEMA ===
 {
@@ -31,6 +40,7 @@ CRITICAL: Do NOT write any introduction, thinking process, markdown formatting b
   "experiences": string[] (exactly 2 selected experience ID strings),
   "projects": string[] (exactly 2 selected project ID strings),
   "skills": string[] (exactly 12-15 selected skill ID strings),
-  "selectionRationale": string (overall summary rationale for selection),
-  "keywordMatches": string[] (list of target keywords found in the job description)
-}`;
+  "selectionRationale": string (how the selections form a coherent whole-document narrative),
+  "keywordMatches": string[] (target keywords found in the job description)
+}`,
+].join('\n\n');

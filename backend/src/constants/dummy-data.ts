@@ -166,6 +166,15 @@ export const dummyTemplates = [
     previewUrl: null,
     tone: 'Confident header, quiet body.',
   },
+  {
+    id: 'tpl-compact',
+    name: 'Compact ATS',
+    category: 'MINIMAL',
+    tag: 'Dense',
+    isPremium: false,
+    previewUrl: null,
+    tone: 'Maximum information density for experienced candidates.',
+  },
 ];
 
 export const dummyResumes = [

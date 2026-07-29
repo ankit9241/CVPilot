@@ -34,7 +34,7 @@ export async function selectProjectsNode(state: GraphState): Promise<Partial<Gra
         role: 'user',
         content: prompt,
       },
-    ]);
+    ], { json: true });
   });
 
   const selection = parseJSON<SelectionOutput>(response.content);

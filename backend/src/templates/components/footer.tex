@@ -1,0 +1,17 @@
+{{#hasCertifications}}
+\section{Certifications}
+\resumeSubHeadingListStart
+  {{#certifications}}
+  \resumeCertificationHeading{ {{name}} }{ {{issuer}} }
+  {{/certifications}}
+\resumeSubHeadingListEnd
+{{/hasCertifications}}
+
+{{#hasAchievements}}
+\section{Achievements}
+\resumeSubHeadingListStart
+  {{#achievements}}
+  \resumeAchievementItem{ {{.}} }
+  {{/achievements}}
+\resumeSubHeadingListEnd
+{{/hasAchievements}}

@@ -10,6 +10,18 @@ function cleanMarkdownJson(text: string): string {
   if (cleaned.endsWith('```')) {
     cleaned = cleaned.substring(0, cleaned.length - 3);
   }
+  cleaned = cleaned.trim();
+  // ponytail: strip reasoning preamble — thinking models (gemini-2.5-flash etc.)
+  // can leak chain-of-thought text before the JSON object/array.
+  if (!cleaned.startsWith('{') && !cleaned.startsWith('[')) {
+    const firstBrace = cleaned.indexOf('{');
+    const firstBracket = cleaned.indexOf('[');
+    const start =
+      firstBrace === -1 ? firstBracket
+      : firstBracket === -1 ? firstBrace
+      : Math.min(firstBrace, firstBracket);
+    if (start > 0) cleaned = cleaned.substring(start);
+  }
   return cleaned.trim();
 }
 

@@ -11,6 +11,9 @@ import userRoutes from './user.routes';
 import storageRoutes from '../storage/storage.routes';
 import uploadRoutes from './upload.routes';
 import atsRoutes from '../modules/ats/ats.routes';
+import linkedInRoutes from '../modules/linkedin/linkedin.routes';
+import portfolioRoutes from '../modules/portfolio/portfolio.routes';
+import benchmarkRoutes from '../modules/benchmark/benchmark.routes';
 
 const api: Router = Router();
 
@@ -30,5 +33,8 @@ api.use('/settings', settingsRoutes);
 api.use('/storage', storageRoutes);
 api.use('/uploads', uploadRoutes);
 api.use('/ats', atsRoutes);
+api.use('/linkedin', linkedInRoutes);
+api.use('/portfolio', portfolioRoutes);
+api.use('/benchmark', benchmarkRoutes);
 
 export default api;
