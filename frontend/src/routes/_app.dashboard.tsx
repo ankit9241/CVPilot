@@ -139,28 +139,28 @@ function WelcomeCard() {
       transition={{ duration: 0.3 }}
       className="col-span-12 lg:col-span-8"
     >
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-subtle">
+      <div className="editorial-card relative overflow-hidden p-6 sm:p-8">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,color-mix(in_oklab,var(--color-primary)_10%,transparent),transparent_60%)]" />
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-              <Sparkles className="h-3 w-3 text-primary" /> Ready to tailor
+            <span className="editorial-pill mb-3">
+              <Sparkles className="h-3.5 w-3.5 text-primary" /> Ready to tailor
             </span>
-            <h2 className="mt-3 text-[22px] font-semibold tracking-tight sm:text-[26px]">
+            <h2 className="font-serif text-[24px] font-normal leading-tight tracking-tight text-foreground sm:text-[28px]">
               Your next application is 40 seconds away.
             </h2>
-            <p className="mt-1.5 max-w-md text-[13.5px] leading-relaxed text-muted-foreground">
+            <p className="mt-2 max-w-md text-[13.5px] leading-relaxed text-muted-foreground">
               Paste a job description in the studio and CVPilot will tailor your resume with
               precise, explainable edits.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" asChild className="gap-1.5">
+          <div className="flex flex-wrap gap-2 shrink-0">
+            <Button size="sm" asChild className="gap-1.5 font-medium">
               <Link to="/resume-studio">
                 Open Studio <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </Button>
-            <Button size="sm" variant="outline" asChild>
+            <Button size="sm" variant="outline" asChild className="font-medium">
               <Link to="/resume-analyzer">Analyze existing</Link>
             </Button>
           </div>
@@ -180,9 +180,9 @@ function ProfileCompletionCard() {
       transition={{ duration: 0.3, delay: 0.05 }}
       className="col-span-12 lg:col-span-4"
     >
-      <div className="flex h-full flex-col rounded-2xl border border-border bg-card p-6 shadow-subtle">
+      <div className="editorial-card flex h-full flex-col p-6">
         <div className="flex items-center justify-between">
-          <span className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             Profile completion
           </span>
           <span className="text-[11px] text-muted-foreground">4 sections left</span>
@@ -211,7 +211,7 @@ function ProfileCompletionCard() {
                 transition={{ duration: 0.8, ease: "easeOut" }}
               />
             </svg>
-            <div className="absolute inset-0 grid place-items-center text-[15px] font-semibold">
+            <div className="absolute inset-0 grid place-items-center font-serif text-[18px] font-medium text-foreground">
               {pct}%
             </div>
           </div>
@@ -219,7 +219,7 @@ function ProfileCompletionCard() {
             <p className="text-[13.5px] leading-relaxed text-foreground">
               Finish your profile to unlock more accurate tailoring.
             </p>
-            <Button size="sm" variant="outline" asChild className="mt-3 gap-1.5">
+            <Button size="sm" variant="outline" asChild className="mt-3 gap-1.5 font-medium">
               <Link to="/profile">
                 Complete profile <ArrowRight className="h-3 w-3" />
               </Link>
@@ -257,7 +257,7 @@ function StatBlock({
       transition={{ duration: 0.25 }}
       className="col-span-6 lg:col-span-3"
     >
-      <div className="h-full rounded-2xl border border-border bg-card p-5 shadow-subtle transition-all hover:-translate-y-0.5 hover:shadow-soft">
+      <div className="editorial-card h-full p-5">
         <div className="flex items-center justify-between">
           <span className="text-[11.5px] font-medium uppercase tracking-wider text-muted-foreground">
             {label}

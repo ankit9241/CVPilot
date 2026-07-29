@@ -84,16 +84,16 @@ function ApplicationsPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="mt-8 overflow-hidden rounded-2xl border border-border bg-card shadow-subtle"
+        className="editorial-card mt-8 overflow-hidden"
       >
         <div className="relative grid grid-cols-1 gap-0 lg:grid-cols-[1fr_1fr]">
           <div className="relative overflow-hidden p-8 lg:p-10">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0%_100%,color-mix(in_oklab,var(--color-primary)_12%,transparent),transparent_60%)]" />
             <div className="relative">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-                <Sparkles className="h-3 w-3 text-primary" /> Landing soon
+              <span className="editorial-pill mb-3">
+                <Sparkles className="h-3.5 w-3.5 text-primary" /> Landing soon
               </span>
-              <h2 className="mt-4 text-[24px] font-semibold tracking-tight sm:text-[28px]">
+              <h2 className="font-serif text-[26px] font-normal leading-tight tracking-tight text-foreground sm:text-[30px]">
                 A quiet inbox for every job you apply to.
               </h2>
               <p className="mt-2 max-w-md text-[13.5px] leading-relaxed text-muted-foreground">

@@ -67,7 +67,7 @@ function SettingsPage() {
 
       <div className="mt-8 grid grid-cols-12 gap-6">
         <aside className="col-span-12 lg:col-span-3">
-          <nav className="sticky top-20 rounded-2xl border border-border bg-card p-2 shadow-subtle">
+          <nav className="editorial-card sticky top-20 p-2">
             {nav.map((s) => (
               <button
                 key={s.key}

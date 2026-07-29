@@ -37,7 +37,7 @@ export function AppNavbar() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-md">
+    <header className="glass-header sticky top-0 z-30 flex h-14 items-center gap-3 px-4 sm:px-6">
       <SidebarTrigger className="h-8 w-8 text-muted-foreground hover:text-foreground" />
       <Separator orientation="vertical" className="h-5" />
 
@@ -45,19 +45,19 @@ export function AppNavbar() {
         <BreadcrumbList className="text-[13px]">
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link to="/dashboard" className="text-muted-foreground hover:text-foreground">
+              <Link to="/dashboard" className="font-serif text-base text-muted-foreground hover:text-foreground transition-colors">
                 CVPilot
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage className="font-medium">{title}</BreadcrumbPage>
+            <BreadcrumbPage className="font-medium text-foreground">{title}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
-      <span className="text-[13px] font-medium md:hidden">{title}</span>
+      <span className="text-[13px] font-medium text-foreground md:hidden">{title}</span>
 
       <div className="ml-auto flex items-center gap-2">
         <div className="relative hidden md:block">

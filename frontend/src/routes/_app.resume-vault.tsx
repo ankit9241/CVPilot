@@ -96,14 +96,14 @@ function VaultPage() {
           title="Resume Vault"
           subtitle="Every version of every resume — organised, searchable, always yours."
         />
-        <div className="mt-8 flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-10 text-center shadow-subtle min-h-[400px]">
+        <div className="editorial-card mt-8 flex flex-col items-center justify-center p-10 sm:p-14 text-center min-h-[400px]">
           <Folder className="h-12 w-12 text-muted-foreground/60" strokeWidth={1.5} />
-          <div className="mt-4 text-[16px] font-semibold">Your Vault is empty</div>
-          <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-muted-foreground">
+          <div className="mt-4 font-serif text-[24px] font-normal text-foreground">Your Vault is empty</div>
+          <p className="mt-2 max-w-sm text-[13.5px] leading-relaxed text-muted-foreground">
             Generate a resume from the Resume Studio — it will automatically appear here once
             complete.
           </p>
-          <Button size="sm" asChild className="mt-6 gap-1.5">
+          <Button size="sm" asChild className="mt-6 gap-1.5 font-medium">
             <Link to="/resume-studio">
               <Sparkles className="h-3.5 w-3.5" /> Go to Resume Studio
             </Link>

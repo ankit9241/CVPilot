@@ -166,7 +166,7 @@ function AnalyzerPage() {
       <div className="mt-8 grid grid-cols-12 gap-6">
         {/* Left Column: Controls & History */}
         <div className="col-span-12 lg:col-span-4 space-y-6">
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-subtle space-y-5">
+          <div className="editorial-card p-6 space-y-5">
             <div className="space-y-1.5">
               <Label htmlFor="resume-select" className="text-[13px] font-semibold">
                 Select Resume Version

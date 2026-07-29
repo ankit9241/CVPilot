@@ -17,11 +17,11 @@ export function PageHeader({ title, subtitle, actions, className }: PageHeaderPr
       )}
     >
       <div className="min-w-0">
-        <h1 className="truncate text-[26px] font-semibold tracking-tight text-foreground">
+        <h1 className="truncate font-serif text-[28px] font-normal tracking-tight text-foreground sm:text-[34px] leading-tight">
           {title}
         </h1>
         {subtitle && (
-          <p className="mt-1.5 text-[14px] leading-relaxed text-muted-foreground">{subtitle}</p>
+          <p className="mt-1 text-[14px] leading-relaxed text-muted-foreground">{subtitle}</p>
         )}
       </div>
       {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}

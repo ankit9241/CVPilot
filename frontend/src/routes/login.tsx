@@ -30,19 +30,19 @@ function LoginPage() {
     <div className="grid min-h-screen grid-cols-1 bg-background lg:grid-cols-2">
       <div className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
-          <Link to="/" className="inline-flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+          <Link to="/" className="inline-flex items-center gap-2.5 group">
+            <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground shadow-soft transition-transform duration-200 group-hover:scale-105">
               <PlaneTakeoff className="h-4 w-4" />
             </div>
-            <span className="text-sm font-semibold tracking-tight">CVPilot</span>
+            <span className="font-serif text-2xl font-medium tracking-tight text-foreground">CVPilot</span>
           </Link>
 
-          <h1 className="mt-10 text-[26px] font-semibold tracking-tight">Welcome back</h1>
+          <h1 className="mt-10 font-serif text-3xl font-normal tracking-tight text-foreground">Welcome back</h1>
           <p className="mt-1.5 text-[14px] text-muted-foreground">
             Sign in to continue building your career story.
           </p>
 
-          <div className="relative mt-10 overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-soft">
+          <div className="editorial-card relative mt-8 overflow-hidden p-6 sm:p-8">
             <AnimatePresence mode="wait">
               {state === "idle" && (
                 <motion.div
@@ -53,10 +53,10 @@ function LoginPage() {
                   transition={{ duration: 0.25 }}
                 >
                   <div className="text-center">
-                    <div className="mx-auto grid h-12 w-12 place-items-center rounded-full border border-border bg-background">
+                    <div className="mx-auto grid h-12 w-12 place-items-center rounded-full border border-border bg-background shadow-subtle">
                       <GoogleIcon className="h-5 w-5" />
                     </div>
-                    <h2 className="mt-4 text-[15px] font-semibold tracking-tight">
+                    <h2 className="mt-4 text-[15px] font-semibold tracking-tight text-foreground">
                       Continue with Google
                     </h2>
                     <p className="mt-1 text-[12px] text-muted-foreground">
@@ -65,7 +65,7 @@ function LoginPage() {
                   </div>
                   <Button
                     onClick={handleGoogle}
-                    className="mt-6 h-10 w-full gap-2 text-[13px]"
+                    className="mt-6 h-11 w-full gap-2 text-[13px] font-medium transition-all hover:border-foreground/30"
                     variant="outline"
                   >
                     <GoogleIcon className="h-4 w-4" /> Continue with Google
@@ -106,7 +106,7 @@ function LoginPage() {
                       transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
                     />
                   </div>
-                  <p className="mt-5 text-[13px] font-medium">Connecting to Google…</p>
+                  <p className="mt-5 text-[13px] font-medium text-foreground">Connecting to Google…</p>
                   <p className="mt-1 text-[12px] text-muted-foreground">
                     Waiting for authorisation.
                   </p>
@@ -132,7 +132,7 @@ function LoginPage() {
                   >
                     <Check className="h-6 w-6" strokeWidth={2.5} />
                   </motion.div>
-                  <p className="mt-5 text-[13px] font-medium">Signed in successfully</p>
+                  <p className="mt-5 text-[13px] font-medium text-foreground">Signed in successfully</p>
                   <p className="mt-1 text-[12px] text-muted-foreground">
                     Taking you to your workspace…
                   </p>
@@ -143,7 +143,7 @@ function LoginPage() {
 
           <p className="mt-8 text-center text-[13px] text-muted-foreground">
             New to CVPilot?{" "}
-            <Link to="/onboarding" className="font-medium text-foreground hover:text-primary">
+            <Link to="/onboarding" className="font-semibold text-foreground underline decoration-border underline-offset-2 hover:text-primary">
               Create an account
             </Link>
           </p>
@@ -152,24 +152,24 @@ function LoginPage() {
 
       <div className="relative hidden overflow-hidden border-l border-border bg-sidebar lg:block">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklab,var(--color-primary)_12%,transparent),transparent_60%)]" />
-        <div className="relative flex h-full flex-col justify-between p-12">
+        <div className="relative flex h-full flex-col justify-between p-12 lg:p-16">
           <div className="max-w-md">
-            <span className="inline-flex items-center rounded-full border border-border bg-card px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              Resume intelligence
+            <span className="editorial-pill">
+              Resume Intelligence
             </span>
-            <h2 className="mt-6 text-[32px] font-semibold leading-tight tracking-tight">
+            <h2 className="mt-8 font-serif text-[38px] font-normal leading-[1.12] tracking-tight text-foreground">
               Precise resumes.
               <br />
               Quiet, considered workflow.
             </h2>
-            <p className="mt-4 text-[14px] leading-relaxed text-muted-foreground">
+            <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
               CVPilot helps you tailor, analyse and manage every version of every resume in a calm,
               focused workspace.
             </p>
           </div>
-          <blockquote className="max-w-md text-[13px] leading-relaxed text-muted-foreground">
+          <blockquote className="max-w-md font-sans text-[13px] leading-relaxed text-muted-foreground border-l-2 border-border pl-4">
             "It feels like Linear for job applications. Everything I need, nothing I don't."
-            <span className="mt-2 block text-foreground">— Priya M., Product Designer</span>
+            <span className="mt-2 block text-foreground font-medium">— Priya M., Product Designer</span>
           </blockquote>
         </div>
       </div>

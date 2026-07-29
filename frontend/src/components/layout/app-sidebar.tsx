@@ -40,14 +40,16 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="px-3 py-4">
-        <Link to="/dashboard" className="flex items-center gap-2.5 px-1.5">
-          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground shadow-soft">
+        <Link to="/dashboard" className="flex items-center gap-2.5 px-1.5 group">
+          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground shadow-soft transition-transform duration-200 group-hover:scale-105">
             <PlaneTakeoff className="h-4 w-4" />
           </div>
           {!collapsed && (
             <div className="flex min-w-0 flex-col">
-              <span className="truncate text-sm font-semibold tracking-tight">CVPilot</span>
-              <span className="truncate text-[11px] text-muted-foreground">
+              <span className="font-serif text-xl font-medium tracking-tight text-foreground leading-none">
+                CVPilot
+              </span>
+              <span className="mt-0.5 truncate text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
                 Resume Intelligence
               </span>
             </div>
@@ -58,7 +60,7 @@ export function AppSidebar() {
       <SidebarContent className="px-2">
         <SidebarGroup>
           {!collapsed && (
-            <SidebarGroupLabel className="px-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            <SidebarGroupLabel className="px-2.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/80">
               Workspace
             </SidebarGroupLabel>
           )}
@@ -71,9 +73,9 @@ export function AppSidebar() {
                     isActive={isActive(item.url)}
                     tooltip={item.title}
                     className={cn(
-                      "h-9 rounded-md text-[13px] font-medium text-sidebar-foreground/80 transition-all",
+                      "h-9 rounded-lg text-[13px] font-medium text-sidebar-foreground/80 transition-all duration-200",
                       "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                      "data-[active=true]:bg-card data-[active=true]:text-foreground data-[active=true]:shadow-subtle data-[active=true]:font-semibold",
+                      "data-[active=true]:bg-card data-[active=true]:text-foreground data-[active=true]:border data-[active=true]:border-border/60 data-[active=true]:shadow-subtle data-[active=true]:font-semibold",
                     )}
                   >
                     <Link to={item.url}>
@@ -96,7 +98,7 @@ export function AppSidebar() {
                     asChild
                     isActive={isActive(item.url)}
                     tooltip={item.title}
-                    className="h-9 rounded-md text-[13px] font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent data-[active=true]:bg-card data-[active=true]:text-foreground data-[active=true]:shadow-subtle"
+                    className="h-9 rounded-lg text-[13px] font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent data-[active=true]:bg-card data-[active=true]:text-foreground data-[active=true]:border data-[active=true]:border-border/60 data-[active=true]:shadow-subtle"
                   >
                     <Link to={item.url}>
                       <item.icon className="h-4 w-4 shrink-0" />
@@ -128,7 +130,7 @@ export function AppSidebar() {
           {!collapsed && (
             <>
               <div className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-[13px] font-medium">
+                <span className="truncate text-[13px] font-medium text-foreground">
                   {user?.profile?.fullName || "User"}
                 </span>
                 <span className="truncate text-[11px] text-muted-foreground">{user?.email}</span>

@@ -104,8 +104,8 @@ function TemplatesPage() {
               key={t.id}
               layout
               className={cn(
-                "group overflow-hidden rounded-2xl border bg-card shadow-subtle transition-all hover:-translate-y-0.5 hover:shadow-soft",
-                isSelected ? "border-primary/50 ring-2 ring-primary/15" : "border-border",
+                "editorial-card group overflow-hidden",
+                isSelected && "border-primary/50 ring-2 ring-primary/15",
               )}
             >
               <div className="relative aspect-[3/4] border-b border-border bg-surface p-4">

@@ -29,20 +29,22 @@ export function SectionHeader({
     >
       <div className={cn("max-w-2xl", align === "center" && "mx-auto")}>
         {eyebrow && (
-          <span className="inline-flex items-center rounded-full border border-border bg-card px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-            {eyebrow}
-          </span>
+          <div className="inline-flex items-center mb-3">
+            <span className="editorial-pill">
+              {eyebrow}
+            </span>
+          </div>
         )}
-        <h2 className="mt-3 text-[22px] font-semibold tracking-tight text-foreground sm:text-[28px]">
+        <h2 className="font-serif text-[32px] sm:text-[42px] font-normal tracking-tight text-foreground leading-[1.12]">
           {title}
         </h2>
         {description && (
-          <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground sm:text-[15px]">
+          <p className="mt-3 text-[15px] sm:text-[17px] leading-relaxed text-muted-foreground font-sans font-normal">
             {description}
           </p>
         )}
       </div>
-      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+      {actions && <div className="flex shrink-0 items-center gap-2 mt-2 sm:mt-0">{actions}</div>}
     </div>
   );
 }

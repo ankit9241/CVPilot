@@ -231,8 +231,8 @@ function ResumeStudioPage() {
             </motion.div>
           )}
 
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-subtle">
-            <div className="text-[13px] font-semibold">Target role</div>
+          <div className="editorial-card p-6 sm:p-7">
+            <div className="font-serif text-[18px] font-normal text-foreground">Target role</div>
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label className="text-[12px]">Company</Label>
