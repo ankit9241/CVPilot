@@ -17,6 +17,7 @@ model User {
   emailVerified       Boolean              @default(false)
   billingPlan         BillingPlan          @default(FREE)
   lastLoginAt         DateTime?
+  lastActiveAt        DateTime?
   deletedAt           DateTime?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
@@ -136,7 +137,6 @@ model Project {
   role                 String?
   stack                String[]               @default([])
   featured             Boolean                @default(false)
-  imageUrls            String[]               @default([])
   githubUrl            String?
   liveUrl              String?
   startDate            DateTime?

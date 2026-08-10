@@ -7,16 +7,16 @@ import { AppNavbar } from "./app-navbar";
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider defaultOpen>
-      <div className="flex min-h-screen w-full bg-sidebar">
+      <div className="flex min-h-screen w-full bg-[#F8F6F3]">
         <AppSidebar />
-        <SidebarInset className="flex min-w-0 flex-1 flex-col bg-background">
+        <SidebarInset className="flex min-w-0 flex-1 flex-col bg-[#F8F6F3]">
           <AppNavbar />
           <motion.main
             key="page"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="flex-1 overflow-x-hidden"
+            className="flex-1 overflow-x-hidden border-l border-r border-[rgba(55,50,47,0.10)] bg-[#F8F6F3]"
           >
             {children}
           </motion.main>

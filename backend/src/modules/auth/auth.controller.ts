@@ -20,19 +20,7 @@ export class AuthController extends BaseController {
     const result = await this.service.handleGoogleCallback(code);
 
     // Set secure HTTP-only cookies
-    res.cookie('accessToken', result.accessToken, {
-      httpOnly: true,
-      secure: env.isProd,
-      sameSite: 'lax',
-      maxAge: 48 * 60 * 60 * 1000, // 48 hours
-    });
-
-    res.cookie('refreshToken', result.refreshToken, {
-      httpOnly: true,
-      secure: env.isProd,
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    this.setAuthCookies(res, result.accessToken, result.refreshToken);
 
     // First-time users (profile not yet filled) → onboarding; returning users → dashboard
     const u = result.user as { profile?: { completionPct?: number } | null };
@@ -49,7 +37,9 @@ export class AuthController extends BaseController {
     return this.sendOk(res, user);
   });
 
-  logout = asyncHandler(async (_req: Request, res: Response) => {
+  logout = asyncHandler(async (req: Request, res: Response) => {
+    const refreshToken = req.cookies?.refreshToken;
+    await this.service.logout(refreshToken);
     res.clearCookie('accessToken');
     res.clearCookie('refreshToken');
     return this.sendOk(res, { success: true });
@@ -57,17 +47,29 @@ export class AuthController extends BaseController {
 
   refresh = asyncHandler(async (req: Request, res: Response) => {
     const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
-    const tokens = await this.service.refresh(refreshToken);
+    if (!refreshToken) {
+      throw new UnauthorizedError('Missing refresh token');
+    }
 
-    res.cookie('accessToken', tokens.accessToken, {
-      httpOnly: true,
-      secure: env.isProd,
-      sameSite: 'lax',
-      maxAge: 48 * 60 * 60 * 1000, // 48 hours
-    });
-
-    return this.sendOk(res, tokens);
+    try {
+      const tokens = await this.service.refresh(refreshToken);
+      // Re-set BOTH cookies — sliding window keeps the session alive while active.
+      this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
+      return this.sendOk(res, tokens);
+    } catch (err) {
+      // Session invalid (expired/revoked/inactive) — clear client auth state.
+      res.clearCookie('accessToken');
+      res.clearCookie('refreshToken');
+      throw err;
+    }
   });
+
+  private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
+    const isProd = env.isProd;
+    const cookieBase = { httpOnly: true, secure: isProd, sameSite: 'lax' as const };
+    res.cookie('accessToken', accessToken, { ...cookieBase, maxAge: 48 * 60 * 60 * 1000 });
+    res.cookie('refreshToken', refreshToken, { ...cookieBase, maxAge: 7 * 24 * 60 * 60 * 1000 });
+  }
 }
 
 export const authController = new AuthController();

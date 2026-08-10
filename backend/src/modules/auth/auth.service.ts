@@ -57,6 +57,8 @@ export class AuthService extends BaseService {
             providerId: profile.sub,
           });
 
+      // Record activity + start a persistent, revocable session
+      await this.repository.touchLastActive(resolvedUser.id);
       const completion = await profileService.completion(resolvedUser.id);
 
       return {
@@ -66,7 +68,7 @@ export class AuthService extends BaseService {
             ? { ...resolvedUser.profile, completionPct: completion.completionPct }
             : resolvedUser.profile,
         },
-        ...tokensFor(resolvedUser),
+        ...(await this.issueTokens(resolvedUser)),
       };
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
@@ -86,15 +88,57 @@ export class AuthService extends BaseService {
     };
   }
 
+  /**
+   * Persist a refresh-token row (DB-backed, revocable) alongside the JWT pair.
+   */
+  private async issueTokens(user: { id: string; email: string; role: 'USER' | 'ADMIN' | string }) {
+    const { accessToken, refreshToken } = tokensFor(user);
+    await this.repository.createRefreshToken(
+      user.id,
+      refreshToken,
+      new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    );
+    return { accessToken, refreshToken };
+  }
+
   async refresh(refreshToken: string) {
+    let payload;
     try {
-      const payload = verifyRefreshToken(refreshToken);
-      const user = await this.repository.findById(payload.sub);
-      if (!user) throw new UnauthorizedError('User session expired');
-      return tokensFor(user);
+      payload = verifyRefreshToken(refreshToken);
     } catch {
       throw new UnauthorizedError('Invalid or expired refresh token');
     }
+
+    // Reject revoked/expired rows; DB is the source of truth for revocation.
+    const stored = await this.repository.findRefreshToken(refreshToken);
+    if (!stored || stored.revokedAt || stored.expiresAt.getTime() < Date.now()) {
+      throw new UnauthorizedError('Session has been revoked or expired');
+    }
+    if (stored.userId !== payload.sub) {
+      throw new UnauthorizedError('Refresh token does not match session');
+    }
+
+    const user = stored.user;
+    if (!user) throw new UnauthorizedError('User session not found');
+
+    const now = Date.now();
+    if (user.lastActiveAt && now - user.lastActiveAt.getTime() > env.session.inactivityMs) {
+      await this.repository.revokeRefreshToken(refreshToken);
+      throw new UnauthorizedError('Session expired due to inactivity');
+    }
+
+    // Rotate: revoke old row, persist new one, slide both tokens.
+    await this.repository.revokeRefreshToken(refreshToken);
+    const tokens = await this.issueTokens(user);
+    await this.repository.touchLastActive(user.id);
+    return tokens;
+  }
+
+  async logout(refreshToken?: string) {
+    if (refreshToken) {
+      await this.repository.revokeRefreshToken(refreshToken);
+    }
+    return { success: true };
   }
 }
 

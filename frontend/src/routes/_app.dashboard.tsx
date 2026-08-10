@@ -28,6 +28,8 @@ import { cn } from "@/lib/utils";
 import { api } from "../lib/api";
 import { useAuthStore } from "../store/auth-store";
 
+import { InfiniteSlider } from "@/components/shared/infinite-slider";
+
 export const Route = createFileRoute("/_app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — CVPilot" }] }),
   component: DashboardPage,
@@ -60,14 +62,17 @@ function DashboardPage() {
   return (
     <div className="container-page py-8 lg:py-10">
       <PageHeader
+        category="DASHBOARD"
         title={`Welcome back, ${name.split(" ")[0]}`}
-        subtitle="Here's a quiet overview of your resume workspace."
+        subtitle="Here's a quiet overview of your resume intelligence workspace."
         actions={
           <>
-            <Button variant="outline" size="sm" className="hidden gap-1.5 sm:inline-flex">
-              <Upload className="h-3.5 w-3.5" /> Import
+            <Button variant="outline" size="sm" asChild className="hidden gap-1.5 sm:inline-flex rounded-full bg-[#FFFEFC] border border-[rgba(55,50,47,0.14)] text-[#18181B] hover:bg-[#F4F1EC]">
+              <Link to="/resume-studio">
+                <Upload className="h-3.5 w-3.5" /> Import
+              </Link>
             </Button>
-            <Button size="sm" asChild className="gap-1.5">
+            <Button size="sm" asChild className="gap-1.5 rounded-full bg-[#18181B] text-white hover:bg-[#27272A] shadow-xs">
               <Link to="/resume-studio">
                 <Sparkles className="h-3.5 w-3.5" /> New resume
               </Link>
@@ -75,6 +80,9 @@ function DashboardPage() {
           </>
         }
       />
+
+      {/* Infinite Ticker Marquee matching Landing Page */}
+      <DashboardTickerMarquee />
 
       <div className="mt-8 grid grid-cols-12 gap-4">
         {/* Welcome + quick actions */}
@@ -86,28 +94,24 @@ function DashboardPage() {
           value={loading ? "..." : (stats?.applicationsCount || 0).toString()}
           hint="Tracked applications"
           icon={Shield}
-          tone="success"
         />
         <StatBlock
           label="Average ATS"
           value={loading ? "..." : (stats?.averageAts || 0).toString()}
           hint="Across all resumes"
           icon={Wand2}
-          tone="primary"
         />
         <StatBlock
           label="Generated"
           value={loading ? "..." : (stats?.sessionsCount || 0).toString()}
           hint="Total versions"
           icon={FileText}
-          tone="muted"
         />
         <StatBlock
           label="Vault size"
           value={loading ? "..." : (stats?.savedResumesCount || 0).toString()}
           hint="Saved resumes"
           icon={Archive}
-          tone="muted"
         />
 
         <QuickActions />
@@ -131,6 +135,40 @@ function DashboardPage() {
   );
 }
 
+function DashboardTickerMarquee() {
+  const tickerStats = [
+    { value: "100%", label: "ATS Score Accuracy", dept: "EVALUATION" },
+    { value: "< 40s", label: "Tailoring Speed", dept: "INTELLIGENCE" },
+    { value: "Zero", label: "AI Hallucination", dept: "PRECISION" },
+    { value: "SOC 2", label: "Vault Security", dept: "PRIVACY" },
+    { value: "PDF & TeX", label: "Export Formats", dept: "COMPLETENESS" },
+  ];
+
+  return (
+    <div className="relative border-y border-[rgba(55,50,47,0.08)] bg-[#F4F1EC]/60 py-3.5 select-none overflow-hidden my-4 rounded-2xl">
+      <div className="w-full relative overflow-hidden">
+        <InfiniteSlider speed={35} gap={48}>
+          {tickerStats.map((stat, i) => (
+            <div key={i} className="flex items-center gap-3 whitespace-nowrap">
+              <span className="font-serif text-2xl font-normal text-[#18181B] tracking-tight">
+                {stat.value}
+              </span>
+              <span className="text-[10.5px] text-[#18181B]/60 uppercase tracking-widest font-mono">
+                {stat.label}
+                <span className="block text-[8.5px] text-[#18181B]/40 font-sans mt-0.5">
+                  {stat.dept}
+                </span>
+              </span>
+            </div>
+          ))}
+        </InfiniteSlider>
+        <div className="bg-gradient-to-r from-[#F8F6F3] to-transparent absolute inset-y-0 left-0 w-12 pointer-events-none z-10" />
+        <div className="bg-gradient-to-l from-[#F8F6F3] to-transparent absolute inset-y-0 right-0 w-12 pointer-events-none z-10" />
+      </div>
+    </div>
+  );
+}
+
 function WelcomeCard() {
   return (
     <motion.div
@@ -139,30 +177,42 @@ function WelcomeCard() {
       transition={{ duration: 0.3 }}
       className="col-span-12 lg:col-span-8"
     >
-      <div className="editorial-card relative overflow-hidden p-6 sm:p-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,color-mix(in_oklab,var(--color-primary)_10%,transparent),transparent_60%)]" />
-        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <span className="editorial-pill mb-3">
-              <Sparkles className="h-3.5 w-3.5 text-primary" /> Ready to tailor
-            </span>
-            <h2 className="font-serif text-[24px] font-normal leading-tight tracking-tight text-foreground sm:text-[28px]">
-              Your next application is 40 seconds away.
-            </h2>
-            <p className="mt-2 max-w-md text-[13.5px] leading-relaxed text-muted-foreground">
-              Paste a job description in the studio and CVPilot will tailor your resume with
-              precise, explainable edits.
-            </p>
+      <div className="rounded-[22px] border border-[rgba(55,50,47,0.12)] bg-[#FFFEFC] p-2.5 shadow-soft">
+        <div className="rounded-[16px] border border-[rgba(55,50,47,0.08)] bg-[#F8F6F3] overflow-hidden">
+          <div className="flex items-center justify-between border-b border-[rgba(55,50,47,0.08)] px-4 py-2.5 bg-[#F4F1EC]/60">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#18181B]/20" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#18181B]/20" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#18181B]/20" />
+            </div>
+            <span className="text-[11px] font-mono text-[#18181B]/50">cvpilot.io / workspace / dashboard</span>
+            <div className="h-2 w-12 rounded-full bg-[#18181B]/10" />
           </div>
-          <div className="flex flex-wrap gap-2 shrink-0">
-            <Button size="sm" asChild className="gap-1.5 font-medium">
-              <Link to="/resume-studio">
-                Open Studio <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </Button>
-            <Button size="sm" variant="outline" asChild className="font-medium">
-              <Link to="/resume-analyzer">Analyze existing</Link>
-            </Button>
+          <div className="p-6 sm:p-8 relative">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_50%_0%,rgba(55,50,47,0.06),transparent_75%)]" />
+            <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <span className="editorial-pill mb-3">
+                  <Sparkles className="h-3.5 w-3.5 text-[#18181B]" /> AI Tailoring Active
+                </span>
+                <h2 className="font-serif text-[26px] sm:text-[32px] font-normal leading-tight tracking-tight text-[#18181B]">
+                  Your next application is 40 seconds away.
+                </h2>
+                <p className="mt-2 max-w-md text-[13.5px] leading-relaxed text-[#18181B]/70 font-sans">
+                  Paste a job description in the studio and CVPilot will tailor your resume with precise, explainable edits.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 shrink-0">
+                <Button size="sm" asChild className="gap-1.5 font-medium rounded-full bg-[#18181B] text-white hover:bg-[#27272A] shadow-xs px-5 h-10">
+                  <Link to="/resume-studio">
+                    Open Studio <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+                <Button size="sm" variant="outline" asChild className="font-medium rounded-full bg-[#FFFEFC] border border-[rgba(55,50,47,0.14)] text-[#18181B] hover:bg-[#F4F1EC] px-4 h-10">
+                  <Link to="/resume-analyzer">Analyze existing</Link>
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -182,10 +232,10 @@ function ProfileCompletionCard() {
     >
       <div className="editorial-card flex h-full flex-col p-6">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-[#18181B]/50 font-medium">
             Profile completion
           </span>
-          <span className="text-[11px] text-muted-foreground">4 sections left</span>
+          <span className="font-mono text-[10px] text-[#18181B]/40 uppercase tracking-wider">4 sections left</span>
         </div>
         <div className="mt-6 flex items-center gap-5">
           <div className="relative h-20 w-20 shrink-0">
@@ -195,7 +245,7 @@ function ProfileCompletionCard() {
                 cy="18"
                 r="16"
                 fill="none"
-                stroke="var(--color-muted)"
+                stroke="rgba(55,50,47,0.10)"
                 strokeWidth="3"
               />
               <motion.circle
@@ -203,7 +253,7 @@ function ProfileCompletionCard() {
                 cy="18"
                 r="16"
                 fill="none"
-                stroke="var(--color-primary)"
+                stroke="#18181B"
                 strokeWidth="3"
                 strokeLinecap="round"
                 initial={{ strokeDasharray: "0 100.5" }}
@@ -211,15 +261,15 @@ function ProfileCompletionCard() {
                 transition={{ duration: 0.8, ease: "easeOut" }}
               />
             </svg>
-            <div className="absolute inset-0 grid place-items-center font-serif text-[18px] font-medium text-foreground">
+            <div className="absolute inset-0 grid place-items-center font-serif text-[18px] font-medium text-[#18181B]">
               {pct}%
             </div>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[13.5px] leading-relaxed text-foreground">
+            <p className="text-[13px] leading-relaxed text-[#18181B]/70 font-sans">
               Finish your profile to unlock more accurate tailoring.
             </p>
-            <Button size="sm" variant="outline" asChild className="mt-3 gap-1.5 font-medium">
+            <Button size="sm" variant="outline" asChild className="mt-3 gap-1.5 font-medium rounded-full bg-[#FFFEFC] border border-[rgba(55,50,47,0.14)] text-[#18181B] hover:bg-[#F4F1EC]">
               <Link to="/profile">
                 Complete profile <ArrowRight className="h-3 w-3" />
               </Link>
@@ -236,20 +286,13 @@ function StatBlock({
   value,
   hint,
   icon: Icon,
-  tone = "muted",
 }: {
   label: string;
   value: string;
   hint: string;
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-  tone?: "primary" | "success" | "muted";
+  tone?: string;
 }) {
-  const toneClass =
-    tone === "primary"
-      ? "text-primary"
-      : tone === "success"
-        ? "text-success"
-        : "text-muted-foreground";
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -257,15 +300,21 @@ function StatBlock({
       transition={{ duration: 0.25 }}
       className="col-span-6 lg:col-span-3"
     >
-      <div className="editorial-card h-full p-5">
+      <div className="rounded-[20px] border border-[rgba(55,50,47,0.12)] bg-[#FFFEFC] p-4.5 shadow-soft hover:shadow-medium transition-all h-full flex flex-col justify-between">
         <div className="flex items-center justify-between">
-          <span className="text-[11.5px] font-medium uppercase tracking-wider text-muted-foreground">
+          <span className="font-mono text-[10.5px] uppercase tracking-widest text-[#18181B]/50 font-medium">
             {label}
           </span>
-          <Icon className={cn("h-4 w-4", toneClass)} strokeWidth={1.5} />
+          <div className="grid h-7 w-7 place-items-center rounded-full border border-[rgba(55,50,47,0.10)] bg-[#F8F6F3]">
+            <Icon className="h-3.5 w-3.5 text-[#18181B]/70" strokeWidth={1.5} />
+          </div>
         </div>
-        <div className="mt-3 text-[24px] font-semibold tracking-tight">{value}</div>
-        <div className="mt-0.5 text-[12px] text-muted-foreground">{hint}</div>
+        <div>
+          <div className="mt-3 font-serif text-[32px] font-normal leading-none tracking-tight text-[#18181B]">
+            {value}
+          </div>
+          <div className="mt-1.5 font-sans text-[11.5px] text-[#18181B]/50">{hint}</div>
+        </div>
       </div>
     </motion.div>
   );
@@ -278,37 +327,46 @@ function QuickActions() {
       icon: Sparkles,
       title: "Generate resume",
       body: "Tailor to a job description in 40s.",
-      tone: "bg-primary/10 text-primary",
+      dept: "INTELLIGENCE",
+      tone: "bg-[#18181B] text-white",
     },
     {
       to: "/resume-analyzer",
       icon: ScanSearch,
       title: "Analyze resume",
       body: "Score, keywords and formatting.",
-      tone: "bg-warning/15 text-warning",
+      dept: "ATS MATRIX",
+      tone: "bg-[#F8F6F3] text-[#18181B] border border-[rgba(55,50,47,0.12)]",
     },
     {
       to: "/templates",
       icon: LayoutTemplate,
       title: "Browse templates",
       body: "Six premium layouts, always free.",
-      tone: "bg-success/15 text-success",
+      dept: "GALLERY",
+      tone: "bg-[#F8F6F3] text-[#18181B] border border-[rgba(55,50,47,0.12)]",
     },
     {
       to: "/workflow",
       icon: Zap,
       title: "See the pipeline",
       body: "Every step CVPilot runs, live.",
-      tone: "bg-accent text-foreground",
+      dept: "PIPELINE",
+      tone: "bg-[#F8F6F3] text-[#18181B] border border-[rgba(55,50,47,0.12)]",
     },
   ];
   return (
-    <div className="col-span-12">
+    <div className="col-span-12 my-2">
       <div className="mb-3 flex items-baseline justify-between">
-        <h3 className="text-[13px] font-semibold tracking-tight">Quick actions</h3>
-        <span className="text-[11.5px] text-muted-foreground">Press ⌘K for more</span>
+        <div className="flex items-center gap-2">
+          <span className="editorial-pill">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#18181B]" />
+            QUICK ACTIONS
+          </span>
+        </div>
+        <span className="font-mono text-[11px] text-[#18181B]/50 uppercase tracking-widest">Press ⌘K for commands</span>
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
         {actions.map((a, i) => (
           <motion.div
             key={a.title}
@@ -318,16 +376,21 @@ function QuickActions() {
           >
             <Link
               to={a.to}
-              className="group flex h-full flex-col rounded-2xl border border-border bg-card p-5 shadow-subtle transition-all hover:-translate-y-0.5 hover:shadow-soft"
+              className="group flex h-full flex-col rounded-[20px] border border-[rgba(55,50,47,0.12)] bg-[#FFFEFC] p-5 shadow-soft hover:shadow-medium hover:-translate-y-1 transition-all"
             >
-              <div className={cn("grid h-10 w-10 place-items-center rounded-xl", a.tone)}>
-                <a.icon className="h-4 w-4" strokeWidth={1.75} />
+              <div className="flex items-center justify-between">
+                <div className={cn("grid h-10 w-10 place-items-center rounded-xl", a.tone)}>
+                  <a.icon className="h-4 w-4" strokeWidth={1.75} />
+                </div>
+                <span className="font-mono text-[9.5px] uppercase tracking-widest text-[#18181B]/40 font-medium">
+                  {a.dept}
+                </span>
               </div>
-              <div className="mt-4 flex items-center gap-1.5 text-[14px] font-semibold tracking-tight">
+              <div className="mt-4 flex items-center gap-1.5 font-serif text-[18px] font-normal text-[#18181B]">
                 {a.title}
                 <ArrowRight className="h-3.5 w-3.5 -translate-x-0.5 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
               </div>
-              <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">{a.body}</p>
+              <p className="mt-1 text-[12.5px] leading-relaxed text-[#18181B]/60 font-sans">{a.body}</p>
             </Link>
           </motion.div>
         ))}
@@ -343,13 +406,13 @@ function RecentResumeCard({ stats }: { stats: any }) {
   if (!latest) {
     return (
       <div className="col-span-12 lg:col-span-8">
-        <div className="flex min-h-75 flex-col items-center justify-center rounded-2xl border border-border bg-card p-10 text-center shadow-subtle">
-          <FileText className="h-10 w-10 text-muted-foreground/60" strokeWidth={1.5} />
-          <div className="mt-4 text-[14px] font-semibold">No resumes created yet</div>
-          <p className="mt-1 max-w-sm text-[12.5px] leading-relaxed text-muted-foreground">
+        <div className="flex min-h-75 flex-col items-center justify-center editorial-card p-10 text-center">
+          <FileText className="h-10 w-10 text-[#18181B]/40" strokeWidth={1.5} />
+          <div className="mt-4 font-serif text-[18px] font-normal text-[#18181B]">No resumes created yet</div>
+          <p className="mt-1 max-w-sm text-[12.5px] leading-relaxed text-[#18181B]/60 font-sans">
             Get started by crafting your first AI-tailored resume in the Resume Studio.
           </p>
-          <Button size="sm" asChild className="mt-5 gap-1.5">
+          <Button size="sm" asChild className="mt-5 gap-1.5 rounded-full bg-[#18181B] text-white hover:bg-[#27272A]">
             <Link to="/resume-studio">
               <Sparkles className="h-3.5 w-3.5" /> Start tailoring
             </Link>
@@ -361,15 +424,15 @@ function RecentResumeCard({ stats }: { stats: any }) {
 
   return (
     <div className="col-span-12 lg:col-span-8">
-      <div className="rounded-2xl border border-border bg-card shadow-subtle">
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+      <div className="editorial-card">
+        <div className="flex items-center justify-between border-b border-[rgba(55,50,47,0.10)] px-5 py-4">
           <div>
-            <div className="text-[13px] font-semibold">Recent resume</div>
-            <div className="text-[11.5px] text-muted-foreground">
+            <div className="text-[13px] font-semibold text-[#18181B]">Recent resume</div>
+            <div className="text-[11.5px] text-[#18181B]/60">
               {latest.company} · {latest.title}
             </div>
           </div>
-          <Button size="sm" variant="outline" className="gap-1.5" asChild>
+          <Button size="sm" variant="outline" className="gap-1.5 rounded-full bg-[#FFFEFC] border border-[rgba(55,50,47,0.14)] text-[#18181B] hover:bg-[#F4F1EC]" asChild>
             <Link to="/resume-vault">
               Open <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
@@ -377,38 +440,38 @@ function RecentResumeCard({ stats }: { stats: any }) {
         </div>
         <div className="grid grid-cols-[1fr_260px] gap-0">
           <div className="p-6">
-            <div className="rounded-lg border border-border bg-surface p-6">
-              <div className="h-4 w-40 rounded bg-muted" />
-              <div className="mt-1.5 h-3 w-56 rounded bg-muted/70" />
-              <div className="mt-5 h-2.5 w-24 rounded bg-muted" />
+            <div className="rounded-xl border border-[rgba(55,50,47,0.08)] bg-[#F8F6F3] p-6">
+              <div className="h-4 w-40 rounded bg-[#18181B]/10" />
+              <div className="mt-1.5 h-3 w-56 rounded bg-[#18181B]/5" />
+              <div className="mt-5 h-2.5 w-24 rounded bg-[#18181B]/10" />
               <div className="mt-2 space-y-1.5">
-                <div className="h-2 w-full rounded bg-muted/60" />
-                <div className="h-2 w-11/12 rounded bg-muted/60" />
-                <div className="h-2 w-10/12 rounded bg-muted/60" />
+                <div className="h-2 w-full rounded bg-[#18181B]/5" />
+                <div className="h-2 w-11/12 rounded bg-[#18181B]/5" />
+                <div className="h-2 w-10/12 rounded bg-[#18181B]/5" />
               </div>
-              <div className="mt-5 h-2.5 w-28 rounded bg-muted" />
+              <div className="mt-5 h-2.5 w-28 rounded bg-[#18181B]/10" />
               <div className="mt-2 space-y-1.5">
-                <div className="h-2 w-full rounded bg-muted/60" />
-                <div className="h-2 w-9/12 rounded bg-muted/60" />
+                <div className="h-2 w-full rounded bg-[#18181B]/5" />
+                <div className="h-2 w-9/12 rounded bg-[#18181B]/5" />
               </div>
-              <div className="mt-5 h-2.5 w-20 rounded bg-muted" />
+              <div className="mt-5 h-2.5 w-20 rounded bg-[#18181B]/10" />
               <div className="mt-2 grid grid-cols-3 gap-1.5">
-                <div className="h-2 rounded bg-muted/60" />
-                <div className="h-2 rounded bg-muted/60" />
-                <div className="h-2 rounded bg-muted/60" />
+                <div className="h-2 rounded bg-[#18181B]/5" />
+                <div className="h-2 rounded bg-[#18181B]/5" />
+                <div className="h-2 rounded bg-[#18181B]/5" />
               </div>
             </div>
           </div>
-          <div className="border-l border-border p-5">
-            <div className="text-[11.5px] font-medium uppercase tracking-wider text-muted-foreground">
+          <div className="border-l border-[rgba(55,50,47,0.10)] p-5">
+            <div className="font-mono text-[10.5px] uppercase tracking-widest text-[#18181B]/50 font-medium">
               ATS score
             </div>
-            <div className="mt-2 text-[36px] font-semibold tracking-tight">
+            <div className="mt-2 font-serif text-[36px] font-normal leading-none text-[#18181B]">
               {averageAts}
-              <span className="text-[13px] text-muted-foreground">/100</span>
+              <span className="text-[13px] font-sans text-[#18181B]/50">/100</span>
             </div>
-            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-              <div className="h-full rounded-full bg-primary" style={{ width: `${averageAts}%` }} />
+            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[#18181B]/10">
+              <div className="h-full rounded-full bg-[#18181B]" style={{ width: `${averageAts}%` }} />
             </div>
             <div className="mt-6 space-y-2 text-[12px]">
               {[
@@ -424,8 +487,8 @@ function RecentResumeCard({ stats }: { stats: any }) {
                 ],
               ].map(([l, v]) => (
                 <div key={l} className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{l}</span>
-                  <span className="font-medium">{v}</span>
+                  <span className="text-[#18181B]/60">{l}</span>
+                  <span className="font-medium text-[#18181B] font-mono">{v}</span>
                 </div>
               ))}
             </div>
@@ -456,38 +519,38 @@ function VaultShortcut() {
 
   return (
     <div className="col-span-12 lg:col-span-4">
-      <div className="flex h-full flex-col rounded-2xl border border-border bg-card shadow-subtle">
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+      <div className="flex h-full flex-col editorial-card">
+        <div className="flex items-center justify-between border-b border-[rgba(55,50,47,0.10)] px-5 py-4">
           <div>
-            <div className="text-[13px] font-semibold">Resume Vault</div>
-            <div className="text-[11.5px] text-muted-foreground">
+            <div className="text-[13px] font-semibold text-[#18181B]">Resume Vault</div>
+            <div className="text-[11.5px] text-[#18181B]/60 font-sans">
               {loading ? "…" : `${flat.length} resumes stored`}
             </div>
           </div>
-          <Button size="sm" variant="ghost" asChild>
+          <Button size="sm" variant="ghost" className="rounded-full text-[12px] text-[#18181B]/70 hover:bg-[#F4F1EC]" asChild>
             <Link to="/resume-vault">View all</Link>
           </Button>
         </div>
         {!loading && recent.length === 0 ? (
-          <div className="flex-1 p-8 text-center text-[12.5px] text-muted-foreground">
+          <div className="flex-1 p-8 text-center text-[12.5px] text-[#18181B]/50 font-sans">
             No resumes saved yet.
           </div>
         ) : (
-          <ul className="flex-1 divide-y divide-border">
+          <ul className="flex-1 divide-y divide-[rgba(55,50,47,0.08)]">
             {recent.map((v) => (
               <li
                 key={v.id}
-                className="flex items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-accent"
+                className="flex items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-[#F4F1EC]"
               >
                 <div className="min-w-0">
-                  <div className="truncate text-[13px] font-medium">
+                  <div className="truncate text-[13px] font-medium text-[#18181B]">
                     {v.company} · {v.role}
                   </div>
-                  <div className="truncate text-[11.5px] text-muted-foreground">
+                  <div className="truncate text-[11.5px] text-[#18181B]/60">
                     {v.name} · {v.date}
                   </div>
                 </div>
-                <Badge variant="secondary" className="rounded-full text-[11px] font-medium">
+                <Badge variant="secondary" className="rounded-full text-[10.5px] font-mono bg-[#18181B]/5 text-[#18181B] border border-[rgba(55,50,47,0.10)]">
                   {v.ats}
                 </Badge>
               </li>
@@ -504,16 +567,16 @@ function ActivityTimeline({ stats }: { stats: any }) {
 
   return (
     <div className="col-span-12 lg:col-span-8">
-      <div className="rounded-2xl border border-border bg-card shadow-subtle">
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <div className="text-[13px] font-semibold">Recent activity</div>
+      <div className="editorial-card">
+        <div className="flex items-center justify-between border-b border-[rgba(55,50,47,0.10)] px-5 py-4">
+          <div className="text-[13px] font-semibold text-[#18181B]">Recent activity</div>
         </div>
         {activities.length === 0 ? (
-          <div className="p-8 text-center text-[12.5px] text-muted-foreground">
+          <div className="p-8 text-center text-[12.5px] text-[#18181B]/50 font-sans">
             No recent activity to show.
           </div>
         ) : (
-          <ol className="relative divide-y divide-border">
+          <ol className="relative divide-y divide-[rgba(55,50,47,0.08)]">
             {activities.map((a: any) => {
               const isAI =
                 a.action.toLowerCase().includes("ai") ||
@@ -522,18 +585,18 @@ function ActivityTimeline({ stats }: { stats: any }) {
                 <li key={a.id} className="flex items-start gap-3 px-5 py-4">
                   <div
                     className={cn(
-                      "grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border",
-                      isAI ? "bg-primary/10 text-primary" : "bg-background text-muted-foreground",
+                      "grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[rgba(55,50,47,0.12)]",
+                      isAI ? "bg-[#18181B] text-white" : "bg-[#FFFEFC] text-[#18181B]/70",
                     )}
                   >
                     {isAI ? <Bot className="h-3.5 w-3.5" /> : <UserIcon className="h-3.5 w-3.5" />}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-[13px]">
-                      <span className="font-medium">You</span>{" "}
-                      <span className="text-muted-foreground">{a.action}</span>
+                      <span className="font-medium text-[#18181B]">You</span>{" "}
+                      <span className="text-[#18181B]/70">{a.action}</span>
                     </div>
-                    <div className="text-[11.5px] text-muted-foreground">
+                    <div className="text-[11.5px] text-[#18181B]/50 font-mono mt-0.5">
                       {new Date(a.timestamp).toLocaleString()}
                     </div>
                   </div>
@@ -553,12 +616,12 @@ function RightColumn() {
 
   return (
     <div className="col-span-12 space-y-4 lg:col-span-4">
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-subtle">
-        <div className="flex items-center gap-2 text-[13px] font-semibold">
-          <Sparkles className="h-3.5 w-3.5 text-primary" /> AI suggestions
+      <div className="editorial-card p-5">
+        <div className="flex items-center gap-2 text-[13px] font-semibold text-[#18181B]">
+          <Sparkles className="h-3.5 w-3.5 text-[#18181B]" /> AI suggestions
         </div>
         {suggestions.length === 0 ? (
-          <div className="mt-4 text-center text-[12.5px] text-muted-foreground py-6">
+          <div className="mt-4 text-center text-[12.5px] text-[#18181B]/50 py-6 font-sans">
             No suggestions available. Create and analyze a resume in the studio to get AI
             suggestions.
           </div>
@@ -567,7 +630,7 @@ function RightColumn() {
             {suggestions.map((s) => (
               <li
                 key={s}
-                className="rounded-lg border border-border bg-background p-3 text-[12.5px] leading-relaxed text-foreground/85"
+                className="rounded-xl border border-[rgba(55,50,47,0.08)] bg-[#F8F6F3] p-3 text-[12.5px] leading-relaxed text-[#18181B]/85"
               >
                 {s}
               </li>
@@ -576,43 +639,43 @@ function RightColumn() {
         )}
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-subtle">
+      <div className="editorial-card p-5">
         <div className="flex items-center justify-between">
-          <div className="text-[13px] font-semibold">Applications</div>
-          <Badge variant="secondary" className="rounded-full text-[11px]">
+          <div className="text-[13px] font-semibold text-[#18181B]">Applications</div>
+          <Badge variant="secondary" className="rounded-full text-[10px] font-mono bg-[#18181B]/5 text-[#18181B] border border-[rgba(55,50,47,0.10)]">
             Coming soon
           </Badge>
         </div>
-        <p className="mt-2 text-[12.5px] leading-relaxed text-muted-foreground">
+        <p className="mt-2 text-[12.5px] leading-relaxed text-[#18181B]/60 font-sans">
           Track every application, status and follow-up from one focused inbox.
         </p>
-        <Button size="sm" variant="outline" className="mt-4 w-full">
+        <Button size="sm" variant="outline" className="mt-4 w-full rounded-full bg-[#FFFEFC] border border-[rgba(55,50,47,0.14)] text-[#18181B] hover:bg-[#F4F1EC]">
           Join waitlist
         </Button>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card shadow-subtle">
-        <div className="border-b border-border px-5 py-4 text-[13px] font-semibold">
+      <div className="editorial-card">
+        <div className="border-b border-[rgba(55,50,47,0.10)] px-5 py-4 text-[13px] font-semibold text-[#18181B]">
           Notifications
         </div>
         {notifications.length === 0 ? (
-          <div className="p-8 text-center text-[12.5px] text-muted-foreground">
+          <div className="p-8 text-center text-[12.5px] text-[#18181B]/50 font-sans">
             No new notifications.
           </div>
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="divide-y divide-[rgba(55,50,47,0.08)]">
             {notifications.map((n) => (
               <li key={n.id} className="flex items-start gap-3 px-5 py-3">
                 <span
                   className={cn(
                     "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
-                    n.unread ? "bg-primary" : "bg-border",
+                    n.unread ? "bg-[#18181B]" : "bg-[rgba(55,50,47,0.20)]",
                   )}
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[13px] font-medium">{n.title}</div>
-                  <div className="text-[12px] text-muted-foreground">{n.body}</div>
-                  <div className="mt-0.5 text-[11px] text-muted-foreground">{n.when}</div>
+                  <div className="text-[13px] font-medium text-[#18181B]">{n.title}</div>
+                  <div className="text-[12px] text-[#18181B]/60 font-sans">{n.body}</div>
+                  <div className="mt-0.5 text-[11px] text-[#18181B]/40 font-mono">{n.when}</div>
                 </div>
               </li>
             ))}
@@ -632,28 +695,28 @@ function CompletionToast({ pct, onClose }: { pct: number; onClose: () => void })
       transition={{ type: "spring", damping: 22, stiffness: 260 }}
       className="fixed bottom-6 right-6 z-50 w-[calc(100vw-3rem)] max-w-sm"
     >
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-lifted">
+      <div className="relative overflow-hidden editorial-card p-5">
         <button
           onClick={onClose}
-          className="absolute right-3 top-3 grid h-6 w-6 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent"
+          className="absolute right-3 top-3 grid h-6 w-6 place-items-center rounded-full text-[#18181B]/60 transition-colors hover:bg-[#F4F1EC]"
           aria-label="Close"
         >
           <X className="h-3.5 w-3.5" />
         </button>
         <div className="flex items-start gap-3">
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#18181B] text-white">
             <Sparkles className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-[13.5px] font-semibold">Finish your profile</div>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
+            <div className="text-[13.5px] font-semibold text-[#18181B]">Finish your profile</div>
+            <p className="mt-1 text-[12.5px] leading-relaxed text-[#18181B]/70 font-sans">
               You're at {pct}%. A complete profile unlocks sharper resume tailoring.
             </p>
             <div className="mt-3 flex gap-2">
-              <Button size="sm" asChild className="text-[12px]">
+              <Button size="sm" asChild className="text-[12px] rounded-full bg-[#18181B] text-white hover:bg-[#27272A]">
                 <Link to="/profile">Continue</Link>
               </Button>
-              <Button size="sm" variant="ghost" onClick={onClose} className="text-[12px]">
+              <Button size="sm" variant="ghost" onClick={onClose} className="text-[12px] rounded-full text-[#18181B]/70 hover:bg-[#F4F1EC]">
                 Later
               </Button>
             </div>

@@ -92,11 +92,11 @@ Respond with the compressed resume JSON. The output MUST follow the exact same J
     }
 
     // 2. Check weakest scoring categories for targeted fixes
-    if (bd.keywordMatch < 12) { // < 60% of max 20
+    if (bd.keywordMatch < 18) { // < 60% of max 30
       feedback.needsKeywordWork = true;
       needsOptimization = true;
     }
-    if (bd.skillsMatch < 9) { // < 60% of max 15
+    if (bd.skillsMatch < 12) { // < 60% of max 20
       feedback.needsSkillWork = true;
       needsOptimization = true;
     }
@@ -178,11 +178,11 @@ ${JSON.stringify(resumeJson, null, 2)}
 
 ATS Report:
 - Overall: ${report.overallScore}/100
-- Parseability: ${bd.parseability}/15
-- Formatting: ${bd.formatting}/15
-- Keyword Match: ${bd.keywordMatch}/20
-- Skills Match: ${bd.skillsMatch}/15
-- Experience Relevance: ${bd.experienceRelevance}/15
+- Parseability: ${bd.parseability}/5
+- Formatting: ${bd.formatting}/5
+- Keyword Match: ${bd.keywordMatch}/30
+- Skills Match: ${bd.skillsMatch}/20
+- Experience Relevance: ${bd.experienceRelevance}/20
 - Education: ${bd.education}/5
 - Grammar & Spelling: ${bd.grammarSpelling}/5
 - Readability: ${bd.readability}/5

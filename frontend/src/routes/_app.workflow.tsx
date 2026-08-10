@@ -68,27 +68,27 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
   return (
     <div
       className={cn(
-        "w-[220px] rounded-xl border bg-card p-3 text-left shadow-soft transition-all",
-        status === "completed" && "border-success/40",
-        status === "running" && "border-primary/50 shadow-lifted bg-primary/5",
-        status === "idle" && "border-border",
-        status === "future" && "border-dashed border-border opacity-70",
+        "w-[220px] rounded-2xl border bg-[#FFFEFC] p-3.5 text-left shadow-subtle transition-all",
+        status === "completed" && "border-[rgba(55,50,47,0.20)]",
+        status === "running" && "border-[#18181B] shadow-lifted bg-[#18181B]/[0.03]",
+        status === "idle" && "border-[rgba(55,50,47,0.12)]",
+        status === "future" && "border-dashed border-[rgba(55,50,47,0.12)] opacity-70",
         status === "failed" && "border-destructive/50 bg-destructive/5",
       )}
     >
       <Handle
         type="target"
         position={Position.Top}
-        className="!h-1.5 !w-1.5 !border-0 !bg-border"
+        className="!h-1.5 !w-1.5 !border-0 !bg-[#18181B]/30"
       />
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[10.5px] text-muted-foreground">
+        <span className="font-mono text-[10.5px] text-[#18181B]/50 font-medium">
           {String(index + 1).padStart(2, "0")}
         </span>
         <StatusPill status={status} />
       </div>
-      <div className="mt-1.5 text-[13px] font-semibold tracking-tight">{title}</div>
-      <div className="mt-1 text-[11.5px] leading-relaxed text-muted-foreground">
+      <div className="mt-1.5 text-[13px] font-semibold text-[#18181B] tracking-tight">{title}</div>
+      <div className="mt-1 text-[11.5px] leading-relaxed text-[#18181B]/60 font-sans">
         {status === "running" && "In progress…"}
         {status === "completed" && "Completed"}
         {status === "idle" && "Waiting"}
@@ -98,7 +98,7 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!h-1.5 !w-1.5 !border-0 !bg-border"
+        className="!h-1.5 !w-1.5 !border-0 !bg-[#18181B]/30"
       />
     </div>
   );
@@ -107,28 +107,28 @@ function StepNode({ data }: NodeProps<Node<StepNodeData>>) {
 function StatusPill({ status }: { status: Status }) {
   if (status === "completed") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-1.5 py-0.5 text-[10px] font-medium text-success">
+      <span className="inline-flex items-center gap-1 rounded-full bg-[#18181B]/5 px-2 py-0.5 font-mono text-[9.5px] font-medium text-[#18181B] border border-[rgba(55,50,47,0.10)] uppercase tracking-wider">
         <Check className="h-2.5 w-2.5" /> Done
       </span>
     );
   }
   if (status === "running") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+      <span className="inline-flex items-center gap-1 rounded-full bg-[#18181B] px-2 py-0.5 font-mono text-[9.5px] font-medium text-white shadow-xs uppercase tracking-wider">
         <Loader2 className="h-2.5 w-2.5 animate-spin" /> Active
       </span>
     );
   }
   if (status === "failed") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 px-1.5 py-0.5 text-[10px] font-medium text-destructive">
+      <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 px-2 py-0.5 font-mono text-[9.5px] font-medium text-destructive uppercase tracking-wider">
         <AlertTriangle className="h-2.5 w-2.5" /> Failed
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-      Idle
+    <span className="inline-flex items-center gap-1 rounded-full border border-[rgba(55,50,47,0.12)] bg-[#F8F6F3] px-2 py-0.5 font-mono text-[9.5px] font-medium text-[#18181B]/50 uppercase tracking-wider">
+      Queued
     </span>
   );
 }
@@ -678,6 +678,7 @@ function WorkflowPage() {
   return (
     <div className="container-page py-8 lg:py-10">
       <PageHeader
+        category="PIPELINE"
         title="Workflow"
         subtitle={
           session
@@ -690,7 +691,7 @@ function WorkflowPage() {
               <Button
                 size="sm"
                 variant="outline"
-                className="gap-1.5"
+                className="gap-1.5 rounded-full bg-[#FFFEFC] border border-[rgba(55,50,47,0.14)] text-[#18181B] hover:bg-[#F4F1EC]"
                 onClick={handleDownloadPdf}
                 disabled={!pdfUrl}
                 title={pdfUrl ? "Download PDF" : "No PDF yet — switch to PDF Preview tab"}
@@ -700,7 +701,7 @@ function WorkflowPage() {
               <Button
                 size="sm"
                 variant="outline"
-                className="gap-1.5"
+                className="gap-1.5 rounded-full bg-[#FFFEFC] border border-[rgba(55,50,47,0.14)] text-[#18181B] hover:bg-[#F4F1EC]"
                 onClick={executeGeneration}
                 disabled={executing}
               >
@@ -708,7 +709,7 @@ function WorkflowPage() {
               </Button>
               <Button
                 size="sm"
-                className="gap-1.5"
+                className="gap-1.5 rounded-full bg-[#18181B] text-white hover:bg-[#27272A] shadow-xs px-4"
                 onClick={handleSaveDraft}
                 disabled={isSavingDraft}
               >
@@ -716,7 +717,7 @@ function WorkflowPage() {
               </Button>
             </div>
           ) : error ? (
-            <Button size="sm" className="gap-1.5" onClick={executeGeneration}>
+            <Button size="sm" className="gap-1.5 rounded-full bg-[#18181B] text-white hover:bg-[#27272A] shadow-xs" onClick={executeGeneration}>
               <RotateCcw className="h-3.5 w-3.5" /> Retry
             </Button>
           ) : null

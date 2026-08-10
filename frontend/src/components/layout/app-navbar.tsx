@@ -37,56 +37,56 @@ export function AppNavbar() {
   };
 
   return (
-    <header className="glass-header sticky top-0 z-30 flex h-14 items-center gap-3 px-4 sm:px-6">
-      <SidebarTrigger className="h-8 w-8 text-muted-foreground hover:text-foreground" />
-      <Separator orientation="vertical" className="h-5" />
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 px-4 sm:px-6 bg-[#FFFEFC]/90 backdrop-blur-md border-b border-[rgba(55,50,47,0.10)] transition-all">
+      <SidebarTrigger className="h-8 w-8 text-[#18181B]/70 hover:text-[#18181B]" />
+      <Separator orientation="vertical" className="h-5 bg-[rgba(55,50,47,0.10)]" />
 
       <Breadcrumb className="hidden md:block">
         <BreadcrumbList className="text-[13px]">
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link to="/dashboard" className="font-serif text-base text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/dashboard" className="font-serif text-base text-[#18181B]/60 hover:text-[#18181B] transition-colors">
                 CVPilot
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage className="font-medium text-foreground">{title}</BreadcrumbPage>
+            <BreadcrumbPage className="font-medium text-[#18181B] font-sans">{title}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
-      <span className="text-[13px] font-medium text-foreground md:hidden">{title}</span>
+      <span className="text-[13px] font-medium text-[#18181B] md:hidden font-sans">{title}</span>
 
       <div className="ml-auto flex items-center gap-2">
         <div className="relative hidden md:block">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#18181B]/50" />
           <input
             type="search"
             placeholder="Search..."
-            className="h-8 w-56 rounded-md border border-border bg-surface pl-8 pr-14 text-[13px] outline-none transition-all placeholder:text-muted-foreground focus:border-primary/40 focus:bg-card focus:ring-2 focus:ring-primary/10 lg:w-72"
+            className="h-8.5 w-56 rounded-full border border-[rgba(55,50,47,0.12)] bg-[#F8F6F3] pl-9 pr-14 text-[12.5px] outline-none transition-all placeholder:text-[#18181B]/40 focus:border-[#18181B]/30 focus:bg-[#FFFEFC] lg:w-72"
           />
-          <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 select-none items-center gap-1 rounded border border-border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground lg:inline-flex">
+          <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 select-none items-center gap-1 rounded-full border border-[rgba(55,50,47,0.10)] bg-[#FFFEFC] px-2 font-mono text-[9.5px] font-medium text-[#18181B]/50 lg:inline-flex">
             ⌘K
           </kbd>
         </div>
 
         <button
           aria-label="Notifications"
-          className="relative grid h-8 w-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="relative grid h-8 w-8 place-items-center rounded-full text-[#18181B]/70 transition-colors hover:bg-[#F4F1EC] hover:text-[#18181B]"
         >
           <Bell className="h-4 w-4" />
-          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
+          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-[#18181B]" />
         </button>
 
-        <Separator orientation="vertical" className="mx-1 h-5" />
+        <Separator orientation="vertical" className="mx-1 h-5 bg-[rgba(55,50,47,0.10)]" />
 
-        <Avatar className="h-8 w-8 border border-border">
+        <Avatar className="h-8 w-8 border border-[rgba(55,50,47,0.12)]">
           {user?.profile?.avatarUrl && (
             <AvatarImage src={user.profile.avatarUrl} alt={user.profile.fullName} />
           )}
-          <AvatarFallback className="bg-primary/10 text-[11px] font-semibold text-primary">
+          <AvatarFallback className="bg-[#18181B] text-[11px] font-medium text-white font-mono">
             {getInitials(user?.profile?.fullName)}
           </AvatarFallback>
         </Avatar>

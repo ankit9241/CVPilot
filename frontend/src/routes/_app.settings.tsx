@@ -63,25 +63,25 @@ function SettingsPage() {
   const [active, setActive] = useState<Key>("profile");
   return (
     <div className="container-page py-8 lg:py-10">
-      <PageHeader title="Settings" subtitle="Preferences, integrations and account controls." />
+      <PageHeader title="Settings" subtitle="Preferences, integrations and account controls." category="ACCOUNT" />
 
       <div className="mt-8 grid grid-cols-12 gap-6">
         <aside className="col-span-12 lg:col-span-3">
-          <nav className="editorial-card sticky top-20 p-2">
+          <nav className="editorial-card sticky top-20 p-2 space-y-1">
             {nav.map((s) => (
               <button
                 key={s.key}
                 onClick={() => setActive(s.key)}
                 className={cn(
-                  "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-medium transition-colors",
+                  "flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-colors",
                   active === s.key
                     ? s.key === "danger"
-                      ? "bg-destructive/10 text-destructive"
-                      : "bg-accent text-foreground"
-                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+                      ? "bg-destructive/10 text-destructive font-semibold"
+                      : "bg-[#FFFEFC] text-[#18181B] border border-[rgba(55,50,47,0.12)] shadow-xs font-semibold"
+                    : "text-[#18181B]/70 hover:bg-[#F4F1EC] hover:text-[#18181B]",
                 )}
               >
-                <s.icon className="h-3.5 w-3.5" strokeWidth={1.5} />
+                <s.icon className="h-3.5 w-3.5 text-[#18181B]/60" strokeWidth={1.5} />
                 {s.label}
               </button>
             ))}
@@ -125,13 +125,13 @@ function Card({
   footer?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-subtle">
-      <div className="border-b border-border p-6">
-        <h2 className="text-[15px] font-semibold tracking-tight">{title}</h2>
-        <p className="mt-1 text-[12.5px] text-muted-foreground">{description}</p>
+    <div className="editorial-card">
+      <div className="border-b border-[rgba(55,50,47,0.10)] p-6">
+        <h2 className="font-serif text-[20px] font-normal leading-tight text-[#18181B]">{title}</h2>
+        <p className="mt-1 text-[13px] text-[#18181B]/70 font-sans">{description}</p>
       </div>
       <div className="p-6">{children}</div>
-      {footer && <div className="flex justify-end gap-2 border-t border-border p-4">{footer}</div>}
+      {footer && <div className="flex justify-end gap-2 border-t border-[rgba(55,50,47,0.10)] p-4 bg-[#F8F6F3]/50 rounded-b-[22px]">{footer}</div>}
     </div>
   );
 }

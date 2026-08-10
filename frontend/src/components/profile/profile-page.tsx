@@ -164,7 +164,7 @@ const EDUCATION_CONFIG: CrudSectionConfig = {
     },
   ],
   itemTitle: (item) => item.school || item.institution || "Untitled education",
-  itemMeta: (item) => [item.degree, item.field].filter(Boolean),
+  itemMeta: (item) => [item.degree, item.field].filter((x): x is string => Boolean(x)),
   buildDraft: (item) => ({
     school: item?.school || "",
     degree: item?.degree || "",
@@ -224,7 +224,7 @@ const EXPERIENCE_CONFIG: CrudSectionConfig = {
     },
   ],
   itemTitle: (item) => item.companyName || item.company || "Untitled experience",
-  itemMeta: (item) => [item.role, item.employmentType, item.location].filter(Boolean),
+  itemMeta: (item) => [item.role, item.employmentType, item.location].filter((x): x is string => Boolean(x)),
   buildDraft: (item) => ({
     companyName: item?.companyName || item?.company || "",
     role: item?.role || item?.position || "",
@@ -283,12 +283,6 @@ const PROJECT_CONFIG: CrudSectionConfig = {
     { key: "endDate", label: "End date", type: "date" },
     { key: "featured", label: "Featured", type: "checkbox" },
     {
-      key: "imageUrls",
-      label: "Images",
-      type: "textarea",
-      placeholder: "https://.../shot-1.png, https://.../shot-2.png",
-    },
-    {
       key: "impact",
       label: "Impact",
       type: "textarea",
@@ -296,7 +290,7 @@ const PROJECT_CONFIG: CrudSectionConfig = {
     },
   ],
   itemTitle: (item) => item.name || item.title || "Untitled project",
-  itemMeta: (item) => [item.role, item.featured ? "Featured" : null].filter(Boolean),
+  itemMeta: (item) => [item.role, item.featured ? "Featured" : null].filter((x): x is string => Boolean(x)),
   buildDraft: (item) => ({
     name: item?.name || item?.title || "",
     description: item?.description || "",
@@ -307,7 +301,6 @@ const PROJECT_CONFIG: CrudSectionConfig = {
     startDate: toDateInput(item?.startDate),
     endDate: toDateInput(item?.endDate),
     featured: Boolean(item?.featured),
-    imageUrls: joinList(item?.imageUrls || item?.images),
     impact: item?.impact || "",
   }),
   buildPayload: (draft) => ({
@@ -320,7 +313,6 @@ const PROJECT_CONFIG: CrudSectionConfig = {
     startDate: toIsoDate(draft.startDate),
     endDate: toIsoDate(draft.endDate),
     featured: Boolean(draft.featured),
-    imageUrls: splitList(draft.imageUrls),
     impact: draft.impact?.trim() || undefined,
   }),
 };
@@ -340,7 +332,7 @@ const CERTIFICATE_CONFIG: CrudSectionConfig = {
     { key: "credentialUrl", label: "Credential URL", type: "url", placeholder: "https://..." },
   ],
   itemTitle: (item) => item.name || "Untitled certificate",
-  itemMeta: (item) => [item.issuer].filter(Boolean),
+  itemMeta: (item) => [item.issuer].filter((x): x is string => Boolean(x)),
   buildDraft: (item) => ({
     name: item?.name || "",
     issuer: item?.issuer || "",
@@ -377,7 +369,7 @@ const ACHIEVEMENT_CONFIG: CrudSectionConfig = {
     { key: "url", label: "URL", type: "url", placeholder: "https://..." },
   ],
   itemTitle: (item) => item.title || "Untitled achievement",
-  itemMeta: (item) => [item.date ? formatShortDate(item.date) : null].filter(Boolean),
+  itemMeta: (item) => [item.date ? formatShortDate(item.date) : null].filter((x): x is string => Boolean(x)),
   buildDraft: (item) => ({
     title: item?.title || "",
     description: item?.description || item?.context || "",
@@ -602,7 +594,7 @@ export function ProfilePage() {
             <Button
               size="sm"
               variant="outline"
-              className="gap-1.5"
+              className="gap-1.5 rounded-full bg-[#FFFEFC] border border-[rgba(55,50,47,0.14)] text-[#18181B] hover:bg-[#F4F1EC]"
               onClick={() => setShowImportModal(true)}
             >
               <Upload className="h-3.5 w-3.5" />
@@ -610,7 +602,7 @@ export function ProfilePage() {
             </Button>
             <Button
               size="sm"
-              className="gap-1.5"
+              className="gap-1.5 rounded-full bg-[#18181B] text-white hover:bg-[#27272A] shadow-xs"
               onClick={() => void savePersonal()}
               disabled={personalSaving || !isDirty}
             >
@@ -625,23 +617,23 @@ export function ProfilePage() {
         }
       />
 
-      <ProfileCompletion completion={completion} onJump={setActive} />
+      <ProfileCompletion completion={completion ?? null} onJump={setActive} />
 
       <div className="mt-8 grid grid-cols-12 gap-6">
         <aside className="col-span-12 lg:col-span-3">
-          <nav className="sticky top-20 flex gap-1 overflow-x-auto lg:flex-col lg:gap-0 lg:overflow-visible lg:rounded-2xl lg:border lg:border-border lg:bg-card lg:p-2 lg:shadow-subtle">
+          <nav className="sticky top-20 flex gap-1 overflow-x-auto lg:flex-col lg:gap-1 lg:overflow-visible editorial-card lg:p-2">
             {NAV.map((item) => (
               <button
                 key={item.key}
                 onClick={() => setActive(item.key)}
                 className={cn(
-                  "flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2 text-left text-[13px] font-medium transition-colors lg:w-full",
+                  "flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-xl px-3 py-2 text-left text-[13px] font-medium transition-colors lg:w-full",
                   active === item.key
-                    ? "bg-accent text-foreground"
-                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+                    ? "bg-[#FFFEFC] text-[#18181B] border border-[rgba(55,50,47,0.12)] shadow-xs font-semibold"
+                    : "text-[#18181B]/70 hover:bg-[#F4F1EC] hover:text-[#18181B]",
                 )}
               >
-                <item.icon className="h-3.5 w-3.5" strokeWidth={1.5} />
+                <item.icon className="h-3.5 w-3.5 text-[#18181B]/60" strokeWidth={1.5} />
                 {item.label}
               </button>
             ))}
@@ -921,7 +913,7 @@ const socialConfig: CrudSectionConfig = {
     { key: "url", label: "URL", type: "url", placeholder: "https://your-site.com" },
   ],
   itemTitle: (item) => item.label || item.platform || "Link",
-  itemMeta: (item) => [item.url],
+  itemMeta: () => [],
   buildDraft: (item) => ({
     platform: item?.platform || "LINKEDIN",
     label: item?.label || "",
@@ -1618,8 +1610,19 @@ function renderItemSummary(item: any, section: SectionKey) {
   if (section === "social") {
     return (
       <>
-        <div className="truncate">{item.url}</div>
-        <div className="text-[11.5px] text-muted-foreground">{item.platform || "Custom"}</div>
+        {item.url && (
+          <a
+            href={item.url}
+            target="_blank"
+            rel="noreferrer"
+            className="truncate text-primary hover:underline block"
+          >
+            {item.url}
+          </a>
+        )}
+        {item.label && item.platform && (
+          <div className="text-[11.5px] text-muted-foreground">{item.platform}</div>
+        )}
       </>
     );
   }
@@ -1668,13 +1671,13 @@ function renderItemSummary(item: any, section: SectionKey) {
 
 function splitList(value: any): string[] {
   if (Array.isArray(value)) {
-    return value.map((item) => String(item).trim()).filter(Boolean);
+    return value.map((item) => String(item).trim()).filter((x): x is string => Boolean(x));
   }
   if (typeof value !== "string") return [];
   return value
     .split(/[,\n]/)
     .map((item) => item.trim())
-    .filter(Boolean);
+    .filter((x): x is string => Boolean(x));
 }
 
 function joinList(value: any): string {
@@ -1728,7 +1731,7 @@ function getInitials(value: string) {
   return (
     value
       .split(/\s+/)
-      .filter(Boolean)
+      .filter((x): x is string => Boolean(x))
       .slice(0, 2)
       .map((item) => item[0]?.toUpperCase() || "")
       .join("") || "U"
@@ -2059,7 +2062,7 @@ export function ProfileImportModal({ isOpen, onClose, onMerged }: ProfileImportM
                           technologiesUsed: e.target.value
                             .split(",")
                             .map((x) => x.trim())
-                            .filter(Boolean),
+                            .filter((x): x is string => Boolean(x)),
                         })
                       }
                     />
@@ -2077,7 +2080,7 @@ export function ProfileImportModal({ isOpen, onClose, onMerged }: ProfileImportM
                           achievements: e.target.value
                             .split("\n")
                             .map((x) => x.trim())
-                            .filter(Boolean),
+                            .filter((x): x is string => Boolean(x)),
                         })
                       }
                     />
@@ -2235,7 +2238,7 @@ export function ProfileImportModal({ isOpen, onClose, onMerged }: ProfileImportM
                           stack: e.target.value
                             .split(",")
                             .map((x) => x.trim())
-                            .filter(Boolean),
+                            .filter((x): x is string => Boolean(x)),
                         })
                       }
                     />
@@ -2253,7 +2256,7 @@ export function ProfileImportModal({ isOpen, onClose, onMerged }: ProfileImportM
                           achievements: e.target.value
                             .split("\n")
                             .map((x) => x.trim())
-                            .filter(Boolean),
+                            .filter((x): x is string => Boolean(x)),
                         })
                       }
                     />

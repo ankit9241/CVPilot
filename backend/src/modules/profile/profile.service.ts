@@ -113,7 +113,6 @@ const normalizeProject = (data: Record<string, unknown>) => ({
   ...data,
   name: (data.name ?? data.title) as string | undefined,
   stack: normalizeStringArray(data.stack ?? data.technologies),
-  imageUrls: normalizeStringArray(data.imageUrls ?? data.images),
   featured: Boolean(data.featured),
   achievements: normalizeStringArray(data.achievements),
 });
@@ -288,7 +287,6 @@ export class ProfileService extends BaseService {
                   'startDate',
                   'endDate',
                   'featured',
-                  'imageUrls',
                 ]),
               ),
             )

@@ -37,6 +37,11 @@ export const env = {
     refreshExpiresIn: optional('JWT_REFRESH_EXPIRES_IN', '7d'),
   },
 
+  session: {
+    // Inactivity window before the session is invalidated (default 3 days).
+    inactivityMs: num('SESSION_INACTIVITY_MS', 3 * 24 * 60 * 60 * 1000),
+  },
+
   cors: {
     origin: optional('CORS_ORIGIN', 'http://localhost:5173'),
   },

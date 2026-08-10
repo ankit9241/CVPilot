@@ -51,7 +51,6 @@ export interface ProjectDto {
   startDate?: string;
   endDate?: string;
   featured?: boolean;
-  imageUrls?: string[];
   impact?: string;
   achievements?: string[];
 }

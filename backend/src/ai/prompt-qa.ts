@@ -580,7 +580,9 @@ async function runPromptQA(): Promise<void> {
         `${persona.name} project bullets`,
         client,
       );
-      const projBullets: string[] = projParsed?.projects ? Object.values(projParsed.projects).flat() : [];
+      const projBullets: string[] = projParsed?.projects
+        ? Object.values(projParsed.projects).flat() as string[]
+        : [];
       rawOutputs.projectBullets = JSON.stringify(projParsed);
       const projMap = projParsed?.projects || {};
 

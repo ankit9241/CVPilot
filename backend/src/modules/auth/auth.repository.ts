@@ -85,6 +85,35 @@ export class AuthRepository extends BaseRepository<UserDelegate> {
   delete(id: string) {
     return this.delegate.delete({ where: { id } });
   }
+
+  touchLastActive(userId: string, at: Date = new Date()) {
+    return this.delegate.update({ where: { id: userId }, data: { lastActiveAt: at } });
+  }
+
+  findRefreshToken(token: string) {
+    return prisma.refreshToken.findUnique({
+      where: { token },
+      include: { user: { include: { profile: true } } },
+    });
+  }
+
+  createRefreshToken(userId: string, token: string, expiresAt: Date) {
+    return prisma.refreshToken.create({ data: { userId, token, expiresAt } });
+  }
+
+  revokeRefreshToken(token: string) {
+    return prisma.refreshToken.updateMany({
+      where: { token, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+  }
+
+  revokeAllUserTokens(userId: string) {
+    return prisma.refreshToken.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+  }
 }
 
 export const authRepository = new AuthRepository();

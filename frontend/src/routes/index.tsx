@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuthStore } from "../store/auth-store";
 import {
   ArrowRight,
   PlaneTakeoff,
@@ -52,6 +53,52 @@ export const Route = createFileRoute("/")({
   }),
   component: LandingPage,
 });
+
+function AuthNav() {
+  const { isAuthenticated, isLoading } = useAuthStore();
+  if (isLoading) return null; // avoid flicker between logged-out and logged-in UI
+  if (isAuthenticated) {
+    return (
+      <Link
+        to="/dashboard"
+        className="hidden sm:inline-flex px-3 py-1.5 text-[13px] font-medium text-[#18181B]/80 hover:text-[#18181B] transition-colors"
+      >
+        Dashboard
+      </Link>
+    );
+  }
+  return (
+    <Link
+      to="/login"
+      className="hidden sm:inline-flex px-3 py-1.5 text-[13px] font-medium text-[#18181B]/80 hover:text-[#18181B] transition-colors"
+    >
+      Sign in
+    </Link>
+  );
+}
+
+function AuthCta() {
+  const { isAuthenticated, isLoading } = useAuthStore();
+  if (isLoading) return null;
+  if (isAuthenticated) {
+    return (
+      <Link
+        to="/dashboard"
+        className="w-full sm:w-auto h-11 sm:h-12 px-7 bg-white border border-[rgba(55,50,47,0.14)] text-[#18181B] rounded-full inline-flex items-center justify-center text-sm font-medium shadow-xs hover:bg-[#F4F1EC] transition-all"
+      >
+        Open Dashboard
+      </Link>
+    );
+  }
+  return (
+    <Link
+      to="/login"
+      className="w-full sm:w-auto h-11 sm:h-12 px-7 bg-white border border-[rgba(55,50,47,0.14)] text-[#18181B] rounded-full inline-flex items-center justify-center text-sm font-medium shadow-xs hover:bg-[#F4F1EC] transition-all"
+    >
+      Sign in
+    </Link>
+  );
+}
 
 function LandingPage() {
   return (
@@ -105,12 +152,7 @@ function SiteNav() {
         </nav>
 
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <Link
-            to="/login"
-            className="hidden sm:inline-flex px-3 py-1.5 text-[13px] font-medium text-[#18181B]/80 hover:text-[#18181B] transition-colors"
-          >
-            Sign in
-          </Link>
+          <AuthNav />
           <Link
             to="/onboarding"
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-1.5 bg-[#18181B] text-white rounded-full text-[12px] sm:text-[13px] font-medium shadow-xs hover:bg-[#27272A] transition-all hover:scale-[1.02]"
@@ -155,12 +197,7 @@ function Hero() {
               >
                 Start for free <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link
-                to="/login"
-                className="w-full sm:w-auto h-11 sm:h-12 px-7 bg-white border border-[rgba(55,50,47,0.14)] text-[#18181B] rounded-full inline-flex items-center justify-center text-sm font-medium shadow-xs hover:bg-[#F4F1EC] transition-all"
-              >
-                Sign in
-              </Link>
+              <AuthCta />
             </div>
           </div>
 
@@ -1196,12 +1233,7 @@ function CTA() {
                 >
                   Start for free <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link
-                  to="/login"
-                  className="w-full sm:w-auto h-11 sm:h-12 px-7 bg-white border border-[rgba(55,50,47,0.14)] text-[#18181B] rounded-full inline-flex items-center justify-center text-sm font-medium shadow-xs hover:bg-[#F4F1EC] transition-all"
-                >
-                  Sign in
-                </Link>
+                <AuthCta />
               </div>
             </div>
           </div>

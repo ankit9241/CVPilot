@@ -3,7 +3,7 @@ import { ATSReport, ATSScoreBreakdown } from './ats.types';
 
 // ─── Reference word lists ────────────────────────────────────────────────────
 
-const TECH_KEYWORDS = [
+export const TECH_KEYWORDS = [
   'javascript', 'typescript', 'python', 'java', 'c++', 'c#', 'golang', 'rust', 'ruby', 'php', 'swift', 'kotlin', 'sql',
   'react', 'angular', 'vue', 'nextjs', 'next.js', 'nuxt', 'svelte', 'remix', 'solidjs', 'tailwind', 'sass', 'css', 'html',
   'nodejs', 'node.js', 'express', 'nestjs', 'django', 'flask', 'fastapi', 'spring boot', 'laravel', 'rails',
@@ -87,7 +87,7 @@ function clamp(val: number, min: number, max: number) {
   return Math.max(min, Math.min(max, val));
 }
 
-function extractAllResumeText(resume: GeneratedResume): string {
+export function extractAllResumeText(resume: GeneratedResume): string {
   const parts: string[] = [resume.summary || ''];
   for (const exp of resume.experiences || []) {
     parts.push(exp.companyName, exp.role, exp.description || '');
@@ -109,7 +109,7 @@ function extractAllResumeText(resume: GeneratedResume): string {
   return parts.filter(Boolean).join(' ');
 }
 
-function getAllBullets(resume: GeneratedResume): string[] {
+export function getAllBullets(resume: GeneratedResume): string[] {
   const bullets: string[] = [];
   for (const exp of resume.experiences || []) {
     if (exp.bulletPoints) bullets.push(...exp.bulletPoints);
@@ -120,8 +120,141 @@ function getAllBullets(resume: GeneratedResume): string[] {
   return bullets;
 }
 
-function hasMetric(text: string): boolean {
-  return /\b\d+%\b|\b\d+\s*x\b|\$\d+([,.]\d+)?\b|\b\d+\s*(million|billion|k|M|B)\b|\b\d{1,3}(,\d{3})+\b/i.test(text);
+function truncate(s: string, n: number): string {
+  return s.length > n ? `${s.slice(0, n)}…` : s;
+}
+
+// ─── Synonym-aware keyword matching ───────────────────────────────────────────
+
+export const SYNONYMS: Record<string, string[]> = {
+  'node.js': ['node', 'nodejs', 'node js'],
+  'nodejs': ['node', 'node.js', 'node js'],
+  'react': ['react.js', 'reactjs', 'react js'],
+  'express': ['express.js', 'expressjs'],
+  'mongodb': ['mongo', 'mongo db'],
+  'postgresql': ['postgres', 'postgres db'],
+  'kubernetes': ['k8s'],
+  'aws': ['amazon web services', 'amazon webservices', 'amazon'],
+  'gcp': ['google cloud', 'google cloud platform'],
+  'azure': ['microsoft azure'],
+  'ci/cd': ['continuous integration', 'continuous deployment', 'cicd', 'ci cd'],
+  'github actions': ['github workflows', 'github-actions', 'gha'],
+  'next.js': ['nextjs', 'next js'],
+  'graphql': ['graph ql'],
+  'tailwind': ['tailwind css', 'tailwindcss'],
+  'framer motion': ['framer-motion', 'framermotion'],
+  'machine learning': ['ml'],
+  'artificial intelligence': ['ai'],
+  'ai/ml': ['ai', 'ml', 'machine learning', 'artificial intelligence'],
+  'rest api': ['restful api', 'rest apis', 'restful', 'rest'],
+  'serverless': ['serverless computing', 'faas'],
+  'lambda': ['aws lambda'],
+  's3': ['amazon s3', 's3 bucket'],
+};
+
+/** All surface forms of a keyword (canonical + synonyms + punctuation-normalized). */
+export function keywordVariants(kw: string): string[] {
+  const base = kw.toLowerCase().trim();
+  const variants = new Set<string>([base, ...(SYNONYMS[base] || [])]);
+  for (const v of [...variants]) {
+    variants.add(v.replace(/[^a-z0-9+#]+/g, ' ').trim().replace(/\s+/g, ' '));
+  }
+  return [...variants].filter(Boolean);
+}
+
+/** True if `kw` (or any synonym) appears as a word in `text`. */
+export function textHasKeyword(text: string, kw: string): boolean {
+  const lower = text.toLowerCase();
+  return keywordVariants(kw).some((v) => new RegExp(`\\b${escapeRegExp(v)}\\b`, 'i').test(lower));
+}
+
+// Every keyword form -> its canonical concept (the SYNONYMS key). Used to stop
+// "nodejs" + "node.js" + "rest api" + "restful" from counting as separate
+// concepts — each concept is matched exactly once.
+const CONCEPT_OF: Record<string, string> = (() => {
+  const map: Record<string, string> = {};
+  for (const [canon, forms] of Object.entries(SYNONYMS)) {
+    map[canon] = canon;
+    for (const f of forms) map[f] = canon;
+  }
+  return map;
+})();
+
+/**
+ * Extract JD keywords deduped to one per canonical concept. Preserves the JD's
+ * own wording for display (prefers the longest form present in the JD text).
+ */
+export function extractJdKeywords(jd: string): string[] {
+  const matched = TECH_KEYWORDS.filter((kw) => textHasKeyword(jd, kw));
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const kw of matched) {
+    const canon = CONCEPT_OF[kw] ?? kw;
+    if (seen.has(canon)) continue;
+    seen.add(canon);
+    const forms = [canon, ...(SYNONYMS[canon] || [])];
+    const inJd = forms.filter((f) => textHasKeyword(jd, f)).sort((a, b) => b.length - a.length);
+    out.push(inJd[0] || canon);
+  }
+  return out;
+}
+
+/** Weighted match across resume sections (experience/project/summary/skills). */
+function matchKeywordWeighted(resume: GeneratedResume, kw: string): number {
+  const sectionWeight = { experience: 4, project: 3, summary: 2, skills: 1 };
+  let weight = 0;
+  for (const exp of resume.experiences || []) {
+    const text = [exp.role, exp.description || '', ...(exp.bulletPoints || [])].join(' ');
+    if (textHasKeyword(text, kw)) weight += sectionWeight.experience;
+  }
+  for (const proj of resume.projects || []) {
+    const text = [proj.description || '', ...(proj.bulletPoints || []), ...(proj.technologies || [])].join(' ');
+    if (textHasKeyword(text, kw)) weight += sectionWeight.project;
+  }
+  if (textHasKeyword(resume.summary || '', kw)) weight += sectionWeight.summary;
+  for (const s of resume.skills || []) {
+    if (textHasKeyword(s.name, kw)) weight += sectionWeight.skills;
+  }
+  return weight;
+}
+
+/**
+ * Presence-based match strength. A keyword found anywhere in the resume
+ * (experience/project/summary/skills, synonym- or partial-aware) counts as
+ * matched — section weighting is used only for evidence ordering, not to
+ * halve a genuine match.
+ */
+function keywordMatchStrength(resume: GeneratedResume, kw: string): number {
+  return matchKeywordWeighted(resume, kw) > 0 ? 1 : 0;
+}
+
+const METRIC_UNITS =
+  'hours?|minutes?|seconds?|milliseconds?|ms|mb|gb|kb|tb|users?|customers?|clients?|students?|' +
+  'requests?|downloads?|deployments?|transactions?|revenue|downtime|latency|throughput|' +
+  'queries?|records?|rows?|files?|jobs?|builds?|releases?|endpoints?|countries?|regions?|' +
+  'projects?|repos?|stars?|followers?|members?|events?|clubs?|registrations?|impressions?|' +
+  'clicks?|conversions?|leads?|sales?|orders?|pages?|views?|sessions?|apps?|devices?|platforms?';
+
+// Trailing `\b` after a non-word symbol (`+`, `%`, `×`) never matches before a
+// space or end-of-string, so "40%", "10+", "90%" were invisible. Use a lookahead
+// that accepts whitespace / punctuation / end-of-string instead.
+const AFTER_NUM = '(?=\\s|[.,;:!?)]|$)';
+const METRIC_PATTERNS = [
+  new RegExp(`\\b\\d+(?:\\.\\d+)?\\s*%+${AFTER_NUM}`),                       // 40%, 2.5%
+  /\$\s?\d+(?:[.,]\d+)?\s*[kmb]?(?=\s|[.,;:!?)]|$)/i,                       // $50k, $1.2M, $500
+  /\b\d+(?:\.\d+)?\s*(?:x|×)\s*(?:faster|improvement|speedup|reduction|boost|increase|decrease)(?=\s|[.,;:!?)]|$)/i, // 3x faster
+  new RegExp(`\\b\\d+(?:\\.\\d+)?\\s*(?:x|×)${AFTER_NUM}`),                 // 2.5x, 3x
+  new RegExp(`\\b\\d+\\s*\\+{1,2}${AFTER_NUM}`),                            // 10+, 500+, 1,000+
+  /\b\d+(?:\.\d+)?\s*-\s*\d+(?=\s|[.,;:!?)]|$)/,                            // ranges 10-20, 200-500ms
+  new RegExp(`\\b\\d+(?:\\.\\d+)?\\s*(?:${METRIC_UNITS})(?=\\s|[.,;:!?)]|$)`, 'i'), // 500MB, 100k requests, 20 clubs
+  /\b\d{1,3}(?:,\d{3})+(?:\.\d+)?(?=\s|[.,;:!?)]|$)/,                       // 1,000+
+  new RegExp(`\\b\\d+(?:\\.\\d+)?[kmb]${AFTER_NUM}`, 'i'),                  // 100k, 1m, 2.5k
+  new RegExp(`\\b\\d+(?:\\.\\d+)?\\s*percent${AFTER_NUM}`, 'i'),            // 40 percent
+  new RegExp(`\\b(?:under|less than|over|more than|<|>)\\s*\\d+${AFTER_NUM}`, 'i'), // <200ms, over 500
+];
+
+export function hasMetric(text: string): boolean {
+  return METRIC_PATTERNS.some((re) => re.test(text));
 }
 
 function wordCount(text: string): number {
@@ -231,76 +364,61 @@ function analyzeParseability(resume: GeneratedResume, jd: string): {
 function analyzeFormatting(resume: GeneratedResume): {
   score: number; warnings: string[]; strengths: string[]; description: string;
 } {
-  let score = 0;
+  // Penalty model: start at max and subtract for concrete defects. This
+  // discriminates quality instead of rewarding structural presence that every
+  // decent resume already satisfies (which made formatting a flat ~7/15).
+  let score = 15;
   const warnings: string[] = [];
   const strengths: string[] = [];
-
-  // Section completeness (0–5)
-  const sectionChecks = [
-    { present: !!resume.summary?.trim(), label: 'Summary', pts: 1 },
-    { present: (resume.experiences || []).length > 0, label: 'Experience', pts: 1.5 },
-    { present: (resume.projects || []).length > 0, label: 'Projects', pts: 1 },
-    { present: (resume.skills || []).length > 0, label: 'Skills', pts: 1 },
-    { present: (resume.education || []).length > 0, label: 'Education', pts: 0.5 },
-  ];
-  for (const sec of sectionChecks) {
-    if (sec.present) { score += sec.pts; }
-    else { warnings.push(`Missing section: ${sec.label}.`); }
-  }
-  if (sectionChecks.every((s) => s.present)) strengths.push('All standard resume sections present.');
-
-  // Contact completeness (0–2)
   const text = extractAllResumeText(resume);
+
+  // Missing sections
+  if (!resume.summary?.trim()) { score -= 2; warnings.push('Missing summary section.'); }
+  const hasExp = (resume.experiences || []).length > 0;
+  if (!hasExp) { score -= 3; warnings.push('No experience section.'); }
+  else if (!(resume.projects || []).length) { score -= 1; warnings.push('No projects section.'); }
+  if (!(resume.skills || []).length) { score -= 2; warnings.push('No skills section.'); }
+  if (!(resume.education || []).length) { score -= 1; warnings.push('No education section.'); }
+
+  // Contact completeness
   const hasEmail = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/.test(text);
-  if (hasEmail) score += 1;
   const hasPhone = /\b\d{7,}\b/.test(text);
-  if (hasPhone) score += 1;
-  if (hasEmail && hasPhone) strengths.push('Contact info (email + phone) is complete.');
+  if (!hasEmail) { score -= 1; warnings.push('Email not found.'); }
+  if (!hasPhone) { score -= 1; warnings.push('Phone number not detected.'); }
 
-  // Word count (0–3)
+  // Word count
   const wc = wordCount(text);
-  if (wc >= 250 && wc <= 550) {
-    score += 3;
-    strengths.push('Word count is in the optimal 1-page range (250–550 words).');
-  } else if ((wc >= 150 && wc < 250) || (wc > 550 && wc <= 700)) {
-    score += 2;
-    warnings.push(`Word count is ${wc} — slightly ${wc < 250 ? 'low' : 'high'} for a 1-page resume.`);
-  } else if (wc > 700) {
-    score += 1;
-    warnings.push('Word count exceeds 700 — resume is likely 2+ pages. Consider trimming for 1-page format.');
-  } else if (wc > 0) {
-    score += 0;
-    warnings.push('Resume content is very sparse — add more detail to fill at least 1 page.');
-  }
+  if (wc > 0 && wc < 150) { score -= 2; warnings.push('Resume is very sparse (under 150 words).'); }
+  else if (wc > 700) { score -= 2; warnings.push('Resume likely exceeds 1 page (over 700 words).'); }
+  else if (wc >= 250 && wc <= 550) strengths.push('Word count is in the optimal 1-page range.');
+  else { score -= 1; warnings.push(`Word count (${wc}) is slightly off the optimal 1-page range.`); }
 
-  // Consistent dates (0–1)
-  const exps = resume.experiences || [];
-  if (exps.length > 0) {
-    const allHaveDates = exps.every((e) => e.startDate);
-    if (allHaveDates) { score += 1; }
-    else { warnings.push('Inconsistent date formatting — some experiences lack start dates.'); }
-  } else {
-    score += 1; // No experiences = no inconsistency
-  }
-
-  // Bullet formatting (0–2)
+  // Bullet formatting — penalize length variance, not just consistency presence.
   const bullets = getAllBullets(resume);
-  if (bullets.length > 0) {
+  if (bullets.length === 0) {
+    score -= 2;
+    warnings.push('No bullet points found — formatting assessment limited.');
+  } else {
     const lengths = bullets.map((b) => b.trim().length);
     const avgLen = lengths.reduce((a, b) => a + b, 0) / lengths.length;
-    const consistent = lengths.every((l) => Math.abs(l - avgLen) < avgLen * 0.8);
-    if (consistent) {
-      score += 1;
-      strengths.push('Bullet points have consistent length — clean formatting.');
-    } else {
-      warnings.push('Bullet points have inconsistent lengths — some are much longer than others.');
-    }
+    const cv = avgLen > 0
+      ? Math.sqrt(lengths.reduce((a, l) => a + (l - avgLen) ** 2, 0) / lengths.length) / avgLen
+      : 0;
+    if (cv > 0.6) { score -= 3; warnings.push('Highly inconsistent bullet lengths.'); }
+    else if (cv > 0.35) { score -= 1; warnings.push('Some bullet length inconsistency.'); }
     const reasonableLen = lengths.filter((l) => l >= 30 && l <= 200).length / lengths.length;
-    if (reasonableLen > 0.7) score += 1;
-    else { warnings.push('Many bullet points are too short (< 30 chars) or too long (> 200 chars).'); }
-  } else {
-    warnings.push('No bullet points found — formatting assessment limited.');
+    if (reasonableLen < 0.7) { score -= 1; warnings.push('Many bullets too short or too long.'); }
+    if (cv <= 0.35) strengths.push('Bullet lengths are consistent and clean.');
   }
+
+  // Dates
+  if (hasExp && !(resume.experiences || []).every((e) => e.startDate)) {
+    score -= 1;
+    warnings.push('Inconsistent date formatting across experiences.');
+  }
+
+  if (score === 15) strengths.push('Clean, consistent formatting with complete sections.');
+  else if (score >= 12) strengths.push('Good overall formatting.');
 
   score = clamp(Math.round(score), 0, 15);
   return { score, warnings, strengths, description: `Formatting score: ${score}/15.` };
@@ -310,86 +428,68 @@ function analyzeFormatting(resume: GeneratedResume): {
 
 function analyzeKeywordMatch(jd: string, resume: GeneratedResume): {
   score: number; matched: string[]; missing: string[]; warnings: string[]; strengths: string[];
+  evidence: string[]; deductions: string[]; reason: string;
 } {
-  const jdLower = jd.toLowerCase();
-
-  // Find which tech keywords appear in the JD
-  const jdKeywords = TECH_KEYWORDS.filter((kw) => new RegExp(`\\b${escapeRegExp(kw)}\\b`, 'i').test(jdLower));
+  // Find which tech keywords appear in the JD (synonym-aware)
+  const jdKeywords = extractJdKeywords(jd);
 
   if (jdKeywords.length === 0) {
+    // JD present but mentions no tech keywords — nothing required, nothing missed.
     return {
       score: 20, matched: [], missing: [],
-      strengths: ['No technical keywords detected in the JD — full keyword score awarded.'],
+      strengths: ['No technical keywords detected in the JD — nothing required to match.'],
       warnings: [],
+      evidence: [], deductions: [], reason: 'No technical keywords in the JD.',
     };
   }
 
-  // Classify as required vs preferred based on surrounding context
+  // Classify into required / preferred / optional based on surrounding context
   const sentences = jd.split(/[.!?\n]+/);
   const required: string[] = [];
   const preferred: string[] = [];
+  const optional: string[] = [];
 
   for (const kw of jdKeywords) {
-    let isPreferred = false;
-    for (const sentence of sentences) {
-      if (sentence.toLowerCase().includes(kw)) {
-        if (/preferred|nice to have|bonus|plus|desired|optional/i.test(sentence)) {
-          isPreferred = true;
-          break;
-        }
-      }
-    }
-    (isPreferred ? preferred : required).push(kw);
+    const sentenceHas = (re: RegExp) =>
+      sentences.some((s) => s.toLowerCase().includes(kw.toLowerCase()) && re.test(s.toLowerCase()));
+    if (sentenceHas(/optional|nice to have|bonus|desired|plus/i)) optional.push(kw);
+    else if (sentenceHas(/preferred|good to have|familiarity with/i)) preferred.push(kw);
+    else required.push(kw);
   }
 
-  // Match against resume sections with weighting
-  const summaryText = (resume.summary || '').toLowerCase();
-  const expText = (resume.experiences || []).map((e) =>
-    [e.role, e.companyName, e.description, ...(e.bulletPoints || [])].join(' ').toLowerCase()
-  ).join(' ');
-  const projText = (resume.projects || []).map((p) =>
-    [p.name, p.description, ...(p.bulletPoints || [])].join(' ').toLowerCase()
-  ).join(' ');
-  const skillsText = (resume.skills || []).map((s) => s.name.toLowerCase()).join(' ');
-
-  // Weights: Experience=4, Projects=3, Summary=2, Skills=1
-  const sectionWeight = { experience: 4, project: 3, summary: 2, skills: 1 };
-
-  function matchWeighted(kw: string): number {
-    const regex = new RegExp(`\\b${escapeRegExp(kw)}\\b`, 'i');
-    let weight = 0;
-    if (regex.test(expText)) weight += sectionWeight.experience;
-    if (regex.test(projText)) weight += sectionWeight.project;
-    if (regex.test(summaryText)) weight += sectionWeight.summary;
-    if (regex.test(skillsText)) weight += sectionWeight.skills;
-    return weight;
-  }
-
-  let totalRequiredWeight = required.length * sectionWeight.experience; // max possible per required kw
-  let matchedRequiredWeight = 0;
-  let totalPreferredWeight = preferred.length * sectionWeight.skills; // lower max for preferred
-  let matchedPreferredWeight = 0;
-
+  // Per-tier match strength (synonym + partial aware), tiered weights:
+  // required 0.6, preferred 0.25, optional 0.15 — missing optional barely hurts.
+  const tierWeight: Record<string, number> = { required: 0.6, preferred: 0.25, optional: 0.15 };
   const matched: string[] = [];
   const missing: string[] = [];
+  const evidence: string[] = [];
+  const deductions: string[] = [];
 
-  for (const kw of required) {
-    const w = matchWeighted(kw);
-    matchedRequiredWeight += Math.min(w, sectionWeight.experience);
-    if (w > 0) matched.push(kw); else missing.push(kw);
-  }
-  for (const kw of preferred) {
-    const w = matchWeighted(kw);
-    matchedPreferredWeight += Math.min(w, sectionWeight.skills);
-    if (w > 0) matched.push(kw); else missing.push(kw);
-  }
+  let totalWeight = 0;
+  let matchedWeight = 0;
 
-  // Required: 80% weight, Preferred: 20% weight, scaled to 20 points
-  const reqRatio = totalRequiredWeight > 0 ? matchedRequiredWeight / totalRequiredWeight : 1;
-  const prefRatio = totalPreferredWeight > 0 ? matchedPreferredWeight / totalPreferredWeight : 1;
-  const rawScore = (reqRatio * 0.8 + prefRatio * 0.2) * 20;
+  const scoreTier = (tier: 'required' | 'preferred' | 'optional', kws: string[]) => {
+    for (const kw of kws) {
+      const strength = keywordMatchStrength(resume, kw);
+      totalWeight += tierWeight[tier];
+      matchedWeight += tierWeight[tier] * strength;
+      if (strength > 0) {
+        matched.push(kw);
+        evidence.push(`✓ ${kw}`);
+      } else {
+        missing.push(kw);
+        deductions.push(`Missing ${tier} keyword: ${kw}`);
+      }
+    }
+  };
 
-  // Keyword stuffing penalty: if any single keyword appears > 5 times in resume text
+  scoreTier('required', required);
+  scoreTier('preferred', preferred);
+  scoreTier('optional', optional);
+
+  const rawScore = totalWeight > 0 ? (matchedWeight / totalWeight) * 20 : 20;
+
+  // Keyword stuffing penalty (unchanged behaviour)
   const fullText = extractAllResumeText(resume).toLowerCase();
   let stuffedCount = 0;
   for (const kw of matched) {
@@ -401,9 +501,8 @@ function analyzeKeywordMatch(jd: string, resume: GeneratedResume): {
 
   const warnings: string[] = [];
   const strengths: string[] = [];
-  if (missing.length > 0) {
-    const topMissing = missing.slice(0, 5).map(capitalizeWord).join(', ');
-    warnings.push(`Missing keywords: ${topMissing}.`);
+  if (deductions.length > 0) {
+    warnings.push(`Missing keywords: ${missing.slice(0, 5).map(capitalizeWord).join(', ')}.`);
   }
   if (stuffedCount > 0) {
     warnings.push(`Keyword stuffing detected for ${stuffedCount} term(s) — ATS may flag as spam.`);
@@ -411,84 +510,117 @@ function analyzeKeywordMatch(jd: string, resume: GeneratedResume): {
   if (matched.length / jdKeywords.length >= 0.8) strengths.push('Strong keyword alignment with the job description.');
   if (matched.length / jdKeywords.length < 0.4) warnings.push('Low keyword match — resume will rank poorly in ATS filters.');
 
-  return { score, matched, missing, warnings, strengths };
+  const reason = deductions.length > 0
+    ? `Matched ${matched.length}/${jdKeywords.length} keywords. Missing ${deductions.length} ${deductions.length === 1 ? 'term' : 'terms'} (required/optional weighted).`
+    : `Matched all ${jdKeywords.length} keywords.`;
+
+  return { score, matched, missing, warnings, strengths, evidence, deductions, reason };
 }
 
 // ─── 4. Skills Match (0–15) ──────────────────────────────────────────────────
 
 function analyzeSkillsMatch(jd: string, resume: GeneratedResume): {
   score: number; warnings: string[]; strengths: string[];
+  evidence: string[]; deductions: string[]; reason: string;
 } {
-  const candidateSkills = (resume.skills || []).map((s) => s.name.toLowerCase());
+  const candidateSkills = (resume.skills || []).map((s) => s.name);
   const jdLower = jd.toLowerCase();
 
-  const jdSkills = TECH_KEYWORDS.filter((kw) => new RegExp(`\\b${escapeRegExp(kw)}\\b`, 'i').test(jdLower));
+  const jdSkills = extractJdKeywords(jd);
 
   if (jdSkills.length === 0) {
-    return { score: 15, strengths: ['No specific skills required in JD — full score.'], warnings: [] };
+    // JD present but mentions no tech skills — nothing required, nothing missed.
+    return {
+      score: 15, warnings: [], strengths: ['No specific skills required in JD — nothing to miss.'],
+      evidence: [], deductions: [], reason: 'No skills required in the JD.',
+    };
   }
 
-  // Required vs preferred split
+  // Required / preferred / optional split
   const sentences = jd.split(/[.!?\n]+/);
   const requiredList: string[] = [];
   const preferredList: string[] = [];
+  const optionalList: string[] = [];
 
   for (const skill of jdSkills) {
-    let isPreferred = false;
-    for (const sentence of sentences) {
-      if (sentence.toLowerCase().includes(skill)) {
-        if (/preferred|nice to have|bonus|plus|desired|optional/i.test(sentence)) {
-          isPreferred = true;
-          break;
-        }
-      }
-    }
-    (isPreferred ? preferredList : requiredList).push(skill);
+    const sentenceHas = (re: RegExp) =>
+      sentences.some((s) => s.toLowerCase().includes(skill.toLowerCase()) && re.test(s.toLowerCase()));
+    if (sentenceHas(/optional|nice to have|bonus|desired|plus/i)) optionalList.push(skill);
+    else if (sentenceHas(/preferred|good to have|familiarity with/i)) preferredList.push(skill);
+    else requiredList.push(skill);
   }
 
-  const matchedRequired = requiredList.filter((s) => candidateSkills.includes(s));
-  const matchedPreferred = preferredList.filter((s) => candidateSkills.includes(s));
-  const missingRequired = requiredList.filter((s) => !candidateSkills.includes(s));
+  const skillMatch = (skill: string) =>
+    candidateSkills.some((name) => textHasKeyword(name, skill)) ||
+    matchKeywordWeighted(resume, skill) > 0;
 
-  const reqRatio = requiredList.length > 0 ? matchedRequired.length / requiredList.length : 1;
-  const prefRatio = preferredList.length > 0 ? matchedPreferred.length / preferredList.length : 1;
+  const evidence: string[] = [];
+  const deductions: string[] = [];
 
-  // 80% required, 20% preferred, scaled to 15
-  const rawScore = (reqRatio * 0.8 + prefRatio * 0.2) * 15;
-  const score = clamp(Math.round(rawScore), 0, 15);
+  // Weights: required 0.6, preferred 0.25, optional 0.15 (scaled to 15).
+  const tierWeight: Record<string, number> = { required: 0.6, preferred: 0.25, optional: 0.15 };
+  let totalW = 0;
+  let matchedW = 0;
+
+  const scoreTier = (tier: 'required' | 'preferred' | 'optional', list: string[]) => {
+    for (const skill of list) {
+      totalW += tierWeight[tier];
+      if (skillMatch(skill)) {
+        matchedW += tierWeight[tier];
+        evidence.push(`✓ ${skill}`);
+      } else {
+        deductions.push(`Missing ${tier} skill: ${skill}`);
+      }
+    }
+  };
+
+  scoreTier('required', requiredList);
+  scoreTier('preferred', preferredList);
+  scoreTier('optional', optionalList);
+
+  const score = totalW > 0 ? clamp(Math.round((matchedW / totalW) * 15), 0, 15) : 0;
 
   const warnings: string[] = [];
   const strengths: string[] = [];
 
+  const missingRequired = requiredList.filter((s) => !skillMatch(s));
   if (missingRequired.length > 0) {
     warnings.push(`Missing required skills: ${missingRequired.slice(0, 5).map(capitalizeWord).join(', ')}.`);
   }
-  if (matchedRequired.length === requiredList.length && requiredList.length > 0) {
+  if (requiredList.length > 0 && missingRequired.length === 0) {
     strengths.push('Matches 100% of required skills.');
   }
   if (candidateSkills.length === 0) {
     warnings.push('No skills listed on resume — critical for ATS matching.');
   }
-  const extraSkills = candidateSkills.filter((s) => !jdSkills.includes(s));
+  const extraSkills = candidateSkills.filter((s) => !jdSkills.some((k) => textHasKeyword(s, k)));
   if (extraSkills.length > 3) {
     warnings.push(`${extraSkills.length} skills listed that are not mentioned in the JD — may dilute focus.`);
   }
 
-  return { score, warnings, strengths };
+  const reason = deductions.length > 0
+    ? `Matched ${evidence.length}/${requiredList.length + preferredList.length + optionalList.length} required/preferred/optional skills.`
+    : `Matched all ${requiredList.length + preferredList.length + optionalList.length} skills.`;
+
+  return { score, warnings, strengths, evidence, deductions, reason };
 }
 
 // ─── 5. Experience Relevance (0–15) ──────────────────────────────────────────
 
 function analyzeExperienceRelevance(jd: string, resume: GeneratedResume): {
-  score: number; warnings: string[]; strengths: string[]; description: string;
+  score: number; warnings: string[]; strengths: string[];
+  evidence: string[]; deductions: string[]; reason: string; description: string;
 } {
   let score = 0;
   const warnings: string[] = [];
   const strengths: string[] = [];
+  const evidence: string[] = [];
+  const deductions: string[] = [];
   const experiences = resume.experiences || [];
   const jdLower = jd.toLowerCase();
 
-  // YoE requirement (0–5)
+  // YoE (0–3) — one factor among several, not the primary gate.
+  // Unknown/missing dates are skipped gracefully (never guessed).
   let totalMonths = 0;
   for (const exp of experiences) {
     const start = exp.startDate ? new Date(exp.startDate) : null;
@@ -508,63 +640,89 @@ function analyzeExperienceRelevance(jd: string, resume: GeneratedResume): {
 
   if (requiredYoE > 0) {
     if (candidateYoE >= requiredYoE) {
-      score += 5;
-      strengths.push(`Meets experience requirement (${candidateYoE} vs ${requiredYoE}+ years).`);
-    } else if (candidateYoE >= requiredYoE * 0.7) {
       score += 3;
-      warnings.push(`Experience slightly below requirement (${candidateYoE} vs ${requiredYoE}+ years).`);
+      evidence.push(`✓ ${candidateYoE} yrs vs ${requiredYoE}+ required`);
+    } else if (candidateYoE >= requiredYoE * 0.7) {
+      score += 2;
+      evidence.push(`~ ${candidateYoE} yrs vs ${requiredYoE}+ required`);
     } else {
       score += 1;
-      warnings.push(`Significant experience gap (${candidateYoE} vs ${requiredYoE}+ years).`);
+      deductions.push(`Experience ${candidateYoE}y below ${requiredYoE}y requirement`);
     }
   } else {
-    score += 4; // No specific requirement
-    if (candidateYoE > 0) strengths.push(`Has ${candidateYoE} years of experience (no specific requirement in JD).`);
+    score += 2; // No specific requirement
+    if (candidateYoE > 0) evidence.push(`Has ${candidateYoE} years experience`);
   }
 
-  // Role relevance (0–5)
+  // Role relevance (0–4)
   const targetRole = resume.metadata?.targetRole || '';
   const jdRoleWords = [...new Set(jdLower.split(/\s+/).filter((w) => w.length > 4))];
   let roleMatchScore = 0;
   for (const exp of experiences) {
     const expRole = exp.role.toLowerCase();
-    // Check if any JD role word appears in the experience role
-    if (jdRoleWords.some((w) => expRole.includes(w))) {
-      roleMatchScore += 2;
-    }
-    // Check target role words
+    if (jdRoleWords.some((w) => expRole.includes(w))) roleMatchScore += 2;
     if (targetRole) {
       const targetWords = targetRole.toLowerCase().split(/\s+/);
-      if (targetWords.some((w) => w.length > 3 && expRole.includes(w))) {
-        roleMatchScore += 1;
-      }
+      if (targetWords.some((w) => w.length > 3 && expRole.includes(w))) roleMatchScore += 1;
     }
   }
-  score += Math.min(5, roleMatchScore);
+  score += Math.min(4, roleMatchScore);
   if (roleMatchScore >= 4) strengths.push('Previous roles strongly match the target position.');
   else if (roleMatchScore < 2 && experiences.length > 0) warnings.push('Previous roles do not clearly overlap with the target position.');
 
-  // Technology relevance (0–3)
-  const jdTechs = TECH_KEYWORDS.filter((kw) => new RegExp(`\\b${escapeRegExp(kw)}\\b`, 'i').test(jdLower));
-  const expTechs = experiences.map((e) =>
-    [e.description || '', ...(e.bulletPoints || [])].join(' ')
-  ).join(' ').toLowerCase();
+  // Technology relevance (0–3) — synonym-aware
+  const jdTechs = extractJdKeywords(jd);
+  const expText = experiences
+    .map((e) => [e.description || '', ...(e.bulletPoints || [])].join(' '))
+    .join(' ');
   let techOverlap = 0;
   for (const tech of jdTechs) {
-    if (new RegExp(`\\b${escapeRegExp(tech)}\\b`, 'i').test(expTechs)) techOverlap++;
+    if (textHasKeyword(expText, tech)) {
+      techOverlap++;
+      evidence.push(`✓ ${tech}`);
+    }
   }
   const techRatio = jdTechs.length > 0 ? techOverlap / jdTechs.length : 0;
   score += Math.round(Math.min(3, techRatio * 3));
   if (techRatio > 0.6) strengths.push('Experience demonstrates strong technology overlap with the job.');
 
+  // Qualitative signals (0–3) — production, ownership, architecture, AI,
+  // scale, quantified impact, complexity, leadership.
+  const allExpText = experiences
+    .map((e) => [e.role, e.description || '', ...(e.bulletPoints || [])].join(' '))
+    .join(' ');
+  const signalChecks: Array<[string, RegExp | boolean]> = [
+    ['production/deployment', /\b(production|deployed|deploy|launched|shipped|live|rollout|released)\b/i],
+    ['ownership/leadership', /\b(led|owned|built from scratch|architected|designed|end-to-end|solo|drove|spearheaded)\b/i],
+    ['AI/ML', /\b(\bai\b|ml|llm|machine learning|model|pipeline|transcription|nlp|computer vision|gemini|openai)\b/i],
+    ['scale', /\b(scalable|scale|concurrent|thousands|millions|high-?availability|load|traffic|users?)\b/i],
+    ['quantified impact', hasMetric(allExpText)],
+    ['complexity/architecture', /\b(architecture|microservices|distributed|system design|optimized|caching|queues?|refactored|migrated)\b/i],
+  ];
+  let signalCount = 0;
+  const signalLabels: string[] = [];
+  for (const [label, re] of signalChecks) {
+    const hit = re instanceof RegExp ? re.test(allExpText) : re;
+    if (hit) {
+      signalCount++;
+      signalLabels.push(label);
+    }
+  }
+  const signalScore = Math.min(3, signalCount);
+  score += signalScore;
+  if (signalScore > 0) {
+    evidence.push(`Signals: ${signalLabels.slice(0, 4).join(', ')}`);
+    if (signalCount >= 3) strengths.push('Experience shows production scope, ownership and measurable impact.');
+  }
+
   // Career progression (0–2)
   if (experiences.length >= 2) {
-    // Check for leadership or increasing responsibility
     const hasLeadership = experiences.some((e) =>
       LEADERSHIP_SIGNALS.some((sig) => e.role.toLowerCase().includes(sig) || (e.description || '').toLowerCase().includes(sig))
     );
     if (hasLeadership) {
       score += 2;
+      evidence.push('✓ increasing responsibility');
       strengths.push('Experience shows leadership or increasing responsibility.');
     } else {
       score += 1;
@@ -574,7 +732,8 @@ function analyzeExperienceRelevance(jd: string, resume: GeneratedResume): {
   }
 
   score = clamp(score, 0, 15);
-  return { score, warnings, strengths, description: `Experience relevance: ${score}/15. Candidate YoE: ${candidateYoE}.` };
+  const reason = `YoE ${candidateYoE} (${requiredYoE > 0 ? requiredYoE + '+ required' : 'no req'}), role ${roleMatchScore}/4, tech ${techRatio.toFixed(0)}%, ${signalCount} qualitative signals.`;
+  return { score, warnings, strengths, evidence, deductions, reason, description: `Experience relevance: ${score}/15.` };
 }
 
 // ─── 6. Education (0–5) ──────────────────────────────────────────────────────
@@ -584,7 +743,7 @@ function analyzeEducationMatch(jd: string, resume: GeneratedResume): {
 } {
   const educations = resume.education || [];
   if (educations.length === 0) {
-    return { score: 1, warnings: ['No education section found.'], strengths: [] };
+    return { score: 0, warnings: ['No education section found.'], strengths: [] };
   }
 
   let score = 0;
@@ -641,7 +800,7 @@ function analyzeGrammarSpelling(resume: GeneratedResume): {
 } {
   const bullets = getAllBullets(resume);
   if (bullets.length === 0) {
-    return { score: 3, warnings: ['No bullet points to analyze for grammar.'], strengths: [] };
+    return { score: 0, warnings: ['No bullet points to analyze for grammar.'], strengths: [] };
   }
 
   let score = 5; // Start perfect, deduct
@@ -712,7 +871,7 @@ function analyzeReadability(resume: GeneratedResume): {
 } {
   const bullets = getAllBullets(resume);
   if (bullets.length === 0) {
-    return { score: 2, warnings: ['No bullet points to assess readability.'], strengths: [] };
+    return { score: 0, warnings: ['No bullet points to assess readability.'], strengths: [] };
   }
 
   let score = 5;
@@ -777,45 +936,55 @@ function analyzeReadability(resume: GeneratedResume): {
 
 function analyzeImpact(resume: GeneratedResume): {
   score: number; warnings: string[]; strengths: string[];
+  evidence: string[]; deductions: string[]; reason: string;
 } {
   const bullets = getAllBullets(resume);
   if (bullets.length === 0) {
-    return { score: 0, warnings: ['No bullet points to assess impact.'], strengths: [] };
+    return {
+      score: 0, warnings: ['No bullet points to assess impact.'], strengths: [],
+      evidence: [], deductions: ['No bullet points to assess impact'], reason: 'No content to score.',
+    };
   }
 
   let score = 0;
   const warnings: string[] = [];
   const strengths: string[] = [];
+  const evidence: string[] = [];
+  const deductions: string[] = [];
 
-  // Metrics (0–2)
-  let metricCount = 0;
-  for (const b of bullets) {
-    if (hasMetric(b)) metricCount++;
-  }
-  const metricRatio = metricCount / bullets.length;
+  // Metrics (0–3) — the primary driver. A metric-bearing bullet gets strong credit
+  // even when its wording is not a textbook action verb.
+  const metricBullets = bullets.filter((b) => hasMetric(b));
+  const metricRatio = metricBullets.length / bullets.length;
   if (metricRatio >= 0.5) {
-    score += 2;
+    score += 3;
     strengths.push(`${Math.round(metricRatio * 100)}% of bullets contain quantifiable metrics.`);
+    evidence.push(...metricBullets.slice(0, 3).map((b) => `✓ ${truncate(b, 90)}`));
   } else if (metricRatio >= 0.3) {
-    score += 1;
+    score += 2;
     warnings.push(`Only ${Math.round(metricRatio * 100)}% of bullets include metrics — aim for 50%+.`);
+    evidence.push(...metricBullets.slice(0, 2).map((b) => `✓ ${truncate(b, 90)}`));
+  } else if (metricRatio >= 0.15) {
+    score += 1;
+    warnings.push(`Low quantification: ${Math.round(metricRatio * 100)}% of bullets have metrics.`);
   } else {
     warnings.push(`Low quantification: ${Math.round(metricRatio * 100)}% of bullets have metrics. Add numbers, percentages, or dollar amounts.`);
+    deductions.push(`Only ${Math.round(metricRatio * 100)}% of bullets have quantified metrics`);
   }
 
-  // Action verbs (0–2)
+  // Action verbs (0–1) — a small bonus, not a gate. Metric-rich bullets must not
+  // lose points purely for non-textbook wording.
   let actionVerbCount = 0;
   for (const b of bullets) {
     const firstWord = b.trim().split(/\s+/)[0]?.replace(/[^a-zA-Z]/g, '').toLowerCase();
     if (firstWord && ACTION_VERBS.includes(firstWord)) actionVerbCount++;
   }
   const verbRatio = actionVerbCount / bullets.length;
-  if (verbRatio >= 0.7) {
-    score += 2;
-    strengths.push(`${Math.round(verbRatio * 100)}% of bullets start with strong action verbs.`);
-  } else if (verbRatio >= 0.4) {
+  if (verbRatio >= 0.6) {
     score += 1;
-    warnings.push(`Only ${Math.round(verbRatio * 100)}% of bullets start with strong action verbs.`);
+    strengths.push(`${Math.round(verbRatio * 100)}% of bullets start with strong action verbs.`);
+  } else if (verbRatio >= 0.3) {
+    score += 0.5;
   } else {
     warnings.push(`Weak action verb usage (${Math.round(verbRatio * 100)}%) — most bullets lack strong openings.`);
   }
@@ -836,16 +1005,83 @@ function analyzeImpact(resume: GeneratedResume): {
     score += 0.5;
   } else {
     warnings.push('Bullet points focus on activities rather than outcomes — describe the impact of your work.');
+    deductions.push('Few bullets quantify business outcomes');
   }
 
-  return { score: clamp(Math.round(score * 2) / 2, 0, 5), warnings, strengths };
+  const finalScore = clamp(Math.round(score * 2) / 2, 0, 5);
+  const reason = `Impact ${finalScore}/5 — ${Math.round(metricRatio * 100)}% metrics, ${Math.round(verbRatio * 100)}% action verbs, ${Math.round(outcomeRatio * 100)}% outcome-focused.`;
+  return { score: finalScore, warnings, strengths, evidence, deductions, reason };
 }
 
 // ─── Main entry point ────────────────────────────────────────────────────────
 
+// Max points each scorer emits internally (before rubric reweighting).
+const NATURAL_MAXES: Record<keyof ATSScoreBreakdown, number> = {
+  parseability: 15,
+  formatting: 15,
+  keywordMatch: 20,
+  skillsMatch: 15,
+  experienceRelevance: 15,
+  education: 5,
+  grammarSpelling: 5,
+  readability: 5,
+  impact: 5,
+};
+
+// Rubric weights. JD-relevance dominates (keyword+skills+experience = 70) over
+// structural categories (30) so that a totally unrelated resume can score below
+// 20, a partial match lands ~40-60, and a strong match reaches ~75-90 — without
+// any post-hoc rescaling.
+const ATS_MAXES: Record<keyof ATSScoreBreakdown, number> = {
+  parseability: 5,
+  formatting: 5,
+  keywordMatch: 30,
+  skillsMatch: 20,
+  experienceRelevance: 20,
+  education: 5,
+  grammarSpelling: 5,
+  readability: 5,
+  impact: 5,
+};
+
+/** Map a scorer's natural output onto its rubric weight (keeps category math, not artificial scaling). */
+function scaleToMax(naturalScore: number, key: keyof ATSScoreBreakdown): number {
+  const scaled = (naturalScore / NATURAL_MAXES[key]) * ATS_MAXES[key];
+  return Math.round(scaled * 2) / 2;
+}
+
+// Shape shared by every scorer's return object.
+interface ScorerResult {
+  score: number;
+  matched?: string[];
+  missing?: string[];
+  warnings?: string[];
+  errors?: string[];
+  strengths?: string[];
+  description?: string;
+  reason?: string;
+  deductions?: string[];
+  evidence?: string[];
+}
+
+const NOT_APPLICABLE_STUB: ScorerResult = {
+  score: 0,
+  matched: [],
+  missing: [],
+  warnings: [],
+  strengths: [],
+  description: 'Not applicable — add a job description to evaluate.',
+};
+
 /**
  * Deterministically analyzes a resume JSON against a target Job Description.
- * Produces a point-based rubric score (0–100) across 9 categories.
+ * Produces a point-based rubric score across 9 categories.
+ *
+ * When NO job description is supplied, JD-dependent categories
+ * (keyword match, skills match, experience relevance) are marked
+ * "not applicable" and EXCLUDED from the overall score — they neither
+ * inflate nor deflate it. The overall score is recalculated over the
+ * applicable categories only.
  */
 export function analyzeATS(
   resume: GeneratedResume,
@@ -855,71 +1091,113 @@ export function analyzeATS(
   const allErrors: string[] = [];
   const allStrengths: string[] = [];
 
-  // Run all 9 scorers
+  const hasJd = !!jobDescription.trim();
+
+  // JD-independent scorers always run.
   const parseability = analyzeParseability(resume, jobDescription);
   const formatting = analyzeFormatting(resume);
-  const keywordMatch = analyzeKeywordMatch(jobDescription, resume);
-  const skillsMatch = analyzeSkillsMatch(jobDescription, resume);
-  const experienceRelevance = analyzeExperienceRelevance(jobDescription, resume);
   const education = analyzeEducationMatch(jobDescription, resume);
   const grammar = analyzeGrammarSpelling(resume);
   const readability = analyzeReadability(resume);
   const impact = analyzeImpact(resume);
 
+  // JD-dependent scorers: skipped entirely when there is no JD.
+  const notApplicable: Array<keyof ATSScoreBreakdown> = [];
+  let keywordMatch: ScorerResult = NOT_APPLICABLE_STUB;
+  let skillsMatch: ScorerResult = NOT_APPLICABLE_STUB;
+  let experienceRelevance: ScorerResult = NOT_APPLICABLE_STUB;
+
+  if (hasJd) {
+    keywordMatch = analyzeKeywordMatch(jobDescription, resume);
+    skillsMatch = analyzeSkillsMatch(jobDescription, resume);
+    experienceRelevance = analyzeExperienceRelevance(jobDescription, resume);
+  } else {
+    notApplicable.push('keywordMatch', 'skillsMatch', 'experienceRelevance');
+  }
+
   // Collect warnings/errors/strengths
-  allWarnings.push(...parseability.warnings, ...formatting.warnings, ...keywordMatch.warnings,
-    ...skillsMatch.warnings, ...experienceRelevance.warnings, ...education.warnings,
-    ...grammar.warnings, ...readability.warnings, ...impact.warnings);
+  allWarnings.push(
+    ...parseability.warnings, ...formatting.warnings, ...(keywordMatch.warnings || []),
+    ...(skillsMatch.warnings || []), ...(experienceRelevance.warnings || []),
+    ...education.warnings, ...grammar.warnings, ...readability.warnings, ...impact.warnings,
+  );
   allErrors.push(...parseability.errors);
-  allStrengths.push(...parseability.strengths, ...formatting.strengths, ...keywordMatch.strengths,
-    ...skillsMatch.strengths, ...experienceRelevance.strengths, ...education.strengths,
-    ...grammar.strengths, ...readability.strengths, ...impact.strengths);
-
-  // Build breakdown
-  const breakdown: ATSScoreBreakdown = {
-    parseability: parseability.score,
-    formatting: formatting.score,
-    keywordMatch: keywordMatch.score,
-    skillsMatch: skillsMatch.score,
-    experienceRelevance: experienceRelevance.score,
-    education: education.score,
-    grammarSpelling: grammar.score,
-    readability: readability.score,
-    impact: impact.score,
-  };
-
-  const overallScore = clamp(
-    Object.values(breakdown).reduce((a, b) => a + b, 0),
-    0,
-    100,
+  allStrengths.push(
+    ...parseability.strengths, ...formatting.strengths, ...(keywordMatch.strengths || []),
+    ...(skillsMatch.strengths || []), ...(experienceRelevance.strengths || []),
+    ...education.strengths, ...grammar.strengths, ...readability.strengths, ...impact.strengths,
   );
 
-  const detailedBreakdown = [
-    { category: 'Parseability', score: breakdown.parseability, max: 15, description: parseability.description },
-    { category: 'Formatting', score: breakdown.formatting, max: 15, description: formatting.description },
-    { category: 'Keyword Match', score: breakdown.keywordMatch, max: 20,
-      description: `Matched ${keywordMatch.matched.length}/${keywordMatch.matched.length + keywordMatch.missing.length} keywords from JD.` },
-    { category: 'Skills Match', score: breakdown.skillsMatch, max: 15,
-      description: `Skills scored ${breakdown.skillsMatch}/15 based on required/preferred match.` },
-    { category: 'Experience Relevance', score: breakdown.experienceRelevance, max: 15, description: experienceRelevance.description },
-    { category: 'Education', score: breakdown.education, max: 5,
-      description: `Education scored ${breakdown.education}/5.` },
-    { category: 'Grammar & Spelling', score: breakdown.grammarSpelling, max: 5,
-      description: `Grammar scored ${breakdown.grammarSpelling}/5.` },
-    { category: 'Readability', score: breakdown.readability, max: 5,
-      description: `Readability scored ${breakdown.readability}/5.` },
-    { category: 'Impact & Quantification', score: breakdown.impact, max: 5,
-      description: `Impact scored ${breakdown.impact}/5.` },
-  ];
+  // Build breakdown (scaled from natural scorer output onto rubric weights)
+  const breakdown: ATSScoreBreakdown = {
+    parseability: scaleToMax(parseability.score, 'parseability'),
+    formatting: scaleToMax(formatting.score, 'formatting'),
+    keywordMatch: scaleToMax(keywordMatch.score || 0, 'keywordMatch'),
+    skillsMatch: scaleToMax(skillsMatch.score || 0, 'skillsMatch'),
+    experienceRelevance: scaleToMax(experienceRelevance.score || 0, 'experienceRelevance'),
+    education: scaleToMax(education.score, 'education'),
+    grammarSpelling: scaleToMax(grammar.score, 'grammarSpelling'),
+    readability: scaleToMax(readability.score, 'readability'),
+    impact: scaleToMax(impact.score, 'impact'),
+  };
+
+  const applicableCategories = (Object.keys(ATS_MAXES) as Array<keyof ATSScoreBreakdown>).filter(
+    (k) => !notApplicable.includes(k),
+  );
+
+  // Recalculate overall score over applicable categories ONLY.
+  const applicableSum = applicableCategories.reduce((sum, k) => sum + breakdown[k], 0);
+  const applicableMax = applicableCategories.reduce((sum, k) => sum + ATS_MAXES[k], 0);
+  const overallScore =
+    applicableMax > 0 ? clamp(Math.round((applicableSum / applicableMax) * 1000) / 10, 0, 100) : 0;
+
+  // Detailed breakdown — excludes N/A categories so downstream consumers
+  // (e.g. recruiter prompt) never see a misleading "0/20".
+  const detailedBreakdown: ATSReport['detailedBreakdown'] = [];
+  const pushCategory = (
+    category: string,
+    key: keyof ATSScoreBreakdown,
+    description: string,
+    detail?: { reason?: string; deductions?: string[]; evidence?: string[] },
+  ) => {
+    if (notApplicable.includes(key)) return;
+    detailedBreakdown.push({
+      category,
+      score: breakdown[key],
+      max: ATS_MAXES[key],
+      description,
+      ...(detail?.reason ? { reason: detail.reason } : {}),
+      ...(detail?.deductions?.length ? { deductions: detail.deductions } : {}),
+      ...(detail?.evidence?.length ? { evidence: detail.evidence } : {}),
+    });
+  };
+
+  pushCategory('Parseability', 'parseability', parseability.description || '');
+  pushCategory('Formatting', 'formatting', formatting.description || '');
+  pushCategory('Keyword Match', 'keywordMatch',
+    `Matched ${keywordMatch.matched?.length ?? 0}/${(keywordMatch.matched?.length ?? 0) + (keywordMatch.missing?.length ?? 0)} keywords from JD.`,
+    { reason: keywordMatch.reason, deductions: keywordMatch.deductions, evidence: keywordMatch.evidence });
+  pushCategory('Skills Match', 'skillsMatch',
+    `Skills scored ${breakdown.skillsMatch}/15 based on required/preferred/optional match.`,
+    { reason: skillsMatch.reason, deductions: skillsMatch.deductions, evidence: skillsMatch.evidence });
+  pushCategory('Experience Relevance', 'experienceRelevance', experienceRelevance.description || '',
+    { reason: experienceRelevance.reason, deductions: experienceRelevance.deductions, evidence: experienceRelevance.evidence });
+  pushCategory('Education', 'education', `Education scored ${breakdown.education}/5.`);
+  pushCategory('Grammar & Spelling', 'grammarSpelling', `Grammar scored ${breakdown.grammarSpelling}/5.`);
+  pushCategory('Readability', 'readability', `Readability scored ${breakdown.readability}/5.`);
+  pushCategory('Impact & Quantification', 'impact', `Impact scored ${breakdown.impact}/5.`,
+    { reason: impact.reason, deductions: impact.deductions, evidence: impact.evidence });
 
   return {
     overallScore,
     scoreBreakdown: breakdown,
-    matchedKeywords: keywordMatch.matched,
-    missingKeywords: keywordMatch.missing,
+    matchedKeywords: keywordMatch.matched || [],
+    missingKeywords: keywordMatch.missing || [],
     warnings: allWarnings,
     errors: allErrors,
     strengths: allStrengths,
     detailedBreakdown,
+    notApplicable,
+    applicableCategories,
   };
 }

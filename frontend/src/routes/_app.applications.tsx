@@ -72,8 +72,9 @@ function ApplicationsPage() {
       <PageHeader
         title="Applications"
         subtitle="Track every application, status and follow-up in one focused inbox."
+        category="PIPELINE"
         actions={
-          <Badge variant="secondary" className="rounded-full text-[11px]">
+          <Badge variant="secondary" className="rounded-full font-mono text-[10.5px] uppercase tracking-widest bg-[#18181B]/5 text-[#18181B] border border-[rgba(55,50,47,0.10)] px-3 py-1">
             Coming soon
           </Badge>
         }
@@ -88,15 +89,14 @@ function ApplicationsPage() {
       >
         <div className="relative grid grid-cols-1 gap-0 lg:grid-cols-[1fr_1fr]">
           <div className="relative overflow-hidden p-8 lg:p-10">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0%_100%,color-mix(in_oklab,var(--color-primary)_12%,transparent),transparent_60%)]" />
             <div className="relative">
               <span className="editorial-pill mb-3">
-                <Sparkles className="h-3.5 w-3.5 text-primary" /> Landing soon
+                <Sparkles className="h-3.5 w-3.5 text-[#18181B]" /> Landing soon
               </span>
-              <h2 className="font-serif text-[26px] font-normal leading-tight tracking-tight text-foreground sm:text-[30px]">
+              <h2 className="font-serif text-[26px] font-normal leading-tight tracking-tight text-[#18181B] sm:text-[32px]">
                 A quiet inbox for every job you apply to.
               </h2>
-              <p className="mt-2 max-w-md text-[13.5px] leading-relaxed text-muted-foreground">
+              <p className="mt-2 max-w-md text-[13.5px] leading-relaxed text-[#18181B]/70 font-sans">
                 Auto-log applications, remember follow-ups, connect resumes to interviews, and keep
                 every offer letter in one place.
               </p>
@@ -108,9 +108,9 @@ function ApplicationsPage() {
                   disabled={joined}
                   placeholder="you@work.com"
                   aria-label="Email for waitlist"
-                  className="h-10 sm:max-w-xs"
+                  className="h-10 sm:max-w-xs rounded-full border border-[rgba(55,50,47,0.14)] bg-[#F8F6F3] px-4 text-[13px] focus:bg-[#FFFEFC]"
                 />
-                <Button onClick={join} disabled={joined} className="h-10 gap-1.5">
+                <Button onClick={join} disabled={joined} className="h-10 gap-1.5 rounded-full bg-[#18181B] text-white hover:bg-[#27272A] shadow-xs px-5">
                   {joined ? (
                     <>
                       <Check className="h-3.5 w-3.5" /> You're on the list
@@ -123,7 +123,7 @@ function ApplicationsPage() {
                 </Button>
               </div>
 
-              <div className="mt-4 flex items-center gap-4 text-[11.5px] text-muted-foreground">
+              <div className="mt-4 flex items-center gap-4 text-[11.5px] font-mono text-[#18181B]/50">
                 <span className="inline-flex items-center gap-1.5">
                   <Bell className="h-3 w-3" /> Notify me at launch
                 </span>
@@ -134,22 +134,21 @@ function ApplicationsPage() {
           </div>
 
           {/* Illustration */}
-          <div className="relative min-h-[240px] border-t border-border bg-surface p-6 lg:border-l lg:border-t-0 lg:p-8">
-            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,transparent,color-mix(in_oklab,var(--color-primary)_6%,transparent))]" />
+          <div className="relative min-h-[240px] border-t border-[rgba(55,50,47,0.10)] bg-[#F8F6F3] p-6 lg:border-l lg:border-t-0 lg:p-8">
             <div className="relative grid h-full grid-cols-3 gap-2">
               {["Wishlist", "Applied", "Interview"].map((label, i) => (
                 <div
                   key={label}
-                  className="flex flex-col rounded-lg border border-border bg-background/80 p-2.5 shadow-subtle"
+                  className="flex flex-col rounded-xl border border-[rgba(55,50,47,0.10)] bg-[#FFFEFC] p-2.5 shadow-xs"
                 >
-                  <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                  <div className="font-mono text-[9.5px] font-medium uppercase tracking-widest text-[#18181B]/50">
                     {label}
                   </div>
                   <div className="mt-2 space-y-1.5">
                     {Array.from({ length: 3 - i }).map((_, k) => (
-                      <div key={k} className="rounded-md border border-border bg-card p-2">
-                        <div className="h-1.5 w-2/3 rounded bg-muted" />
-                        <div className="mt-1 h-1 w-1/2 rounded bg-muted/60" />
+                      <div key={k} className="rounded-lg border border-[rgba(55,50,47,0.08)] bg-[#F8F6F3] p-2">
+                        <div className="h-1.5 w-2/3 rounded bg-[#18181B]/10" />
+                        <div className="mt-1 h-1 w-1/2 rounded bg-[#18181B]/5" />
                       </div>
                     ))}
                   </div>
@@ -163,22 +162,22 @@ function ApplicationsPage() {
       {/* Kanban preview */}
       <div className="mt-8">
         <div className="mb-3 flex items-baseline justify-between">
-          <h3 className="text-[14px] font-semibold tracking-tight">Preview · Kanban board</h3>
-          <span className="text-[12px] text-muted-foreground">Static preview</span>
+          <h3 className="font-serif text-lg font-normal text-[#18181B]">Preview · Kanban board</h3>
+          <span className="font-mono text-[11px] uppercase tracking-widest text-[#18181B]/50">Static preview</span>
         </div>
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
           {columns.map((col) => (
             <div
               key={col.key}
-              className="flex flex-col rounded-2xl border border-border bg-card p-3 shadow-subtle"
+              className="flex flex-col editorial-card p-3"
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-[12px] font-semibold">
-                  <col.icon className={`h-3.5 w-3.5 ${col.tone}`} strokeWidth={1.75} />
+                <div className="flex items-center gap-1.5 text-[12px] font-semibold text-[#18181B]">
+                  <col.icon className="h-3.5 w-3.5 text-[#18181B]" strokeWidth={1.75} />
                   {col.label}
                 </div>
-                <span className="rounded-full bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                <span className="rounded-full bg-[#18181B]/5 px-2 py-0.5 font-mono text-[10px] text-[#18181B]/60 border border-[rgba(55,50,47,0.10)]">
                   {col.count}
                 </span>
               </div>
@@ -186,25 +185,25 @@ function ApplicationsPage() {
                 {(sampleCards[col.key] ?? []).map((c) => (
                   <div
                     key={c.company}
-                    className="rounded-lg border border-border bg-background p-2.5 transition-all hover:-translate-y-0.5 hover:shadow-soft"
+                    className="rounded-xl border border-[rgba(55,50,47,0.08)] bg-[#F8F6F3] p-2.5 transition-all hover:-translate-y-0.5 hover:bg-[#FFFEFC]"
                   >
                     <div className="flex items-center gap-2">
-                      <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md border border-border bg-card font-mono text-[10px] font-semibold">
+                      <div className="grid h-6 w-6 shrink-0 place-items-center rounded-md border border-[rgba(55,50,47,0.12)] bg-[#FFFEFC] font-mono text-[10px] font-semibold text-[#18181B]">
                         {c.logo}
                       </div>
                       <div className="min-w-0">
-                        <div className="truncate text-[12.5px] font-medium">{c.company}</div>
-                        <div className="truncate text-[11px] text-muted-foreground">{c.role}</div>
+                        <div className="truncate text-[12.5px] font-medium text-[#18181B]">{c.company}</div>
+                        <div className="truncate text-[11px] text-[#18181B]/60 font-sans">{c.role}</div>
                       </div>
                     </div>
-                    <div className="mt-2 flex items-center gap-1.5 text-[10.5px] text-muted-foreground">
+                    <div className="mt-2 flex items-center gap-1.5 text-[10.5px] font-mono text-[#18181B]/50">
                       <Calendar className="h-3 w-3" /> {c.date}
                     </div>
                   </div>
                 ))}
                 {(sampleCards[col.key] ?? []).length === 0 && (
-                  <div className="rounded-lg border border-dashed border-border p-3 text-center text-[11px] text-muted-foreground">
-                    No cards yet
+                  <div className="rounded-xl border border-dashed border-[rgba(55,50,47,0.12)] p-3 text-center text-[11px] text-[#18181B]/40 font-mono">
+                    Empty
                   </div>
                 )}
               </div>
@@ -230,11 +229,11 @@ function ApplicationsPage() {
         ].map((f) => (
           <div
             key={f.title}
-            className="rounded-2xl border border-border bg-card p-5 shadow-subtle transition-all hover:-translate-y-0.5 hover:shadow-soft"
+            className="editorial-card p-5 transition-all hover:-translate-y-0.5"
           >
-            <f.icon className="h-4 w-4 text-primary" strokeWidth={1.5} />
-            <div className="mt-3 text-[13.5px] font-semibold">{f.title}</div>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">{f.body}</p>
+            <f.icon className="h-4 w-4 text-[#18181B]" strokeWidth={1.5} />
+            <div className="mt-3 text-[14px] font-semibold text-[#18181B]">{f.title}</div>
+            <p className="mt-1 text-[12.5px] leading-relaxed text-[#18181B]/60 font-sans">{f.body}</p>
           </div>
         ))}
       </div>

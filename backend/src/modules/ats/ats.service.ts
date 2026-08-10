@@ -5,6 +5,7 @@ import { ATSReport, ATSRecruiterFeedback, RecruiterReview } from './ats.types';
 import { GeneratedResume } from '../../ai/types';
 import { getLLMClient } from '../../ai/llm/client';
 import { parseJSON } from '../../ai/utils/json-parser';
+import { validateRecruiterStatements } from './statement-validator';
 
 const SYSTEM_PROMPT_RECRUITER_REVIEW = `You are a senior technical recruiter with 15+ years of experience hiring engineers at top-tier companies (FAANG, unicorn startups, high-growth Series A-D). You have reviewed thousands of resumes and conducted hundreds of interviews. You have a reputation for being brutally honest but fair — candidates and hiring managers both respect your judgment because you're never vague, never diplomatic, and never wrong.
 
@@ -18,14 +19,72 @@ FORMAT RULES:
 - "weaknesses": 3-5 items. Each is a specific gap or concern, explained in one sentence. Be direct.
 - "biggestConcerns": 2-3 items. These are the things that would make you lose sleep if you recommended this person and they failed. Be unflinching.
 - "topImprovements": 3-5 items. Each is one specific, actionable change. "Add quantified metrics to the second experience bullet" level of specificity, not "improve your resume."
-- "likelyInterviewQuestions": 4-6 questions. These are the real questions you'd prep this candidate for, based on what you see (and don't see) in the resume. Include why you'd ask each one.`;
+- "likelyInterviewQuestions": 4-6 questions. These are the real questions you'd prep this candidate for, based on what you see (and don't see) in the resume. Include why you'd ask each one.
+
+GROUNDING RULES (non-negotiable):
+- Every positive and negative observation MUST be grounded in text that actually appears in the resume. If a claim cannot be tied to a specific bullet, section, company, project, date, or number in the resume, do not make it.
+- Never invent: dates, skill ratings, proficiency levels, missing education, years of experience, achievements, companies, or technologies. If the resume does not show it, it does not exist.
+- Never claim a resume "lacks metrics" or "has no quantified impact" when the resume contains numbers such as hours, users, percentages, $, counts, or "+N" figures. Acknowledge any quantified impact that is present.
+- Do not mention skill "levels" or ratings — they are not present in the resume.
+- If information is genuinely absent (e.g. no graduation date, no metric), say it is absent rather than guessing a value.
+
+INFERENCE CONTROL (non-negotiable):
+- Distinguish three things in your review: FACT (stated in the resume), INFERENCE (your judgment derived from it), and RECOMMENDATION (a suggested next step). Never present an inference or a recommendation as a fact.
+- A role is "future-dated" ONLY if its start date is AFTER the analysis date provided in the prompt. A start date on or before the analysis date is in the PAST — never call it "future-dated", "inaccurate", or "suspicious".
+- Overlapping education, student-organization, and employment dates are NORMAL and completely plausible (students work while studying). Never describe overlapping dates as impossible, fraudulent, fabricated, contradictory, future-dated, inaccurate, suspicious, or an "integrity concern".
+- Report a date contradiction ONLY when ONE of these is true:
+  1. a single record has an end date before its own start date, OR
+  2. a start date is after the analysis date (truly future-dated), OR
+  3. the resume explicitly states mutually exclusive full-time commitments.
+- Otherwise, overlapping dates are NOT a contradiction. Allowed wording: "Education overlaps with professional/organizational experience; this is plausible, though the nature and time commitment of the roles may be worth clarifying."
+
+RECOMMENDATION GROUNDING (non-negotiable):
+- Every recommendation must fall into exactly one of these forms:
+  A. Resume improvement — e.g. "Quantify the Thrive Wellness bullets if measurable outcomes are available."
+  B. Missing-skill disclosure — e.g. "PostgreSQL is required by the JD but is not demonstrated in the resume."
+  C. Genuine-experience reminder — e.g. "If you have genuine Docker experience, add it with a supporting project or experience bullet."
+- NEVER tell the candidate to "add", "learn", "implement", or "claim" a technology they do not possess merely to raise an ATS score. This applies to every technology: Docker, Kubernetes, PostgreSQL, GraphQL, WebSockets, CI/CD, GitHub Actions, and any other missing skill.
+- For a technology required by the JD but absent from the resume, state ONLY that it is not demonstrated, and add the conditional "If you have genuine experience with X, add it with evidence." Do not instruct them to fabricate or pad it.
+- Do not suggest skills-gap learning plans (courses, "learn X") unless the candidate explicitly asks for one.`;
+
+/**
+ * Strip synthetic fields before handing a resume to the LLM so it cannot
+ * fabricate ratings or metadata that were never on the original document.
+ */
+function sanitizeResumeForLLM(resume: GeneratedResume): GeneratedResume {
+  return {
+    ...resume,
+    skills: (resume.skills || []).map(({ name, category }) => ({ name, category })),
+    metadata: {
+      targetRole: resume.metadata?.targetRole || '',
+      companyName: resume.metadata?.companyName || '',
+      generationSessionId: resume.metadata?.generationSessionId || '',
+      generatedAt: resume.metadata?.generatedAt || '',
+      keywordMatches: resume.metadata?.keywordMatches || [],
+      selectionRationale: resume.metadata?.selectionRationale || '',
+    },
+  };
+}
 
 function buildRecruiterReviewPrompt(resume: GeneratedResume, jobDescription: string, report: ATSReport): string {
-  return `=== CANDIDATE RESUME ===
-${JSON.stringify(resume, null, 2)}
+  const jdSection = jobDescription.trim()
+    ? `=== TARGET JOB DESCRIPTION ===\n${jobDescription}`
+    : `=== TARGET JOB DESCRIPTION ===\nNone provided — assess the candidate's overall marketability and resume quality (general assessment, not role-specific).`;
 
-=== TARGET JOB DESCRIPTION ===
-${jobDescription}
+  // Anchor "today" so the reviewer can judge past vs future dates correctly.
+  const today = new Date();
+  const todayIso = today.toISOString().slice(0, 10); // YYYY-MM-DD
+  const analysisContext = `=== ANALYSIS CONTEXT ===
+Analysis date (today): ${todayIso}
+Any start date on or before ${todayIso} is in the PAST, not future-dated.
+Overlapping education and employment dates are normal and plausible.`;
+
+  return `=== CANDIDATE RESUME ===
+${JSON.stringify(sanitizeResumeForLLM(resume), null, 2)}
+
+${jdSection}
+
+${analysisContext}
 
 === DETERMINISTIC ATS REPORT ===
 Overall Score: ${report.overallScore}/100
@@ -124,7 +183,34 @@ export class AtsService {
   }
 
   /**
-   * Run a senior-recruiter persona review against resume + JD.
+   * Run deterministic ATS scoring + AI recruiter feedback on an arbitrary
+   * (uploaded) resume — no ResumeVersion/DB required. Stateless.
+   */
+  async analyzeResume(resume: GeneratedResume, jobDescription: string): Promise<ATSReport> {
+    const report = analyzeATS(resume, jobDescription);
+    try {
+      report.recruiterFeedback = await this.generateAIReview(resume, jobDescription, report);
+    } catch (err) {
+      console.error('[ATS] AI review failed — proceeding with deterministic report only.', err);
+    }
+    return report;
+  }
+
+  /**
+   * Run a senior-recruiter persona review against an arbitrary (uploaded)
+   * resume + JD. Stateless — no ResumeVersion/DB required.
+   */
+  /**
+   * Run a senior-recruiter persona review against an arbitrary (uploaded)
+   * resume. Without a JD it returns a generic marketability review.
+   */
+  async recruiterReviewResume(resume: GeneratedResume, jobDescription: string): Promise<RecruiterReview> {
+    const atsReport = analyzeATS(resume, jobDescription);
+    return this.runRecruiterReview(resume, jobDescription, atsReport);
+  }
+
+  /**
+   * Run a senior-recruiter persona review against a stored resume version.
    * Returns a structured review distinct from the deterministic ATS score.
    */
   async recruiterReview(userId: string, resumeVersionId: string, customJobDescription?: string): Promise<RecruiterReview> {
@@ -161,6 +247,15 @@ export class AtsService {
       atsReport = analyzeATS(version.resumeJson as GeneratedResume, jobDescription);
     }
 
+    return this.runRecruiterReview(version.resumeJson as GeneratedResume, jobDescription, atsReport);
+  }
+
+  /** Shared recruiter-review LLM call (used by both stored-version and uploaded flows). */
+  private async runRecruiterReview(
+    resume: GeneratedResume,
+    jobDescription: string,
+    atsReport: ATSReport,
+  ): Promise<RecruiterReview> {
     const client = getLLMClient();
     const response = await client.call(
       [
@@ -170,7 +265,7 @@ export class AtsService {
         },
         {
           role: 'user',
-          content: buildRecruiterReviewPrompt(version.resumeJson as GeneratedResume, jobDescription, atsReport),
+          content: buildRecruiterReviewPrompt(resume, jobDescription, atsReport),
         },
       ],
       { json: true, temperature: 0.4 },
@@ -183,12 +278,20 @@ export class AtsService {
       parsed.hiringConfidence !== undefined &&
       Array.isArray(parsed.strengths)
     ) {
+      // Deterministic grounding: drop unsupported statements, backfill from the
+      // deterministic ATS report (its findings override LLM opinions).
+      const validated = validateRecruiterStatements(
+        resume,
+        parsed.strengths,
+        parsed.weaknesses || [],
+        atsReport,
+      );
       return {
         firstImpression: parsed.firstImpression,
         interviewRecommendation: parsed.interviewRecommendation || '',
         hiringConfidence: Math.min(10, Math.max(1, Math.round(parsed.hiringConfidence))),
-        strengths: parsed.strengths,
-        weaknesses: parsed.weaknesses || [],
+        strengths: validated.strengths,
+        weaknesses: validated.weaknesses,
         biggestConcerns: parsed.biggestConcerns || [],
         topImprovements: parsed.topImprovements || [],
         likelyInterviewQuestions: parsed.likelyInterviewQuestions || [],
@@ -220,7 +323,7 @@ Job Description:
 ${jobDescription}
 
 Resume JSON:
-${JSON.stringify(resume, null, 2)}
+${JSON.stringify(sanitizeResumeForLLM(resume), null, 2)}
 
 ATS Score Report:
 - Overall Score: ${report.overallScore}/100
@@ -242,6 +345,8 @@ Respond with a JSON object matching this exact shape:
 Rules:
 - Each array should have 3-6 items.
 - Be specific to THIS resume and THIS job — generic advice is useless.
+- Ground every observation in the resume text: quote the exact bullet or section. Never invent dates, skill ratings, years of experience, achievements, or missing information. Never claim the resume "lacks metrics" or "has no quantified impact" when it contains numbers such as hours, users, percentages, $, or "+N" figures.
+- GROUNDING: Every observation must cite the exact resume text it refers to. Never invent dates, skill ratings, years of experience, or achievements. Never claim the resume "lacks metrics" when it contains numbers (hours, users, %, $, +N) — acknowledge them.
 - "strengths": what this resume does well for THIS role.
 - "weaknesses": concrete gaps a recruiter would flag.
 - "recruiterComments": how a real recruiter would describe this candidate in 10 seconds.
@@ -263,9 +368,16 @@ Respond with ONLY the JSON object, no markdown fences.`;
 
     const parsed = parseJSON<ATSRecruiterFeedback>(response.content);
     if (parsed && parsed.strengths && parsed.weaknesses) {
+      // Deterministic grounding + ATS backfill (same rules as the recruiter review).
+      const validated = validateRecruiterStatements(
+        resume,
+        Array.isArray(parsed.strengths) ? parsed.strengths : [],
+        Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
+        report,
+      );
       return {
-        strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
-        weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
+        strengths: validated.strengths,
+        weaknesses: validated.weaknesses,
         recruiterComments: Array.isArray(parsed.recruiterComments) ? parsed.recruiterComments : [],
         topImprovements: Array.isArray(parsed.topImprovements) ? parsed.topImprovements : [],
         keywordRecommendations: Array.isArray(parsed.keywordRecommendations) ? parsed.keywordRecommendations : [],

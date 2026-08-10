@@ -265,6 +265,9 @@ Extraction Guidance for LinkedIn exports:
 - Map 'Portfolio' or contact links to "socialLinks".
 
 Ensure you extract as much detail as possible. Do not hallucinate or make up information. If a section is missing, return an empty array or omit the field.
+
+CRITICAL DATE RULE:
+- Never guess or infer dates. For startDate/endDate/issuedAt/date: if the document does not explicitly state the date, return null (do not invent a value, do not approximate from context). "Present"/"current" → null for endDate and set isCurrent=true.
 `;
 
     const client = getLLMClient();

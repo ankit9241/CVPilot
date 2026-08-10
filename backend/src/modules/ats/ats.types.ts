@@ -155,6 +155,13 @@ export interface ATSReport {
     score: number;
     max: number;
     description: string;
+    reason?: string;
+    deductions?: string[];
+    evidence?: string[];
   }>;
   recruiterFeedback?: ATSRecruiterFeedback;
+  /** Categories skipped because no job description was supplied (e.g. keyword/skills/experience match). */
+  notApplicable?: Array<keyof ATSScoreBreakdown>;
+  /** Categories actually scored — the max denominator for the recalculated overall score. */
+  applicableCategories?: Array<keyof ATSScoreBreakdown>;
 }

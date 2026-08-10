@@ -690,7 +690,6 @@ export function preprocessAndBudgetResume(resumeJson: any): any {
   const formattedSkills = Object.entries(groupedSkills).map(([category, names]) => ({
     category,
     name: names.join(' • '),
-    level: 3,
   }));
 
   // 5. Certificates & Achievements trimming
