@@ -24,7 +24,8 @@ function LoginPage() {
 
   const handleGoogle = () => {
     setState("loading");
-    window.location.href = `${BASE_URL}/auth/google`;
+    const origin = encodeURIComponent(window.location.origin);
+    window.location.href = `${BASE_URL}/auth/google?origin=${origin}`;
   };
 
   return (

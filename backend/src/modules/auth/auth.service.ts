@@ -22,13 +22,14 @@ export class AuthService extends BaseService {
     super();
   }
 
-  getGoogleAuthUrl() {
+  getGoogleAuthUrl(state?: string) {
     if (!env.google.clientId) {
       throw new BadRequestError('Google OAuth is not configured in environment variables');
     }
     return googleOAuthClient.generateAuthUrl({
       access_type: 'offline',
       prompt: 'consent',
+      state,
       scope: [
         'https://www.googleapis.com/auth/userinfo.profile',
         'https://www.googleapis.com/auth/userinfo.email',

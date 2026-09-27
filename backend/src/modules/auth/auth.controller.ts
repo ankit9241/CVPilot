@@ -10,13 +10,15 @@ export class AuthController extends BaseController {
     super();
   }
 
-  initiateGoogle = asyncHandler(async (_req: Request, res: Response) => {
-    const url = this.service.getGoogleAuthUrl();
+  initiateGoogle = asyncHandler(async (req: Request, res: Response) => {
+    const origin = (req.query.origin as string) || (req.headers.referer ? new URL(req.headers.referer).origin : undefined);
+    const url = this.service.getGoogleAuthUrl(origin);
     return res.redirect(url);
   });
 
   googleCallback = asyncHandler(async (req: Request, res: Response) => {
     const code = req.query.code as string;
+    const state = req.query.state as string | undefined;
     const result = await this.service.handleGoogleCallback(code);
 
     // Set secure HTTP-only cookies
@@ -26,7 +28,18 @@ export class AuthController extends BaseController {
     const u = result.user as { profile?: { completionPct?: number } | null };
     const isNewUser = !u.profile || (u.profile.completionPct ?? 0) < 20;
     const redirectPath = isNewUser ? '/onboarding' : '/dashboard';
-    const frontendBaseUrl = env.cors.origin.split(',')[0].trim().replace(/\/+$/, '');
+
+    // Prioritize origin passed in state (where user clicked login), fallback to CORS_ORIGIN
+    let frontendBaseUrl = env.cors.origin.split(',')[0].trim().replace(/\/+$/, '');
+    if (state && (state.startsWith('http://') || state.startsWith('https://'))) {
+      try {
+        const parsed = new URL(state);
+        frontendBaseUrl = parsed.origin;
+      } catch {
+        // invalid state URL, use configured default
+      }
+    }
+
     return res.redirect(`${frontendBaseUrl}${redirectPath}`);
   });
 
