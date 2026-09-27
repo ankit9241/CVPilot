@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PlaneTakeoff, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "../store/auth-store";
+import { BASE_URL } from "@/lib/api";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — CVPilot" }] }),
@@ -23,7 +24,7 @@ function LoginPage() {
 
   const handleGoogle = () => {
     setState("loading");
-    window.location.href = "http://localhost:4000/api/auth/google";
+    window.location.href = `${BASE_URL}/auth/google`;
   };
 
   return (

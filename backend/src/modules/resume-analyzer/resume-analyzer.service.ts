@@ -4,6 +4,7 @@ import { profileImportService, ExtractedProfileDTO } from '../profile/profile-im
 import { GeneratedResume } from '../../ai/types';
 import { ATSReport, QualityReport, RecruiterReview } from '../ats/ats.types';
 import { BadRequestError } from '../../utils/errors';
+import { deduplicateCrossEngineResults } from '../ats/ats.utils';
 
 /** Structured engine result — the frontend renders from `status`, never guesses. */
 export type EngineResult<T> =
@@ -31,7 +32,7 @@ async function wrap<T>(promise: Promise<T>): Promise<EngineResult<T>> {
  * GeneratedResume shape consumed by the ATS/quality/recruiter engines.
  */
 export function mapExtractedToGenerated(dto: ExtractedProfileDTO): GeneratedResume {
-  return {
+  const resume: any = {
     summary: dto.personalInfo?.summary || '',
     experiences: (dto.experiences || []).map((e) => ({
       companyName: e.companyName,
@@ -49,7 +50,6 @@ export function mapExtractedToGenerated(dto: ExtractedProfileDTO): GeneratedResu
       role: p.role || '',
       technologies: p.stack || [],
       bulletPoints: p.achievements || [],
-      impact: p.description || '',
     })),
     // No synthetic skill levels — resumes do not contain proficiency ratings.
     skills: (dto.skills || []).map((s) => ({ name: s.name, category: s.category })),
@@ -72,6 +72,15 @@ export function mapExtractedToGenerated(dto: ExtractedProfileDTO): GeneratedResu
       selectionRationale: '',
     },
   };
+
+  if (dto.personalInfo?.email) {
+    resume.email = dto.personalInfo.email;
+  }
+  if (dto.personalInfo?.phone) {
+    resume.phone = dto.personalInfo.phone;
+  }
+
+  return resume;
 }
 
 export type AnalysisProgressStepId =
@@ -119,6 +128,8 @@ export class ResumeAnalyzerService {
       wrap(qualityService.analyzeQuality(resume)),
       wrap(atsService.recruiterReviewResume(resume, jd)),
     ]);
+
+    deduplicateCrossEngineResults(ats.data, quality.data, recruiter.data);
 
     return { ats, quality, recruiter, parsedResume: resume };
   }
@@ -191,6 +202,8 @@ export class ResumeAnalyzerService {
     });
 
     const [ats, quality, recruiter] = await Promise.all([atsPromise, qualityPromise, recruiterPromise]);
+
+    deduplicateCrossEngineResults(ats.data, quality.data, recruiter.data);
 
     onEvent({ type: 'step', stepId: 'report', status: 'active' });
     const result: ResumeAnalysisResult = { ats, quality, recruiter, parsedResume: resume };

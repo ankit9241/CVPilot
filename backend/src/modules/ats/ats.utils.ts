@@ -1,5 +1,5 @@
 import { GeneratedResume } from '../../ai/types';
-import { ATSReport, ATSScoreBreakdown } from './ats.types';
+import { ATSReport, ATSScoreBreakdown, QualityReport, RecruiterReview } from './ats.types';
 
 // ─── Reference word lists ────────────────────────────────────────────────────
 
@@ -89,8 +89,13 @@ function clamp(val: number, min: number, max: number) {
 
 export function extractAllResumeText(resume: GeneratedResume): string {
   const parts: string[] = [resume.summary || ''];
+  if ((resume as any).email) parts.push((resume as any).email);
+  if ((resume as any).phone) parts.push((resume as any).phone);
   for (const exp of resume.experiences || []) {
     parts.push(exp.companyName, exp.role, exp.description || '');
+    if (exp.location) parts.push(exp.location);
+    if (exp.startDate) parts.push(exp.startDate);
+    if (exp.endDate) parts.push(exp.endDate);
     if (exp.bulletPoints) parts.push(...exp.bulletPoints);
   }
   for (const proj of resume.projects || []) {
@@ -101,6 +106,9 @@ export function extractAllResumeText(resume: GeneratedResume): string {
   if (resume.skills) parts.push(...resume.skills.map((s) => s.name));
   for (const edu of resume.education || []) {
     parts.push(edu.school, edu.degree, edu.field || '');
+    if ((edu as any).location) parts.push((edu as any).location);
+    if (edu.startDate) parts.push(edu.startDate);
+    if (edu.endDate) parts.push(edu.endDate);
   }
   for (const cert of resume.certificates || []) {
     parts.push(cert.name, cert.issuer);
@@ -277,7 +285,7 @@ function extractDegreeLevel(degreeText: string): number {
 
 // ─── 1. Parseability (0–15) ──────────────────────────────────────────────────
 
-function analyzeParseability(resume: GeneratedResume, jd: string): {
+export function analyzeParseability(resume: GeneratedResume, jd: string = ''): {
   score: number; warnings: string[]; errors: string[]; strengths: string[]; description: string;
 } {
   let score = 0;
@@ -361,7 +369,7 @@ function analyzeParseability(resume: GeneratedResume, jd: string): {
 
 // ─── 2. Formatting (0–15) ────────────────────────────────────────────────────
 
-function analyzeFormatting(resume: GeneratedResume): {
+export function analyzeFormatting(resume: GeneratedResume): {
   score: number; warnings: string[]; strengths: string[]; description: string;
 } {
   // Penalty model: start at max and subtract for concrete defects. This
@@ -795,7 +803,7 @@ function analyzeEducationMatch(jd: string, resume: GeneratedResume): {
 
 // ─── 7. Grammar & Spelling (0–5) ─────────────────────────────────────────────
 
-function analyzeGrammarSpelling(resume: GeneratedResume): {
+export function analyzeGrammarSpelling(resume: GeneratedResume): {
   score: number; warnings: string[]; strengths: string[];
 } {
   const bullets = getAllBullets(resume);
@@ -866,7 +874,7 @@ function analyzeGrammarSpelling(resume: GeneratedResume): {
 
 // ─── 8. Readability (0–5) ────────────────────────────────────────────────────
 
-function analyzeReadability(resume: GeneratedResume): {
+export function analyzeReadability(resume: GeneratedResume): {
   score: number; warnings: string[]; strengths: string[];
 } {
   const bullets = getAllBullets(resume);
@@ -934,7 +942,7 @@ function analyzeReadability(resume: GeneratedResume): {
 
 // ─── 9. Impact & Quantification (0–5) ────────────────────────────────────────
 
-function analyzeImpact(resume: GeneratedResume): {
+export function analyzeImpact(resume: GeneratedResume): {
   score: number; warnings: string[]; strengths: string[];
   evidence: string[]; deductions: string[]; reason: string;
 } {
@@ -1200,4 +1208,1293 @@ export function analyzeATS(
     notApplicable,
     applicableCategories,
   };
+}
+
+function formatTechName(t: string): string {
+  const low = t.toLowerCase();
+  if (low === 'nextjs' || low === 'next.js') return 'Next.js';
+  if (low === 'nodejs' || low === 'node.js') return 'Node.js';
+  if (low === 'ci/cd') return 'CI/CD';
+  if (low === 'aws') return 'AWS';
+  if (low === 'gcp') return 'GCP';
+  if (low === 'postgresql' || low === 'postgres') return 'PostgreSQL';
+  if (low === 'mongodb') return 'MongoDB';
+  if (low === 'mysql') return 'MySQL';
+  if (low === 'mariadb') return 'MariaDB';
+  if (low === 'sqlite') return 'SQLite';
+  if (low === 'dynamodb') return 'DynamoDB';
+  if (low === 'graphql') return 'GraphQL';
+  if (low === 'grpc') return 'gRPC';
+  if (low === 'websockets') return 'WebSockets';
+  if (low === 'webassembly') return 'WebAssembly';
+  if (low === 'typescript') return 'TypeScript';
+  if (low === 'javascript') return 'JavaScript';
+  if (low === 'html') return 'HTML';
+  if (low === 'css') return 'CSS';
+  if (low === 'api' || low === 'rest api' || low === 'restful') return 'REST APIs';
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
+
+function isMetricGrounded(match: string, normResume: string): boolean {
+  const cleanMatch = match.toLowerCase().trim();
+  
+  // 1. Percentage match (e.g. 20%)
+  if (cleanMatch.includes('%') || cleanMatch.includes('percent')) {
+    const digits = cleanMatch.match(/\d+(?:\.\d+)?/);
+    if (digits) {
+      const d = digits[0];
+      const percentRe = new RegExp(`${escapeRegExp(d)}\\s*(?:%|percent)`, 'i');
+      return percentRe.test(normResume);
+    }
+  }
+
+  // 2. Currency match (e.g. $50k)
+  if (cleanMatch.includes('$')) {
+    const digits = cleanMatch.match(/\d+(?:\.\d+)?/);
+    if (digits) {
+      const d = digits[0];
+      const usdRe = new RegExp(`\\$\\s*${escapeRegExp(d)}`, 'i');
+      return usdRe.test(normResume);
+    }
+  }
+
+  // 3. Suffix / unit match (e.g. 10+, 100k, 2x, 10 hours, 500+ users)
+  const digits = cleanMatch.match(/\d+(?:\.\d+)?/);
+  if (digits) {
+    const d = digits[0];
+    const suffix = cleanMatch.split(d)[1]?.trim() || '';
+    if (suffix) {
+      const cleanSuffix = escapeRegExp(suffix).replace(/\s+/g, '\\s*');
+      const suffixRe = new RegExp(`\\b${escapeRegExp(d)}\\s*${cleanSuffix}`, 'i');
+      return suffixRe.test(normResume);
+    } else {
+      const numRe = new RegExp(`\\b${escapeRegExp(d)}\\b`, 'i');
+      return numRe.test(normResume);
+    }
+  }
+
+  return false;
+}
+
+function hasActualDateContradiction(resume: GeneratedResume): boolean {
+  const experiences = resume.experiences || [];
+  for (const exp of experiences) {
+    if (exp.startDate && exp.endDate) {
+      const start = new Date(exp.startDate);
+      const end = new Date(exp.endDate);
+      if (start > end) return true;
+    }
+  }
+  const education = resume.education || [];
+  for (const edu of education) {
+    if (edu.startDate && edu.endDate) {
+      const start = new Date(edu.startDate);
+      const end = new Date(edu.endDate);
+      if (start > end) return true;
+    }
+  }
+  
+  const today = new Date();
+  for (const exp of experiences) {
+    if (exp.startDate) {
+      const start = new Date(exp.startDate);
+      if (start > today) return true;
+    }
+  }
+  for (const edu of education) {
+    if (edu.startDate) {
+      const start = new Date(edu.startDate);
+      if (start > today) return true;
+    }
+  }
+
+  return false;
+}
+
+// ─── Structured Fact & Gap Analysis ─────────────────────────────────────────
+
+export interface BulletOpportunity {
+  section: string;
+  roleOrProject: string;
+  text: string;
+  type: 'unquantified' | 'weak_verb' | 'verbose' | 'short';
+  suggestedAction: string;
+}
+
+export interface ResumeFacts {
+  rawText: string;
+  normalizedText: string;
+  hasSummary: boolean;
+  summaryText: string;
+  experiencesCount: number;
+  hasExperienceLocations: boolean;
+  experiencesWithoutLocation: string[];
+  technologies: Set<string>;
+  technologiesInSkills: Set<string>;
+  technologiesInContent: Set<string>;
+  skillsInSkillsOnly: string[];
+  metrics: string[];
+  calculatedYoE: number;
+  duplicates: string[];
+  bulletOpportunities: BulletOpportunity[];
+}
+
+export function extractResumeFacts(resume: GeneratedResume): ResumeFacts {
+  const rawText = extractAllResumeText(resume);
+  const normalizedText = rawText.toLowerCase();
+  const hasSummary = Boolean(resume.summary && resume.summary.trim().length > 0);
+  const summaryText = resume.summary?.trim() || '';
+
+  const experiences = resume.experiences || [];
+  const experiencesCount = experiences.length;
+  const experiencesWithoutLocation: string[] = [];
+  for (const exp of experiences) {
+    if (!exp.location || !exp.location.trim()) {
+      experiencesWithoutLocation.push(exp.companyName || 'experience entry');
+    }
+  }
+  const hasExperienceLocations = experiencesCount > 0 && experiencesWithoutLocation.length === 0;
+
+  const technologies = new Set<string>();
+  for (const kw of TECH_KEYWORDS) {
+    if (textHasKeyword(normalizedText, kw)) {
+      technologies.add(kw);
+    }
+  }
+
+  const technologiesInSkills = new Set<string>();
+  for (const s of resume.skills || []) {
+    const sName = s.name.toLowerCase();
+    for (const kw of TECH_KEYWORDS) {
+      if (textHasKeyword(sName, kw)) {
+        technologiesInSkills.add(kw);
+      }
+    }
+  }
+
+  const contentParts: string[] = [];
+  for (const exp of experiences) {
+    contentParts.push(exp.role, exp.companyName, exp.description || '', ...(exp.bulletPoints || []));
+  }
+  for (const proj of resume.projects || []) {
+    contentParts.push(proj.name, proj.role || '', proj.description || '', ...(proj.technologies || []), ...(proj.bulletPoints || []));
+  }
+  const contentText = contentParts.join(' ').toLowerCase();
+
+  const technologiesInContent = new Set<string>();
+  for (const kw of TECH_KEYWORDS) {
+    if (textHasKeyword(contentText, kw)) {
+      technologiesInContent.add(kw);
+    }
+  }
+
+  const skillsInSkillsOnly = [...technologiesInSkills].filter(
+    (t) => !technologiesInContent.has(t),
+  );
+
+  const bullets = getAllBullets(resume);
+  const metrics: string[] = [];
+  for (const b of bullets) {
+    if (hasMetric(b)) metrics.push(b);
+  }
+
+  const duplicates: string[] = [];
+  const seenContent = new Map<string, number>();
+  for (const b of bullets) {
+    const norm = b.trim().toLowerCase();
+    if (norm.length > 15) {
+      seenContent.set(norm, (seenContent.get(norm) || 0) + 1);
+    }
+  }
+  for (const [text, count] of seenContent.entries()) {
+    if (count > 1) duplicates.push(text);
+  }
+
+  let totalMonths = 0;
+  for (const exp of experiences) {
+    const start = exp.startDate ? new Date(exp.startDate) : null;
+    const end = exp.isCurrent || !exp.endDate ? new Date() : new Date(exp.endDate);
+    if (start && !isNaN(start.getTime()) && !isNaN(end.getTime())) {
+      totalMonths += Math.max(0, (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()));
+    }
+  }
+  const calculatedYoE = Math.round((totalMonths / 12) * 10) / 10;
+
+  const bulletOpportunities: BulletOpportunity[] = [];
+  const WEAK_OPENERS = /^(?:worked on|helped with|assisted with|responsible for|duties included|supported with|participated in|collaborate with|tasked with)\b/i;
+
+  for (const exp of experiences) {
+    const secName = exp.companyName || 'Experience';
+    const roleName = exp.role || '';
+    if (exp.description && exp.description.trim().length >= 12) {
+      const dTrimmed = exp.description.trim();
+      if (WEAK_OPENERS.test(dTrimmed)) {
+        bulletOpportunities.push({
+          section: secName,
+          roleOrProject: roleName,
+          text: dTrimmed,
+          type: 'weak_verb',
+          suggestedAction: 'Replace weak opening verb with a strong, active technical verb (e.g. Engineered, Architected, Built) and specify key achievements.',
+        });
+      } else if (!hasMetric(dTrimmed)) {
+        bulletOpportunities.push({
+          section: secName,
+          roleOrProject: roleName,
+          text: dTrimmed,
+          type: 'unquantified',
+          suggestedAction: 'Add a measurable outcome (e.g. users, throughput, latency) if verified data is available; otherwise describe project scale.',
+        });
+      }
+    }
+    for (const b of exp.bulletPoints || []) {
+      const trimmed = b.trim();
+      if (trimmed.length < 10) continue;
+      const wordCount = trimmed.split(/\s+/).length;
+      if (WEAK_OPENERS.test(trimmed)) {
+        bulletOpportunities.push({
+          section: secName,
+          roleOrProject: roleName,
+          text: trimmed,
+          type: 'weak_verb',
+          suggestedAction: 'Replace weak opening verb with a strong, active engineering verb (e.g. Architected, Engineered, Built, Deployed) and describe the concrete technical deliverable.',
+        });
+      } else if (!hasMetric(trimmed)) {
+        if (wordCount < 5) {
+          bulletOpportunities.push({
+            section: secName,
+            roleOrProject: roleName,
+            text: trimmed,
+            type: 'short',
+            suggestedAction: 'Expand with specific technical details, tools used, and measurable outcomes (currently very brief).',
+          });
+        } else {
+          bulletOpportunities.push({
+            section: secName,
+            roleOrProject: roleName,
+            text: trimmed,
+            type: 'unquantified',
+            suggestedAction: 'Add a measurable outcome (e.g. users, performance gain, throughput, time savings) if verified data is available; otherwise describe project scale.',
+          });
+        }
+      } else if (wordCount > 40) {
+        bulletOpportunities.push({
+          section: secName,
+          roleOrProject: roleName,
+          text: trimmed,
+          type: 'verbose',
+          suggestedAction: 'Condense into two concise sentences or trim filler words for better ATS parseability.',
+        });
+      }
+    }
+  }
+
+  for (const proj of resume.projects || []) {
+    const secName = proj.name || 'Project';
+    for (const b of proj.bulletPoints || []) {
+      const trimmed = b.trim();
+      if (trimmed.length < 10) continue;
+      const wordCount = trimmed.split(/\s+/).length;
+      if (WEAK_OPENERS.test(trimmed)) {
+        bulletOpportunities.push({
+          section: secName,
+          roleOrProject: 'Project',
+          text: trimmed,
+          type: 'weak_verb',
+          suggestedAction: 'Replace weak opening verb with a strong, active engineering verb and specify the implementation details.',
+        });
+      } else if (!hasMetric(trimmed)) {
+        if (wordCount < 5) {
+          bulletOpportunities.push({
+            section: secName,
+            roleOrProject: 'Project',
+            text: trimmed,
+            type: 'short',
+            suggestedAction: 'Expand with technical implementation details and project outcomes.',
+          });
+        } else {
+          bulletOpportunities.push({
+            section: secName,
+            roleOrProject: 'Project',
+            text: trimmed,
+            type: 'unquantified',
+            suggestedAction: 'Add a measurable outcome (e.g. users, performance gain, throughput, time savings) if verified data is available; otherwise describe project scale.',
+          });
+        }
+      }
+    }
+  }
+
+  return {
+    rawText,
+    normalizedText,
+    hasSummary,
+    summaryText,
+    experiencesCount,
+    hasExperienceLocations,
+    experiencesWithoutLocation,
+    technologies,
+    technologiesInSkills,
+    technologiesInContent,
+    skillsInSkillsOnly,
+    metrics,
+    calculatedYoE,
+    duplicates,
+    bulletOpportunities,
+  };
+}
+
+export interface JdFacts {
+  requiredTech: string[];
+  preferredTech: string[];
+  allJdTech: string[];
+  requiredYoE: number | null;
+}
+
+export function extractJdFacts(jobDescription: string): JdFacts {
+  const jdLower = jobDescription.toLowerCase();
+  const allJdTech = extractJdKeywords(jobDescription);
+
+  const requiredSectionMatch = jdLower.match(/(?:required|qualifications|requirements|must\s+have|core\s+skills)([\s\S]*?)(?:preferred|nice\s+to\s+have|bonus|plus|about\s+the|responsibilities|$)/i);
+  const preferredSectionMatch = jdLower.match(/(?:preferred|nice\s+to\s+have|bonus|plus|desired)([\s\S]*?)(?:required|qualifications|about\s+the|responsibilities|$)/i);
+
+  const requiredTech: string[] = [];
+  const preferredTech: string[] = [];
+
+  const reqText = requiredSectionMatch ? requiredSectionMatch[1] : '';
+  const prefText = preferredSectionMatch ? preferredSectionMatch[1] : '';
+
+  for (const tech of allJdTech) {
+    if (prefText && textHasKeyword(prefText, tech)) {
+      preferredTech.push(tech);
+    } else if (reqText && textHasKeyword(reqText, tech)) {
+      requiredTech.push(tech);
+    } else {
+      requiredTech.push(tech);
+    }
+  }
+
+  let requiredYoE: number | null = null;
+  const yoeRegex = /(\d+)\+?\s*(years|yoe|yr)/gi;
+  let m;
+  while ((m = yoeRegex.exec(jdLower)) !== null) {
+    const val = parseInt(m[1], 10);
+    if (!isNaN(val) && val > 0 && val <= 30) {
+      requiredYoE = Math.max(requiredYoE || 0, val);
+    }
+  }
+
+  return {
+    requiredTech: [...new Set(requiredTech)],
+    preferredTech: [...new Set(preferredTech)],
+    allJdTech,
+    requiredYoE,
+  };
+}
+
+export interface ResumeJdGap {
+  genuinelyMissingRequired: string[];
+  genuinelyMissingPreferred: string[];
+  allMissingJdTech: string[];
+  alreadyDemonstrated: string[];
+  demonstratedInSkillsOnly: string[];
+  yoeGap: number;
+  structuralGaps: {
+    missingSummary: boolean;
+    missingLocations: string[];
+  };
+}
+
+export function computeResumeJdGap(resumeFacts: ResumeFacts, jdFacts: JdFacts): ResumeJdGap {
+  const genuinelyMissingRequired = jdFacts.requiredTech.filter((t) => !resumeFacts.technologies.has(t));
+  const genuinelyMissingPreferred = jdFacts.preferredTech.filter((t) => !resumeFacts.technologies.has(t));
+  const allMissingJdTech = jdFacts.allJdTech.filter((t) => !resumeFacts.technologies.has(t));
+  const alreadyDemonstrated = jdFacts.allJdTech.filter((t) => resumeFacts.technologies.has(t));
+
+  const demonstratedInSkillsOnly = [...resumeFacts.technologiesInSkills].filter(
+    (t) => !resumeFacts.technologiesInContent.has(t),
+  );
+
+  const yoeGap = jdFacts.requiredYoE ? Math.max(0, jdFacts.requiredYoE - resumeFacts.calculatedYoE) : 0;
+
+  return {
+    genuinelyMissingRequired,
+    genuinelyMissingPreferred,
+    allMissingJdTech,
+    alreadyDemonstrated,
+    demonstratedInSkillsOnly,
+    yoeGap,
+    structuralGaps: {
+      missingSummary: !resumeFacts.hasSummary,
+      missingLocations: resumeFacts.experiencesWithoutLocation,
+    },
+  };
+}
+
+/**
+ * Generates a rich, structured Opportunity & Evidence Dossier for LLM prompts.
+ * Eliminates generic hallucinations by giving the LLM concrete bullet anchors,
+ * verified matches, exact missing skills, and skills needing project context.
+ */
+export function generateOpportunityDossier(
+  resumeFacts: ResumeFacts,
+  jdFacts: JdFacts,
+  gap: ResumeJdGap,
+): string {
+  const lines: string[] = [];
+  lines.push('=== FACT-BASED OPPORTUNITY & EVIDENCE DOSSIER ===');
+
+  lines.push(`1. VERIFIED CANDIDATE STRENGTHS (Matched in JD):`);
+  lines.push(`   ${gap.alreadyDemonstrated.length > 0 ? gap.alreadyDemonstrated.join(', ') : 'None directly matched'}`);
+
+  lines.push(`2. GENUINELY MISSING JD REQUIREMENTS:`);
+  if (gap.genuinelyMissingRequired.length > 0) {
+    lines.push(`   - Core Required Missing: ${gap.genuinelyMissingRequired.join(', ')}`);
+  } else {
+    lines.push(`   - Core Required Missing: None`);
+  }
+  if (gap.genuinelyMissingPreferred.length > 0) {
+    lines.push(`   - Preferred/Nice-to-Have Missing: ${gap.genuinelyMissingPreferred.join(', ')}`);
+  }
+
+  lines.push(`3. SKILLS LISTED IN SKILLS SECTION WITHOUT EXPERIENCE/PROJECT EVIDENCE:`);
+  if (resumeFacts.skillsInSkillsOnly.length > 0) {
+    lines.push(`   ${resumeFacts.skillsInSkillsOnly.slice(0, 8).join(', ')}`);
+    lines.push(`   -> PERSONALIZATION TIP: Advise candidate to tie these skills into specific role/project bullets where they actually applied them, or leave them as foundational skills.`);
+  } else {
+    lines.push(`   All listed skills appear in experience or project descriptions.`);
+  }
+
+  lines.push(`4. SPECIFIC BULLET REVISION ANCHORS (Use these exact anchors to produce personalized recommendations):`);
+  if (resumeFacts.bulletOpportunities.length > 0) {
+    for (const opp of resumeFacts.bulletOpportunities.slice(0, 5)) {
+      lines.push(`   * [${opp.section}${opp.roleOrProject ? ' - ' + opp.roleOrProject : ''}] "${opp.text}"`);
+      lines.push(`     Opportunity: ${opp.suggestedAction}`);
+    }
+  } else {
+    lines.push(`   No obvious bullet structural defects found.`);
+  }
+
+  lines.push(`5. FACTUAL STRUCTURE & METRICS CONTEXT:`);
+  lines.push(`   - Verified Total Professional Experience: ${resumeFacts.calculatedYoE} years (JD specifies: ${jdFacts.requiredYoE ? jdFacts.requiredYoE + '+ years' : 'Not specified'})`);
+  lines.push(`   - Summary Section: ${resumeFacts.hasSummary ? 'Present' : 'Empty (needs summary)'}`);
+  lines.push(`   - Verified Metrics Already Present: ${resumeFacts.metrics.length > 0 ? resumeFacts.metrics.slice(0, 4).map((m) => `"${m}"`).join('; ') : 'None detected'}`);
+
+  return lines.join('\n');
+}
+
+/**
+ * Deterministic current-resume state validation.
+ * Rejects recommendations referencing conditions that do not hold in the current resume.
+ */
+export function validateCurrentResumeState(
+  statement: string,
+  resume: GeneratedResume,
+  jd: string = '',
+  options?: { isQuickWin?: boolean },
+): string | null {
+  const facts = extractResumeFacts(resume);
+  const normResume = facts.normalizedText;
+  const lower = statement.toLowerCase().trim();
+
+  // 0. QUICK WIN ISOLATION: Quick Wins is strictly for polish of existing resume content.
+  // Never propose missing JD technologies, learning plans, or role-fit skills in Quick Wins.
+  if (options?.isQuickWin) {
+    if (
+      lower.includes('the jd mentions') ||
+      lower.includes('genuine experience') ||
+      lower.includes('not demonstrated') ||
+      lower.includes('missing keyword') ||
+      lower.includes('missing skill') ||
+      lower.includes('required by the jd') ||
+      lower.includes('cloud orchestration') ||
+      lower.includes('learn ') ||
+      lower.includes('take a course') ||
+      lower.includes('study ') ||
+      lower.includes('get certified')
+    ) {
+      return null;
+    }
+    // If statement instructs adding a technology not in the resume, reject it in Quick Wins
+    for (const kw of TECH_KEYWORDS) {
+      if (textHasKeyword(lower, kw) && !facts.technologies.has(kw)) {
+        return null;
+      }
+    }
+  }
+
+  // 1. INTERNAL SCHEMA LEAKAGE PREVENTION:
+  // Disallow leaking internal JSON schema field names ('role', 'isCurrent', 'startDate', 'endDate', 'bulletPoints', 'generationSessionId', etc.)
+  const SCHEMA_FIELD_RE = /\b(?:isCurrent|startDate|endDate|bulletPoints?|generationSessionId|targetRole|companyName)\b/i;
+  if (SCHEMA_FIELD_RE.test(statement)) {
+    // If it's about dates or isCurrent, rewrite to human-facing date verification
+    if (/\b(?:isCurrent|startDate|endDate)\b/i.test(statement)) {
+      let matchedName = '';
+      for (const exp of resume.experiences || []) {
+        if (exp.companyName && statement.toLowerCase().includes(exp.companyName.toLowerCase())) {
+          matchedName = exp.companyName;
+          break;
+        }
+      }
+      const containsIsCurrent = lower.includes('iscurrent') || lower.includes('current role');
+      if (matchedName && !containsIsCurrent) {
+        return `Verify the ${matchedName} start date. If the displayed date is correct, retain it. If it is incorrect, replace it only with the actual start date.`;
+      }
+      return 'Verify that employment dates and current-role status accurately reflect your actual employment history.';
+    }
+    // Otherwise it's a technical schema reference like "empty role" or "bulletPoints array" -> drop
+    return null;
+  }
+  if (/\b(?:empty|missing)\s+(?:role|role\s+field|role\s+string)\b/i.test(lower)) {
+    return null;
+  }
+
+  // 2. STALE "CHANGE X TO Y" / "REPLACE X WITH Y" VALIDATION:
+  // If the recommendation instructs changing X to Y, X MUST actually exist in the current resume text.
+  // If X is not in the resume (e.g. user already changed "Collaborate" to "Collaborated"), REJECT!
+  const CHANGE_X_TO_Y_RE = /\b(?:change|replace|swap|switch|correct|update)\s+['"‘“]?([a-zA-Z0-9+#.-]+(?: [a-zA-Z0-9+#.-]+){0,3})['"’”]?\s+(?:to|with|for|in\s+favor\s+of)\s+['"‘“]?([a-zA-Z0-9+#.-]+(?: [a-zA-Z0-9+#.-]+){0,3})['"’”]?/i;
+  const changeMatch = statement.match(CHANGE_X_TO_Y_RE);
+  if (changeMatch) {
+    const targetX = changeMatch[1].trim().toLowerCase();
+    // Exclude date patterns like "2026-02" or years (which have specialized verification handlers)
+    const isDatePattern = /\b\d{4}(?:-\d{2})?\b/.test(targetX);
+    const isStylisticTerm = /\b(?:passive|active|voice|phrasing|wording|tense|verbs?|filler|first person|third person)\b/i.test(targetX);
+    if (!isDatePattern && !isStylisticTerm && targetX.length >= 3 && !['the', 'a', 'an', 'your', 'this', 'bullet', 'bullets'].includes(targetX)) {
+      const parts = targetX.split(/\s+(?:and|or|,)\s+/).map((p) => p.trim()).filter(Boolean);
+      const allPartsPresent = parts.every((part) => {
+        const pRegex = new RegExp(`(?:^|[^a-zA-Z0-9+#.-])${escapeRegExp(part)}(?![a-zA-Z0-9+#.-])`, 'i');
+        return pRegex.test(normResume);
+      });
+      if (!allPartsPresent) {
+        return null; // Target X is absent from the resume -> stale recommendation! Reject!
+      }
+    }
+  }
+
+  // 3. STALE SUMMARY RECOMMENDATION:
+  // If statement suggests adding / creating / providing a summary section / profile:
+  // If resume ALREADY has a summary, REJECT the recommendation!
+  const SUMMARY_REC_RE = /\b(?:add|include|create|write|provide|missing|empty|lacks?)\s+(?:a\s+)?(?:concise\s+)?(?:professional\s+)?(?:career\s+)?(?:summary|profile\s+summary|summary\s+section|profile\s+overview|executive\s+summary)\b/i;
+  if (SUMMARY_REC_RE.test(lower)) {
+    if (facts.hasSummary) {
+      return null; // Summary already present -> reject!
+    }
+  }
+
+  // 4. STALE LOCATION RECOMMENDATION:
+  // If statement suggests adding a location field or missing location:
+  // If all experiences already have location, REJECT!
+  const LOCATION_REC_RE = /\b(?:add|include|missing|specify|provide)\s+(?:location|locations|location\s+information|location\s+field|city|workplace\s+location)\b/i;
+  if (LOCATION_REC_RE.test(lower)) {
+    if (facts.hasExperienceLocations) {
+      return null; // All experiences already have location -> reject!
+    }
+  }
+
+  // 5. STALE DUPLICATE RECOMMENDATION:
+  // If statement suggests removing duplicate / redundant content:
+  // If no duplicate content exists in the current resume, REJECT!
+  const DUPLICATE_REC_RE = /\b(?:remove|delete|eliminate)\s+(?:duplicate|redundant|repeated)\s+([a-zA-Z0-9+#.-]+)/i;
+  const dupMatch = statement.match(DUPLICATE_REC_RE);
+  if (dupMatch) {
+    const subject = dupMatch[1].toLowerCase();
+    const regex = new RegExp(`\\b${escapeRegExp(subject)}\\b`, 'gi');
+    const occurrences = (normResume.match(regex) || []).length;
+    if (occurrences < 2 && facts.duplicates.length === 0) {
+      return null; // Duplicate is not present -> reject!
+    }
+  }
+
+  return statement;
+}
+
+export function sanitizeRecommendationText(
+  statement: string,
+  resume: GeneratedResume,
+  jd: string = '',
+  options?: { isQuickWin?: boolean },
+): string {
+  // Current-state invariant validation
+  const validatedState = validateCurrentResumeState(statement, resume, jd, options);
+  if (validatedState === null || validatedState === '') {
+    return '';
+  }
+  if (validatedState !== statement) {
+    statement = validatedState;
+  }
+
+  const txt = extractAllResumeText(resume);
+  const normResume = txt.toLowerCase();
+
+  // 1. Check if the statement is already a safe/grounded statement.
+  const lowerStatement = statement.toLowerCase();
+  const isAlreadyGrounded = lowerStatement.includes('genuine experience') ||
+                            lowerStatement.includes('if you have experience') ||
+                            lowerStatement.includes('not demonstrated') ||
+                            lowerStatement.includes('is demonstrated') ||
+                            (lowerStatement.includes('no ') && lowerStatement.includes('demonstrated'));
+
+  // 2. Fabricated date replacements — run BEFORE the year/metric check so that
+  //    "change 2026-02 to 2023-02" is caught here (with a date-verification
+  //    rewrite) rather than falling through to the metric check and producing
+  //    the wrong "Do not invent a metric" message.
+  const FABRICATED_DATE_RE = /\b(?:change|swap|set|replace|correct|adjust|update|move)\b[^.]*\b(\d{4}-\d{2})\s+(?:to|for)\s+(\d{4}-\d{2})\b/i;
+  const FABRICATED_DATE_BARE_RE = /\b(?:change|swap|set|replace|correct|adjust|update|move)\b[^.]*\b(\d{4})\s+(?:to|for)\s+(?!\d)(\d{4})\b/i;
+  const FABRICATED_MONTH_RE = /\b(\d{4}-\d{2})\s+to\s+(\d{4}-\d{2})\b/i;
+  const FABRICATED_YR_RE = /\b(\d{4})\s+to\s+(?!\d)(\d{4})\b/i;
+  const FABRICATED_EXAMPLE_RE = /\(\s*e\.?\s*g\.?\s*(\d{4}-\d{2})\s*\)/i;
+
+  const dateMatch =
+    statement.match(FABRICATED_DATE_RE) ||
+    statement.match(FABRICATED_DATE_BARE_RE) ||
+    statement.match(FABRICATED_MONTH_RE) ||
+    statement.match(FABRICATED_YR_RE) ||
+    statement.match(FABRICATED_EXAMPLE_RE);
+
+  if (dateMatch) {
+    const yrA = parseInt(dateMatch[1], 10);
+    const yrB = parseInt(dateMatch[2], 10);
+    const yearsInResume = (resume.experiences || []).flatMap((e) => [
+      e.startDate ? parseInt(e.startDate.slice(0, 4), 10) : null,
+      e.endDate   ? parseInt(e.endDate.slice(0, 4), 10) : null,
+    ]).filter(Boolean) as number[];
+    const bothPresent = yearsInResume.includes(yrA) && yearsInResume.includes(yrB);
+    if (!bothPresent) {
+      let matchedName = '';
+      for (const exp of resume.experiences || []) {
+        if (exp.companyName && statement.toLowerCase().includes(exp.companyName.toLowerCase())) {
+          matchedName = exp.companyName; break;
+        }
+      }
+      if (!matchedName) {
+        for (const edu of resume.education || []) {
+          if (edu.school && statement.toLowerCase().includes(edu.school.toLowerCase())) {
+            matchedName = edu.school; break;
+          }
+        }
+      }
+      const containsIsCurrent = lowerStatement.includes('iscurrent') || lowerStatement.includes('current role') || lowerStatement.includes('current-role');
+      if (matchedName && !containsIsCurrent) {
+        return `Verify the ${matchedName} start date. If the displayed date is correct, retain it. If it is incorrect, replace it only with the actual start date.`;
+      } else {
+        return 'Verify that employment dates and current-role status accurately reflect your actual employment history.';
+      }
+    }
+  }
+
+  // 3. Timeline / general date/isCurrent/timeline warning check.
+  const DATE_WARNING_RE = /\b(?:startDate|endDate|start\s+date|end\s+date|date\s+correction|correct\s+date|change\s+dates?|change\s+the\s+dates?|adjust\s+dates?|change\s+startDate|change\s+endDate|set\s+isCurrent|isCurrent\s+false|isCurrent\s+to\s+false|past\s+month|arbitrary\s+date|current\s+roles?|employment\s+dates)\b/i;
+  if (DATE_WARNING_RE.test(statement)) {
+    let matchedName = '';
+    for (const exp of resume.experiences || []) {
+      if (exp.companyName && statement.toLowerCase().includes(exp.companyName.toLowerCase())) {
+        matchedName = exp.companyName; break;
+      }
+    }
+    if (!matchedName) {
+      for (const edu of resume.education || []) {
+        if (edu.school && statement.toLowerCase().includes(edu.school.toLowerCase())) {
+          matchedName = edu.school; break;
+        }
+      }
+    }
+
+    const containsIsCurrent = lowerStatement.includes('iscurrent') || lowerStatement.includes('current role') || lowerStatement.includes('current-role');
+    if (matchedName && !containsIsCurrent) {
+      return `Verify the ${matchedName} start date. If the displayed date is correct, retain it. If it is incorrect, replace it only with the actual start date.`;
+    } else {
+      return 'Verify that employment dates and current-role status accurately reflect your actual employment history.';
+    }
+  }
+
+  // 4. Unsupported years-of-experience claim — run BEFORE the generic digit
+  //    check so that "2+ years" is caught as a YoE claim rather than as an
+  //    ungrounded metric.
+  const YOE_PATTERN = /\b(\d+(?:\.\d+)?)\+?\s*(?:years?|yoe|yrs?|yr)\b/gi;
+  let yoeMatch;
+  let hasUnsupportedYoE = false;
+  
+  let totalMonths = 0;
+  for (const exp of resume.experiences || []) {
+    const start = exp.startDate ? new Date(exp.startDate) : null;
+    const end = exp.endDate ? new Date(exp.endDate) : (exp.isCurrent ? new Date() : new Date());
+    if (start && !isNaN(start.getTime()) && !isNaN(end.getTime())) {
+      totalMonths += Math.max(0, (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()));
+    }
+  }
+  const calculatedYears = Math.round((totalMonths / 12) * 10) / 10;
+
+  YOE_PATTERN.lastIndex = 0;
+  while ((yoeMatch = YOE_PATTERN.exec(statement)) !== null) {
+    const claimedYears = parseFloat(yoeMatch[1]);
+    if (calculatedYears < claimedYears) {
+      hasUnsupportedYoE = true;
+      break;
+    }
+  }
+
+  if (hasUnsupportedYoE) {
+    if (lowerStatement.includes('summary') || lowerStatement.includes('profile') || lowerStatement.includes('introduction')) {
+      if (resume.summary && resume.summary.trim().length > 0) {
+        return '';
+      }
+      return "Add a concise summary highlighting your full-stack and AI/SaaS experience.";
+    } else if (lowerStatement.includes('full-stack') || lowerStatement.includes('full stack')) {
+      return "Highlight your full-stack and technical experience.";
+    } else {
+      return statement.replace(/\b\d+(?:\.\d+)?\+?\s*(?:years?|yoe|yrs?|yr)\s*(?:of\s+)?/gi, 'hands-on ').trim();
+    }
+  }
+
+  // 5. Years not in the resume (catch fabricated years like 2027).
+  //    Skip numbers that are part of a YoE pattern (e.g. "2+ years") since
+  //    those are already handled above.
+  const digitMatches = statement.match(/\b\d+(?:\.\d+)?\b/g);
+  if (digitMatches) {
+    for (const d of digitMatches) {
+      const numVal = parseFloat(d);
+      if (numVal >= 1900 && numVal <= 2100) continue;
+      // Skip if this digit is part of a YoE expression (e.g. "2+ years")
+      const yoeContext = new RegExp(`\\b${escapeRegExp(d)}\\+?\\s*(?:years?|yoe|yrs?|yr)\\b`, 'i');
+      if (yoeContext.test(statement)) continue;
+      // Skip if this digit is part of an ISO date in the statement that matches the resume
+      const dateInStatement = statement.match(/\b\d{4}[-/]\d{2}(?:[-/]\d{2})?\b/);
+      if (dateInStatement) {
+        const resumeDates = (resume.experiences || []).flatMap((e) => [e.startDate, e.endDate])
+          .concat((resume.education || []).flatMap((e) => [e.startDate, e.endDate]))
+          .filter(Boolean) as string[];
+        if (resumeDates.some((rd) => rd.includes(dateInStatement[0]) || dateInStatement[0].includes(rd))) {
+          continue;
+        }
+      }
+      if (!normResume.includes(d)) {
+        return 'Add a measurable outcome if you have one. Do not invent a metric.';
+      }
+    }
+  }
+
+  // 6. Fabricated metrics / example numbers.
+  //    Skip matches that are part of a YoE expression (already handled in step 4).
+  const METRIC_PATTERN = /(\$\s?\d+(?:[.,]\d+)?[kmb]?|\b\d+(?:\.\d+)?\s*%|\b\d+(?:\.\d+)?\s*(?:\+|k\b|x\b|×|hours?\b|users?\b|requests?\b))/gi;
+  const metricMatches = statement.match(METRIC_PATTERN);
+  let matchedCompanyForMetric = '';
+  for (const exp of resume.experiences || []) {
+    if (exp.companyName && statement.toLowerCase().includes(exp.companyName.toLowerCase())) {
+      matchedCompanyForMetric = exp.companyName;
+      break;
+    }
+  }
+
+  // 6a. Prescriptive metric recommendation without concrete numbers or with unverified metrics
+  //     (e.g., "Revise Thrive Wellness bullets to include metrics such as % performance gain or user count.")
+  const PRESCRIPTIVE_METRIC_RE = /\b(?:revise|update|modify|edit|rewrite|add|include)\b[^.]*\b(?:bullets?|experience|roles?)\b[^.]*\b(?:metrics?\s+such\s+as|metrics?\s+like|to\s+include\s+metrics|include\s+metrics|metrics?\b)/i;
+  const METRIC_SUCH_AS_RE = /\bmetrics?\s+(?:such\s+as|like)\s+(?:%|percent|user\s+count|performance\s+gain|growth|latency|throughput)/i;
+  const allGroundedMetrics = metricMatches ? metricMatches.every((m) => isMetricGrounded(m, normResume)) : false;
+
+  if (!allGroundedMetrics && (PRESCRIPTIVE_METRIC_RE.test(statement) || METRIC_SUCH_AS_RE.test(statement))) {
+    if (matchedCompanyForMetric) {
+      return `Quantify the existing ${matchedCompanyForMetric} bullets if verified metrics are available; otherwise leave the claims unchanged.`;
+    }
+    return 'Quantify existing bullets if verified metrics are available; otherwise leave the claims unchanged.';
+  }
+
+  if (metricMatches) {
+    for (const match of metricMatches) {
+      // Extract the digit portion and check if it's part of a YoE expression
+      const digitPart = match.match(/\d+(?:\.\d+)?/);
+      if (digitPart) {
+        const yoeCtx = new RegExp(`\\b${escapeRegExp(digitPart[0])}\\+?\\s*(?:years?|yoe|yrs?|yr)\\b`, 'i');
+        if (yoeCtx.test(statement)) continue;
+      }
+      if (!isMetricGrounded(match, normResume)) {
+        if (matchedCompanyForMetric) {
+          return `Quantify the existing ${matchedCompanyForMetric} bullets if verified metrics are available; otherwise leave the claims unchanged.`;
+        }
+        return 'Add a measurable outcome if you have one. Do not invent a metric.';
+      }
+    }
+  }
+
+  // 7. Skills deletion / replacement.
+  const DELETE_SKILLS_RE = /\b(?:replace|remove|delete|drop|exclude|omit|swap|get rid of)\b/i;
+  const SKILLS_REF_RE = /\b(?:skills?|technolog(?:y|ies))\b/i;
+  const candidateSkills = resume.skills || [];
+  const hasSkillsRef = SKILLS_REF_RE.test(statement) || candidateSkills.some(s => textHasKeyword(statement, s.name));
+
+  if (DELETE_SKILLS_RE.test(statement) && hasSkillsRef) {
+    const jdRelevant = candidateSkills
+      .map(s => s.name)
+      .filter(name => textHasKeyword(jd, name));
+    const displaySkills = jdRelevant.length > 0 ? jdRelevant : candidateSkills.slice(0, 3).map(s => s.name);
+    const formattedSkills = displaySkills.slice(0, 3).map(t => formatTechName(t));
+
+    if (formattedSkills.length > 0) {
+      const skillList = formattedSkills.join(', ').replace(/, ([^,]*)$/, ' and $1');
+      return `Prioritize JD-relevant skills such as ${skillList} near the beginning while retaining other genuine skills.`;
+    }
+  }
+
+  // 7a. Location formatting check: never recommend changing factual location like "Remote" to "Remote, Global".
+  const REMOTE_LOCATION_RE = /\b(?:change|switch|update|standardize|replace|format)\b[^.]*\bRemote\b[^.]*\b(?:to|as)\s+['"]?Remote,\s*(?:Global|Worldwide|US|USA|Anywhere)['"]?/i;
+  const REMOTE_TO_GLOBAL_RE = /\bRemote,\s*Global\b/i;
+  if (REMOTE_LOCATION_RE.test(statement) || REMOTE_TO_GLOBAL_RE.test(statement)) {
+    const locations = (resume.experiences || []).map(e => (e.location || '').trim()).filter(Boolean);
+    const hasCityState = locations.some(l => l.includes(','));
+    const hasSingleWord = locations.some(l => !l.includes(',') && l.length > 0);
+    const hasInconsistentFormatting = locations.length >= 2 && hasCityState && hasSingleWord;
+    if (hasInconsistentFormatting) {
+      return 'Standardize location formatting across entries while preserving the actual location information.';
+    }
+    return ''; // Drop recommendation if no real formatting inconsistency
+  }
+
+  // 7b. Fabricated coursework check — run BEFORE missing tech check so that
+  //     coursework recommendations mentioning subjects like AI/ML or Web Development
+  //     are rewritten to the safe coursework phrasing.
+  const ADD_COURSE_RE = /\b(?:add|include|list|mention|insert)\b[^.]*\b(?:coursework|courses?|classes)\b|\b(?:coursework|courses?|classes)\b[^.]*\b(?:add|include|list|mention|insert)\b/i;
+  if (ADD_COURSE_RE.test(statement)) {
+    return 'If you have coursework directly relevant to the role, consider listing it.';
+  }
+
+  // 7c. Low-value vague recommendations (reject).
+  const VAGUE_LOW_VALUE_RE = /\b(?:improve\s+(?:your\s+)?resume\s+formatting|make\s+bullets\s+more\s+impactful|consider\s+adding\s+more\s+keywords|enhance\s+overall\s+presentation)\b/i;
+  if (VAGUE_LOW_VALUE_RE.test(statement)) {
+    return '';
+  }
+
+  // 7d. Recommendations requiring candidate to gain new experience or learn new skills (reject or make conditional).
+  const LEARN_NEW_EXP_RE = /\b(?:learn|take\s+a\s+course|study|gain\s+experience|acquire\s+experience|get\s+certified)\b/i;
+  if (LEARN_NEW_EXP_RE.test(statement)) {
+    const mentionedTech = TECH_KEYWORDS.find(kw => textHasKeyword(statement, kw) && !textHasKeyword(txt, kw));
+    if (mentionedTech) {
+      return `The JD mentions ${formatTechName(mentionedTech)}, but ${formatTechName(mentionedTech)} is not demonstrated in the resume. If you have genuine experience with ${formatTechName(mentionedTech)}, add it with supporting evidence.`;
+    }
+    return ''; // Reject recommendation requiring new experience
+  }
+
+  // 8a. Technology placement & existing evidence rule.
+  // Prohibit inventing project associations or recommending adding technologies
+  // that are already adequately represented in the resume.
+  const PLACEMENT_ACTION_RE = /\b(?:revise\s+.*to\s+note|note\s+.*usage|include|add|feature|incorporate|insert)\b/i;
+  const PLACEMENT_TARGET_RE = /\b(?:in|to)\s+(?:the\s+|a\s+|your\s+)?(?:bullets?|projects?|experience\s+section|experience\s+bullets?|ui-focused)\b|\b(?:bullet|project)\b/i;
+  if (!isAlreadyGrounded && PLACEMENT_ACTION_RE.test(statement) && PLACEMENT_TARGET_RE.test(statement)) {
+    const presentTechsMentioned = TECH_KEYWORDS.filter(kw => textHasKeyword(statement, kw) && textHasKeyword(txt, kw));
+    for (const tech of presentTechsMentioned) {
+      const inSkills = (resume.skills || []).some(s => textHasKeyword(s.name, tech));
+      const inExp = (resume.experiences || []).some(e =>
+        textHasKeyword([e.role, e.companyName, e.description, ...(e.bulletPoints || [])].join(' '), tech)
+      );
+      const inProj = (resume.projects || []).some(p =>
+        textHasKeyword([p.name, p.role, p.description, ...(p.technologies || []), ...(p.bulletPoints || [])].join(' '), tech)
+      );
+
+      // If already present in skills AND (experience OR projects), it's adequately represented.
+      // Omit recommendation rather than cluttering with low-value keyword-density advice.
+      if (inSkills && (inExp || inProj)) {
+        return '';
+      }
+
+      // If present in skills but not in experience/projects, only recommend surfacing
+      // if evidence supports it; do not invent a project association.
+      if (inSkills && !inExp && !inProj) {
+        return `${formatTechName(tech)} is already demonstrated in the resume. If it is used in a project that is currently described without the technology, explicitly connect it to that project only where the resume evidence supports the connection.`;
+      }
+    }
+  }
+
+  // 8b. Missing JD technologies.
+  const missingTechs: string[] = [];
+  for (const kw of TECH_KEYWORDS) {
+    if (textHasKeyword(statement, kw) && !textHasKeyword(txt, kw)) {
+      missingTechs.push(kw);
+    }
+  }
+
+  if (missingTechs.length > 0 && !isAlreadyGrounded) {
+    const techNames = missingTechs.map(t => formatTechName(t));
+    const techList = techNames.join(', ').replace(/, ([^,]*)$/, ' and $1');
+    if (techNames.length === 1) {
+      return `The JD mentions ${techNames[0]}, but ${techNames[0]} is not demonstrated in the resume. If you have genuine experience with ${techNames[0]}, add it with supporting evidence.`;
+    } else {
+      return `The JD mentions ${techList}, but these technologies are not demonstrated in the resume. If you have genuine experience with any of them, add the relevant technology together with supporting evidence; otherwise, leave them out.`;
+    }
+  }
+
+  // 9. Employment date overlap warning.
+  const OVERLAP_WARNING_RE = /\b(?:overlap|overlapping|date\s+contradiction|employment\s+dates|impossible\s+timeline|integrity\s+concern|undermines\s+trust|suspicious\s+overlap|factual\s+contradiction|inaccurate\s+dates|future.dated\s+employment|suspicious|contradict|fraudulent|dishonest|inaccurate)\b/i;
+  if (OVERLAP_WARNING_RE.test(statement)) {
+    if (!hasActualDateContradiction(resume)) {
+      return 'Clarify the nature or time commitment of overlapping roles if needed.';
+    }
+  }
+
+  // 10. Summary recommendation (drop if summary already exists; ground if missing).
+  const SUMMARY_REC_RE = /\b(?:add|include|create|write|provide|missing|empty|lacks?)\s+(?:a\s+)?(?:concise\s+)?(?:professional\s+)?(?:career\s+)?(?:summary|profile\s+summary|summary\s+section|profile\s+overview|executive\s+summary)\b/i;
+  if (SUMMARY_REC_RE.test(statement)) {
+    if (resume.summary && resume.summary.trim().length > 0) {
+      return ''; // Drop this recommendation
+    }
+    if (/\b\d+\+?\s*years?\b/i.test(statement) || hasUnsupportedYoE) {
+      return "Add a concise summary highlighting the candidate's demonstrated full-stack and AI/SaaS experience.";
+    }
+  }
+
+  // 11. General willingness-to-learn check.
+  if (lowerStatement.includes('willingness to learn') || lowerStatement.includes('willing to learn') || lowerStatement.includes('interest in learning')) {
+    return '';
+  }
+
+  // 12. False future-dated claim check.
+  const FUTURE_DATED_RE = /\bfuture[- ]dated\b/i;
+  if (FUTURE_DATED_RE.test(statement)) {
+    if (!hasActualDateContradiction(resume)) {
+      return '';
+    }
+  }
+
+  return statement;
+}
+
+// ─── Deterministic Quality Scoring ──────────────────────────────────────────
+
+export interface DeterministicQualityBreakdown {
+  overallQualityScore: number;
+  writingQuality: number;
+  professionalTone: number;
+  conciseness: number;
+  readability: number;
+  consistency: number;
+  impact: number;
+  redundancy: number;
+  criteria: {
+    grammarSpelling: number;
+    readability: number;
+    formatting: number;
+    parseability: number;
+    impact: number;
+    conciseness: number;
+    consistency: number;
+  };
+}
+
+/**
+ * Compute deterministic resume quality score across explicit criteria:
+ * - Grammar & Spelling: 15%
+ * - Readability: 15%
+ * - Formatting: 15%
+ * - Parseability: 15%
+ * - Impact: 20%
+ * - Conciseness: 10%
+ * - Consistency: 10%
+ * Stable and reproducible across runs for identical resumes.
+ */
+export function computeDeterministicQuality(resume: GeneratedResume): DeterministicQualityBreakdown {
+  const grammar = analyzeGrammarSpelling(resume);
+  const grammarScore = clamp(Math.round((grammar.score / 5) * 100), 0, 100);
+
+  const readability = analyzeReadability(resume);
+  const readabilityScore = clamp(Math.round((readability.score / 5) * 100), 0, 100);
+
+  const formatting = analyzeFormatting(resume);
+  const formattingScore = clamp(Math.round((formatting.score / 15) * 100), 0, 100);
+
+  const parseability = analyzeParseability(resume);
+  const parseabilityScore = clamp(Math.round((parseability.score / 15) * 100), 0, 100);
+
+  const impact = analyzeImpact(resume);
+  const impactScore = clamp(Math.round((impact.score / 5) * 100), 0, 100);
+
+  // Conciseness criteria (0-100)
+  const bullets = getAllBullets(resume);
+  let concisenessScore = 75;
+  if (bullets.length > 0) {
+    const idealBullets = bullets.filter((b) => {
+      const wc = wordCount(b);
+      return wc >= 10 && wc <= 30;
+    }).length;
+    const idealRatio = idealBullets / bullets.length;
+    const longBullets = bullets.filter((b) => wordCount(b) > 38).length;
+    const shortBullets = bullets.filter((b) => wordCount(b) < 7).length;
+    const fullTxt = extractAllResumeText(resume).toLowerCase();
+    let fillerHits = 0;
+    for (const f of FILLER_WORDS) {
+      if (fullTxt.includes(f)) fillerHits++;
+    }
+    const summaryWords = resume.summary ? wordCount(resume.summary) : 0;
+    const summaryPenalty = summaryWords > 80 ? 10 : 0;
+    concisenessScore = clamp(
+      Math.round(idealRatio * 100 - longBullets * 5 - shortBullets * 4 - fillerHits * 3 - summaryPenalty),
+      20,
+      100,
+    );
+  }
+
+  // Consistency criteria (0-100)
+  let consistencyScore = 80;
+  if (bullets.length > 0) {
+    const withPeriod = bullets.filter((b) => /[.!?]$/.test(b.trim())).length;
+    const withoutPeriod = bullets.length - withPeriod;
+    const punctUniformity = Math.max(withPeriod, withoutPeriod) / bullets.length;
+    const punctScore = Math.round(punctUniformity * 100);
+
+    const experiences = resume.experiences || [];
+    const hasValidDates = experiences.every((e) => e.startDate && !isNaN(new Date(e.startDate).getTime()));
+    const dateScore = hasValidDates ? 100 : 70;
+    consistencyScore = clamp(Math.round(punctScore * 0.6 + dateScore * 0.4), 20, 100);
+  }
+
+  // Redundancy criteria (0-100, higher = less redundancy)
+  let duplicateCount = 0;
+  const seenBullets = new Set<string>();
+  for (const b of bullets) {
+    const norm = b.trim().toLowerCase();
+    if (seenBullets.has(norm)) duplicateCount++;
+    seenBullets.add(norm);
+  }
+  const seenSkills = new Set<string>();
+  for (const s of resume.skills || []) {
+    const norm = s.name.trim().toLowerCase();
+    if (seenSkills.has(norm)) duplicateCount++;
+    seenSkills.add(norm);
+  }
+  const redundancyScore = clamp(100 - duplicateCount * 15, 20, 100);
+
+  const professionalToneScore = clamp(Math.round(0.5 * readabilityScore + 0.5 * grammarScore), 20, 100);
+
+  const overallQualityScore = clamp(
+    Math.round(
+      grammarScore * 0.15 +
+      readabilityScore * 0.15 +
+      formattingScore * 0.15 +
+      parseabilityScore * 0.15 +
+      impactScore * 0.20 +
+      concisenessScore * 0.10 +
+      consistencyScore * 0.10,
+    ),
+    0,
+    100,
+  );
+
+  return {
+    overallQualityScore,
+    writingQuality: grammarScore,
+    professionalTone: professionalToneScore,
+    conciseness: concisenessScore,
+    readability: readabilityScore,
+    consistency: consistencyScore,
+    impact: impactScore,
+    redundancy: redundancyScore,
+    criteria: {
+      grammarSpelling: grammarScore,
+      readability: readabilityScore,
+      formatting: formattingScore,
+      parseability: parseabilityScore,
+      impact: impactScore,
+      conciseness: concisenessScore,
+      consistency: consistencyScore,
+    },
+  };
+}
+
+// ─── Semantic Concept Normalization & Deduplication ─────────────────────────
+
+/**
+ * Extract semantic concept from a recommendation / weakness statement.
+ */
+export function getStatementConcept(statement: string): string | null {
+  const lower = statement.toLowerCase().trim();
+
+  // Summary concept (e.g. "Missing summary section", "Resume lacks a summary", "Add summary")
+  if (/\b(?:summary|professional\s+summary|summary\s+section|profile\s+summary)\b/i.test(lower)) {
+    return 'concept:summary';
+  }
+
+  // Tense / Verb form
+  if (/\b(?:tense|past\s+tense|present\s+tense|collaborate\s+to\s+collaborated|verb\s+tense)\b/i.test(lower)) {
+    return 'concept:tense';
+  }
+
+  // Punctuation / Period
+  if (/\b(?:punctuation|terminal\s+punctuation|periods?\s+at\s+the\s+end|bullet\s+punctuation)\b/i.test(lower)) {
+    return 'concept:punctuation';
+  }
+
+  // Passive voice
+  if (/\b(?:passive\s+voice|active\s+voice)\b/i.test(lower)) {
+    return 'concept:passive_voice';
+  }
+
+  // Weak action verbs
+  if (/\b(?:weak\s+verbs?|weak\s+action\s+verbs?|weak\s+phrases?|responsible\s+for|duties\s+included)\b/i.test(lower)) {
+    return 'concept:weak_verbs';
+  }
+
+  // Coursework
+  if (/\b(?:coursework|relevant\s+coursework|courses?)\b/i.test(lower)) {
+    return 'concept:coursework';
+  }
+
+  // Contact info
+  if (/\b(?:contact\s+info(?:rmation)?|missing\s+phone|missing\s+email|phone\s+number|email\s+address)\b/i.test(lower)) {
+    return 'concept:contact_info';
+  }
+
+  // Overlapping roles / timeline
+  if (/\b(?:overlap|overlapping|concurrent\s+roles|employment\s+dates|time\s+commitment)\b/i.test(lower)) {
+    return 'concept:timeline_overlap';
+  }
+
+  // Redundancy / duplicate content
+  const redundMatch = lower.match(/\b(?:duplicate|redundant|repeated|repetition)\b[^.]*\b([a-z0-9+#.-]{3,})\b/i);
+  if (redundMatch) {
+    return `concept:redundancy:${redundMatch[1]}`;
+  }
+  if (/\b(?:duplicate|redundant|repeated|repetition)\b/i.test(lower)) {
+    return 'concept:redundancy:general';
+  }
+
+  // Specific technology (missing or placement)
+  for (const kw of TECH_KEYWORDS) {
+    if (textHasKeyword(lower, kw)) {
+      if (lower.includes('not demonstrated') || lower.includes('missing') || lower.includes('the jd mentions')) {
+        return `concept:missing_tech:${CONCEPT_OF[kw] ?? kw}`;
+      }
+      return `concept:tech:${CONCEPT_OF[kw] ?? kw}`;
+    }
+  }
+
+  // Bullet length / verbosity
+  if (/\b(?:bullet\s+length|words?\s+long|exceed\s+40\s+words|too\s+verbose|too\s+long)\b/i.test(lower)) {
+    return 'concept:bullet_length';
+  }
+
+  // Metric / quantification
+  if (/\b(?:metric|quantif|measurable\s+outcome|numbers?|percentages?|dollar\s+amounts?)\b/i.test(lower)) {
+    return 'concept:metrics';
+  }
+
+  return null;
+}
+
+/**
+ * Check if two statements are semantically equivalent findings.
+ */
+export function areStatementsSemanticallyEquivalent(a: string, b: string): boolean {
+  if (a.trim().toLowerCase() === b.trim().toLowerCase()) return true;
+
+  const ca = getStatementConcept(a);
+  const cb = getStatementConcept(b);
+  if (ca && cb && ca === cb) return true;
+
+  // Token similarity fallback
+  const cleanA = a.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter((w) => w.length > 3);
+  const cleanB = b.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter((w) => w.length > 3);
+  if (cleanA.length === 0 || cleanB.length === 0) return false;
+  const setA = new Set(cleanA);
+  const setB = new Set(cleanB);
+  let intersection = 0;
+  for (const w of setA) {
+    if (setB.has(w)) intersection++;
+  }
+  const union = new Set([...setA, ...setB]).size;
+  return union > 0 && intersection / union >= 0.6;
+}
+
+/**
+ * Deduplicate recommendations by semantic concept and word similarity.
+ */
+export function deduplicateRecommendations(statements: string[]): string[] {
+  const result: string[] = [];
+  const seenConcepts = new Set<string>();
+
+  for (const s of statements) {
+    const trimmed = s.trim();
+    if (!trimmed) continue;
+
+    const concept = getStatementConcept(trimmed);
+    if (concept) {
+      if (seenConcepts.has(concept)) {
+        // Concept already represented — keep the more informative / longer finding
+        const existingIdx = result.findIndex((r) => getStatementConcept(r) === concept);
+        if (existingIdx >= 0 && trimmed.length > result[existingIdx].length + 20) {
+          result[existingIdx] = trimmed;
+        }
+        continue;
+      }
+      seenConcepts.add(concept);
+    }
+
+    // Token-similarity check against already kept items
+    const isDup = result.some((kept) => areStatementsSemanticallyEquivalent(kept, trimmed));
+    if (isDup) continue;
+
+    result.push(trimmed);
+  }
+
+  return result;
+}
+
+/**
+ * Cross-engine deduplication across ATS Report, Quality Report, and Recruiter Review.
+ * Guarantees zero overlapping findings across Quick Wins, Actionable Recommendations,
+ * and Recruiter Review.
+ */
+export function deduplicateCrossEngineResults(
+  ats?: ATSReport | null,
+  quality?: QualityReport | null,
+  recruiter?: RecruiterReview | null,
+): void {
+  // 1. Deduplicate within recruiter review
+  if (recruiter) {
+    recruiter.strengths = deduplicateRecommendations(recruiter.strengths || []);
+    recruiter.weaknesses = deduplicateRecommendations(recruiter.weaknesses || []);
+    recruiter.biggestConcerns = deduplicateRecommendations(recruiter.biggestConcerns || []);
+    recruiter.topImprovements = deduplicateRecommendations(recruiter.topImprovements || []);
+  }
+
+  // 2. Deduplicate within quality review
+  if (quality) {
+    quality.strengths = deduplicateRecommendations(quality.strengths || []);
+    quality.weaknesses = deduplicateRecommendations(quality.weaknesses || []);
+    quality.quickWins = deduplicateRecommendations(quality.quickWins || []);
+
+    // Cross-deduplicate quality weaknesses against recruiter weaknesses:
+    // Do not show the same weakness twice across Recruiter Review and Resume Quality!
+    if (recruiter?.weaknesses?.length) {
+      quality.weaknesses = quality.weaknesses.filter((qw: string) =>
+        !recruiter.weaknesses.some((rw: string) => areStatementsSemanticallyEquivalent(qw, rw))
+      );
+      // Also ensure quickWins don't duplicate recruiter weaknesses
+      quality.quickWins = quality.quickWins.filter((qw: string) =>
+        !recruiter.weaknesses.some((rw: string) => areStatementsSemanticallyEquivalent(qw, rw))
+      );
+    }
+  }
+
+  // 3. Deduplicate within ATS report
+  if (ats?.recruiterFeedback) {
+    ats.recruiterFeedback.strengths = deduplicateRecommendations(ats.recruiterFeedback.strengths || []);
+    ats.recruiterFeedback.weaknesses = deduplicateRecommendations(ats.recruiterFeedback.weaknesses || []);
+    ats.recruiterFeedback.recruiterComments = deduplicateRecommendations(ats.recruiterFeedback.recruiterComments || []);
+    ats.recruiterFeedback.topImprovements = deduplicateRecommendations(ats.recruiterFeedback.topImprovements || []);
+    ats.recruiterFeedback.keywordRecommendations = deduplicateRecommendations(ats.recruiterFeedback.keywordRecommendations || []);
+    ats.recruiterFeedback.formattingAdvice = deduplicateRecommendations(ats.recruiterFeedback.formattingAdvice || []);
+
+    // Cross-deduplicate topImprovements against quality.quickWins:
+    // Actionable recommendations must not repeat a quick win!
+    if (quality?.quickWins?.length) {
+      const distinctFromQuickWins = ats.recruiterFeedback.topImprovements.filter((ti: string) =>
+        !quality.quickWins.some((qw: string) => areStatementsSemanticallyEquivalent(ti, qw))
+      );
+      ats.recruiterFeedback.topImprovements = distinctFromQuickWins;
+    }
+
+    // Cross-deduplicate topImprovements against recruiter.weaknesses:
+    if (recruiter?.weaknesses?.length) {
+      const distinctFromWeaknesses = ats.recruiterFeedback.topImprovements.filter((ti: string) =>
+        !recruiter.weaknesses.some((rw: string) => areStatementsSemanticallyEquivalent(ti, rw))
+      );
+      ats.recruiterFeedback.topImprovements = distinctFromWeaknesses;
+    }
+  }
 }

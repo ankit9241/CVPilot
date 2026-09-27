@@ -1,4 +1,12 @@
-const BASE_URL = "http://localhost:4000/api";
+function resolveApiBaseUrl(): string {
+  const envUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+  if (!envUrl) {
+    return "http://localhost:4000/api";
+  }
+  return envUrl.replace(/\/+$/, "");
+}
+
+export const BASE_URL = resolveApiBaseUrl();
 
 /** Thrown when the session can no longer be refreshed (expired/inactive/revoked). */
 export class AuthExpiredError extends Error {
@@ -36,7 +44,8 @@ async function refreshSessionOnce(): Promise<boolean> {
 
 class ApiClient {
   private async request<T>(path: string, options: RequestInit = {}, retried = false): Promise<T> {
-    const url = `${BASE_URL}${path}`;
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    const url = `${BASE_URL}${normalizedPath}`;
     const headers = new Headers(options.headers || {});
     if (!(options.body instanceof FormData)) {
       headers.set("Content-Type", "application/json");
@@ -129,7 +138,8 @@ class ApiClient {
     onChunk: (event: T) => void,
     options: RequestInit = {}
   ): Promise<void> {
-    const url = `${BASE_URL}${path}`;
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    const url = `${BASE_URL}${normalizedPath}`;
     const headers = new Headers(options.headers || {});
     if (!(data instanceof FormData)) {
       headers.set("Content-Type", "application/json");

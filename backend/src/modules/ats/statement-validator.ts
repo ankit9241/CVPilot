@@ -6,6 +6,9 @@ import {
   hasMetric,
   extractAllResumeText,
   getAllBullets,
+  areStatementsSemanticallyEquivalent,
+  deduplicateRecommendations,
+  sanitizeRecommendationText,
 } from './ats.utils';
 
 /**
@@ -213,10 +216,13 @@ function resumeWeaknessObservations(resume: GeneratedResume): string[] {
 }
 
 function backfill(kept: string[], observations: string[], min = 3): string[] {
-  const result = [...kept];
+  const result = deduplicateRecommendations(kept);
   for (const o of observations) {
     if (result.length >= min) break;
-    if (!result.includes(o)) result.push(o);
+    if (result.some((existing) => areStatementsSemanticallyEquivalent(existing, o))) {
+      continue;
+    }
+    result.push(o);
   }
   return result;
 }
@@ -268,3 +274,20 @@ export function validateQualityStatements(
     droppedWeaknesses: w.rejected,
   };
 }
+
+/**
+ * Validate and sanitize an arbitrary list of recommendations (topImprovements, quickWins, etc.)
+ * against the current resume state. Ensures zero fabrications and zero stale recommendations.
+ */
+export function validateRecommendationList(
+  items: string[],
+  resume: GeneratedResume,
+  jd: string = '',
+  options?: { isQuickWin?: boolean },
+): string[] {
+  const sanitized = items
+    .map((item) => sanitizeRecommendationText(item, resume, jd, options))
+    .filter(Boolean);
+  return deduplicateRecommendations(sanitized);
+}
+

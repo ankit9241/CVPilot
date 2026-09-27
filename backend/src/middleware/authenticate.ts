@@ -7,8 +7,15 @@ import { env } from '../config/env';
 const ACTIVITY_TOUCH_INTERVAL_MS = 60 * 1000; // one DB write per active minute
 
 function clearAuthCookies(res: Response) {
-  res.clearCookie('accessToken');
-  res.clearCookie('refreshToken');
+  const isProd = env.isProd;
+  const cookieBase = {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax',
+    path: '/',
+  };
+  res.clearCookie('accessToken', cookieBase);
+  res.clearCookie('refreshToken', cookieBase);
 }
 
 export async function authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {

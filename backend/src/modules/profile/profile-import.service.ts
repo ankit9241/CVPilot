@@ -79,6 +79,7 @@ export interface ExtractedProfileDTO {
     fullName?: string;
     headline?: string;
     phone?: string;
+    email?: string;
     location?: string;
     summary?: string;
   };
@@ -185,6 +186,7 @@ Target JSON Schema:
     "fullName": "Full name of the person",
     "headline": "Professional headline or current job title",
     "phone": "Phone number",
+    "email": "Email address",
     "location": "City, State/Country",
     "summary": "Short professional summary (60-100 words)"
   },
@@ -264,7 +266,7 @@ Extraction Guidance for LinkedIn exports:
 - Map 'Courses' or 'Organizations' details to "educations" or "skills".
 - Map 'Portfolio' or contact links to "socialLinks".
 
-Ensure you extract as much detail as possible. Do not hallucinate or make up information. If a section is missing, return an empty array or omit the field.
+Ensure you extract as much detail as possible. Do not hallucinate, summarize, or make up information. If a section is missing, return an empty array or omit the field. For "personalInfo.summary", do NOT write, generate, or hallucinate one if the candidate does not have an explicit Summary/About section in the resume text.
 
 CRITICAL DATE RULE:
 - Never guess or infer dates. For startDate/endDate/issuedAt/date: if the document does not explicitly state the date, return null (do not invent a value, do not approximate from context). "Present"/"current" → null for endDate and set isCurrent=true.

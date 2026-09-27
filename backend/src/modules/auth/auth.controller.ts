@@ -26,7 +26,8 @@ export class AuthController extends BaseController {
     const u = result.user as { profile?: { completionPct?: number } | null };
     const isNewUser = !u.profile || (u.profile.completionPct ?? 0) < 20;
     const redirectPath = isNewUser ? '/onboarding' : '/dashboard';
-    return res.redirect(`${env.cors.origin}${redirectPath}`);
+    const frontendBaseUrl = env.cors.origin.split(',')[0].trim().replace(/\/+$/, '');
+    return res.redirect(`${frontendBaseUrl}${redirectPath}`);
   });
 
   me = asyncHandler(async (req: Request, res: Response) => {
@@ -40,8 +41,9 @@ export class AuthController extends BaseController {
   logout = asyncHandler(async (req: Request, res: Response) => {
     const refreshToken = req.cookies?.refreshToken;
     await this.service.logout(refreshToken);
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
+    const cookieBase = this.getCookieOptions();
+    res.clearCookie('accessToken', cookieBase);
+    res.clearCookie('refreshToken', cookieBase);
     return this.sendOk(res, { success: true });
   });
 
@@ -58,15 +60,25 @@ export class AuthController extends BaseController {
       return this.sendOk(res, tokens);
     } catch (err) {
       // Session invalid (expired/revoked/inactive) — clear client auth state.
-      res.clearCookie('accessToken');
-      res.clearCookie('refreshToken');
+      const cookieBase = this.getCookieOptions();
+      res.clearCookie('accessToken', cookieBase);
+      res.clearCookie('refreshToken', cookieBase);
       throw err;
     }
   });
 
-  private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
+  private getCookieOptions() {
     const isProd = env.isProd;
-    const cookieBase = { httpOnly: true, secure: isProd, sameSite: 'lax' as const };
+    return {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax',
+      path: '/',
+    };
+  }
+
+  private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
+    const cookieBase = this.getCookieOptions();
     res.cookie('accessToken', accessToken, { ...cookieBase, maxAge: 48 * 60 * 60 * 1000 });
     res.cookie('refreshToken', refreshToken, { ...cookieBase, maxAge: 7 * 24 * 60 * 60 * 1000 });
   }

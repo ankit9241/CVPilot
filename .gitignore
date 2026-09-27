@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies & Build Output
 node_modules
 dist
 dist-ssr
@@ -15,6 +16,19 @@ dist-ssr
 .tanstack/**
 .nitro
 *.local
+
+# Temporary / Runtime Directories & Files
+temp/
+backend/temp/
+temp-failed-json.txt
+
+# LaTeX auxiliary files
+*.aux
+*.out
+*.toc
+*.synctex*
+*.fls
+*.fdb_latexmk
 
 # Wrangler / Cloudflare
 .wrangler/
@@ -35,3 +49,4 @@ dist-ssr
 .env
 .env.*
 !.env.example
+!**/.env.example

@@ -1,0 +1,16 @@
+node_modules
+dist
+temp
+*.log
+.env
+.env.*
+.git
+.gitignore
+scratch_*.ts
+temp-failed-json.txt
+ats-benchmark.ts
+ats-engine-check.ts
+ats-fixes-check.ts
+ats-validator-check.ts
+verify-gemini-config.sh
+coverage
