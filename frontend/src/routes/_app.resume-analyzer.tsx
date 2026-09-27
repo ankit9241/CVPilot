@@ -38,6 +38,9 @@ import {
   Trash2,
 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
+import { QuotaBadge } from "@/components/shared/quota-badge";
+import { useUsage } from "@/hooks/use-usage";
+import { useLimitModalStore } from "@/store/limit-modal-store";
 import {
   AnalysisProgressPanel,
   AnalysisStepItem,
@@ -223,6 +226,8 @@ interface PersistedState {
 
 function AnalyzerPage() {
   const [file, setFile] = useState<File | null>(null);
+  const { isLimitReached, getFeatureQuota, refetch: refetchUsage } = useUsage();
+  const { openLimitModal } = useLimitModalStore();
 
   // Restore persisted state on mount to survive page refreshes
   const [fileInfo, setFileInfo] = useState<{ name: string; size: number } | null>(() => {
@@ -345,6 +350,19 @@ function AnalyzerPage() {
       toast.error("Please upload a resume (PDF or DOCX) first");
       return;
     }
+
+    const atsQuota = getFeatureQuota("ATS_ANALYSIS");
+    if (atsQuota.isExhausted) {
+      openLimitModal({
+        feature: "ATS_ANALYSIS",
+        used: atsQuota.used,
+        limit: atsQuota.limit,
+        remaining: 0,
+        resetAt: atsQuota.resetAt,
+      });
+      return;
+    }
+
     setAnalyzing(true);
     setError(null);
     setResult(null);
@@ -418,6 +436,7 @@ function AnalyzerPage() {
       );
     } finally {
       setAnalyzing(false);
+      refetchUsage();
     }
   };
 
@@ -464,6 +483,7 @@ function AnalyzerPage() {
         category="ATS MATRIX & RECRUITER INTELLIGENCE"
         title="Resume Analyzer"
         subtitle="Get instant deterministic ATS scoring, recruiter review, and high-impact sentence revisions."
+        actions={<QuotaBadge feature="ATS_ANALYSIS" />}
       />
 
       <div className="grid grid-cols-12 gap-6 items-start">
@@ -612,6 +632,11 @@ function AnalyzerPage() {
                   <Loader2 className="h-4 w-4 animate-spin text-white" />
                   Analyzing Resume...
                 </>
+              ) : isLimitReached("ATS_ANALYSIS") ? (
+                <>
+                  <AlertCircle className="h-4 w-4 text-amber-300" />
+                  Monthly Limit Reached (0 left)
+                </>
               ) : (
                 <>
                   <Sparkles className="h-4 w-4 text-amber-300" />
@@ -619,6 +644,9 @@ function AnalyzerPage() {
                 </>
               )}
             </Button>
+
+            {/* Quota Banner */}
+            <QuotaBadge feature="ATS_ANALYSIS" variant="banner" />
           </div>
         </div>
 

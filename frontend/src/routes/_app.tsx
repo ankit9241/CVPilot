@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/layout/app-shell";
+import { LimitReachedModal } from "@/components/shared/limit-reached-modal";
 import { useAuthStore } from "../store/auth-store";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
@@ -33,6 +34,7 @@ function AppLayout() {
   return (
     <AppShell>
       <Outlet />
+      <LimitReachedModal />
     </AppShell>
   );
 }

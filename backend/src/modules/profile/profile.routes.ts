@@ -119,12 +119,20 @@ router.patch(
 router.delete('/achievements/:id', achievementsController.remove);
 
 // Profile Import routes
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-});
+import { safeUploadSingle } from '../../middleware/upload.middleware';
+import { fileUploadRateLimiter } from '../../middleware/rate-limiter';
+import { guardConcurrency } from '../../middleware/concurrency-guard';
+import { requireQuota } from '../../middleware/quota';
+import { FeatureType } from '../../config/limits';
 
-router.post('/import', upload.single('file'), profileImportController.importFile);
+router.post(
+  '/import',
+  fileUploadRateLimiter,
+  guardConcurrency(FeatureType.RESUME_IMPORT),
+  requireQuota(FeatureType.RESUME_IMPORT),
+  safeUploadSingle('file'),
+  profileImportController.importFile,
+);
 router.post('/import/merge', profileImportController.mergeProfile);
 
 export default router;

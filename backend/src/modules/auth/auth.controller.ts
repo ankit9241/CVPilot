@@ -11,8 +11,35 @@ export class AuthController extends BaseController {
   }
 
   initiateGoogle = asyncHandler(async (req: Request, res: Response) => {
-    const origin = (req.query.origin as string) || (req.headers.referer ? new URL(req.headers.referer).origin : undefined);
-    const url = this.service.getGoogleAuthUrl(origin);
+    const rawOrigin =
+      (req.query.origin as string) ||
+      (req.headers.referer ? new URL(req.headers.referer).origin : undefined);
+
+    let safeState: string | undefined = undefined;
+    if (rawOrigin && (rawOrigin.startsWith('http://') || rawOrigin.startsWith('https://'))) {
+      try {
+        const parsed = new URL(rawOrigin);
+        const originToVerify = parsed.origin.toLowerCase();
+        const originList = env.cors.origin
+          .split(',')
+          .map((s) => s.trim().replace(/\/+$/, ''))
+          .filter(Boolean);
+        const isAllowedConfigured = originList.some(
+          (o) => o.toLowerCase() === originToVerify,
+        );
+        const isAllowedLocalDev =
+          !env.isProd &&
+          (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(originToVerify));
+
+        if (isAllowedConfigured || isAllowedLocalDev) {
+          safeState = parsed.origin;
+        }
+      } catch {
+        // ignore invalid origin
+      }
+    }
+
+    const url = this.service.getGoogleAuthUrl(safeState);
     return res.redirect(url);
   });
 
@@ -29,7 +56,10 @@ export class AuthController extends BaseController {
     const isNewUser = !u.profile || (u.profile.completionPct ?? 0) < 20;
     const redirectPath = isNewUser ? '/onboarding' : '/dashboard';
 
-    const originList = env.cors.origin.split(',').map((s) => s.trim().replace(/\/+$/, '')).filter(Boolean);
+    const originList = env.cors.origin
+      .split(',')
+      .map((s) => s.trim().replace(/\/+$/, ''))
+      .filter(Boolean);
     let frontendBaseUrl = env.isProd
       ? originList.find((o) => o.startsWith('https://')) || 'https://cv-pilot.netlify.app'
       : originList[0] || 'http://localhost:5173';
@@ -37,9 +67,19 @@ export class AuthController extends BaseController {
     if (state && (state.startsWith('http://') || state.startsWith('https://'))) {
       try {
         const parsed = new URL(state);
-        frontendBaseUrl = parsed.origin;
+        const originToVerify = parsed.origin.toLowerCase();
+        const isAllowedConfigured = originList.some(
+          (o) => o.toLowerCase() === originToVerify,
+        );
+        const isAllowedLocalDev =
+          !env.isProd &&
+          (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(originToVerify));
+
+        if (isAllowedConfigured || isAllowedLocalDev) {
+          frontendBaseUrl = parsed.origin;
+        }
       } catch {
-        // invalid state URL, use configured default
+        // invalid state URL, safely use configured default
       }
     }
 

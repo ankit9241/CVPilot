@@ -33,6 +33,8 @@ model User {
   templatePreferences TemplatePreference[]
   uploadedResumes     UploadedResume[]
   storageFiles        StorageFile[]
+  usages              UserUsage[]
+  idempotencyRecords  IdempotencyRecord[]
 
   @@index([email])
   @@index([provider, providerId])
@@ -603,3 +605,49 @@ enum StorageFileType {
   GENERATED_DOCX
   GENERATED_LATEX
 }
+
+enum FeatureType {
+  ATS_ANALYSIS
+  RESUME_GENERATION
+  AI_OPTIMIZATION
+  RESUME_IMPORT
+  AI_REWRITE
+  PDF_GENERATION
+}
+
+model UserUsage {
+  id          String      @id @default(uuid())
+  userId      String
+  feature     FeatureType
+  periodStart DateTime
+  periodEnd   DateTime
+  periodKey   String
+  used        Int         @default(0)
+  limit       Int
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, feature, periodKey])
+  @@index([userId, periodKey])
+  @@index([userId, feature])
+}
+
+model IdempotencyRecord {
+  id           String    @id @default(uuid())
+  userId       String
+  key          String
+  endpoint     String
+  statusCode   Int?
+  responseBody Json?
+  lockedAt     DateTime  @default(now())
+  expiresAt    DateTime
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key, endpoint])
+  @@index([userId, key])
+  @@index([expiresAt])
+}
+

@@ -25,6 +25,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
+import { QuotaBadge } from "@/components/shared/quota-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -173,6 +174,7 @@ function VaultPage() {
         category="VAULT"
         title="Resume Vault"
         subtitle="Every version of every resume — organised, searchable, always yours."
+        actions={<QuotaBadge feature="PDF_GENERATION" />}
       />
 
       <div className="mt-8 grid grid-cols-12 gap-6">

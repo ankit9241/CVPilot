@@ -1,3 +1,5 @@
+import { useLimitModalStore } from "@/store/limit-modal-store";
+
 function resolveApiBaseUrl(): string {
   const envUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
   if (!envUrl) {
@@ -58,6 +60,40 @@ async function refreshSessionOnce(): Promise<boolean> {
   return refreshPromise;
 }
 
+export class ApiError extends Error {
+  public readonly code: string;
+  public readonly status: number;
+  public readonly details?: unknown;
+
+  constructor(message: string, status: number, code = "API_ERROR", details?: unknown) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+    this.details = details;
+  }
+}
+
+export interface FeatureQuota {
+  used: number;
+  limit: number;
+  remaining: number;
+  resetAt: string;
+}
+
+export interface UsageSummary {
+  periodStart: string;
+  periodEnd: string;
+  features: {
+    ATS_ANALYSIS: FeatureQuota;
+    RESUME_GENERATION: FeatureQuota;
+    AI_OPTIMIZATION: FeatureQuota;
+    RESUME_IMPORT: FeatureQuota;
+    AI_REWRITE: FeatureQuota;
+    PDF_GENERATION: FeatureQuota;
+  };
+}
+
 class ApiClient {
   private async request<T>(path: string, options: RequestInit = {}, retried = false): Promise<T> {
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
@@ -97,9 +133,22 @@ class ApiClient {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData?.error?.message || `Request failed with status ${response.status}`,
-        );
+        const code = errorData?.error?.code || (response.status === 429 ? "RATE_LIMITED" : "API_ERROR");
+        const message = errorData?.error?.message || `Request failed with status ${response.status}`;
+        const details = errorData?.error?.details;
+
+        if (code === "USAGE_LIMIT_REACHED") {
+          useLimitModalStore.getState().openLimitModal({
+            feature: details?.feature,
+            message,
+            used: details?.used,
+            limit: details?.limit,
+            remaining: details?.remaining,
+            resetAt: details?.resetAt,
+          });
+        }
+
+        throw new ApiError(message, response.status, code, details);
       }
 
       if (response.status === 204) {
@@ -187,9 +236,22 @@ class ApiClient {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(
-        errorData?.error?.message || `Request failed with status ${response.status}`
-      );
+      const code = errorData?.error?.code || (response.status === 429 ? "RATE_LIMITED" : "API_ERROR");
+      const message = errorData?.error?.message || `Request failed with status ${response.status}`;
+      const details = errorData?.error?.details;
+
+      if (code === "USAGE_LIMIT_REACHED") {
+        useLimitModalStore.getState().openLimitModal({
+          feature: details?.feature,
+          message,
+          used: details?.used,
+          limit: details?.limit,
+          remaining: details?.remaining,
+          resetAt: details?.resetAt,
+        });
+      }
+
+      throw new ApiError(message, response.status, code, details);
     }
 
     if (!response.body) {

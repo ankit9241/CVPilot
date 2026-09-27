@@ -82,8 +82,7 @@ export class StorageService {
       throw new ConflictError('An identical file already exists');
     }
 
-    const storageKey =
-      input.storageKey || buildStorageKey(input.fileType, userId, input.originalName);
+    const storageKey = buildStorageKey(input.fileType, userId, input.originalName);
     const uploadUrl = await presignPutUrl({ key: storageKey, contentType: input.mimeType });
 
     return {
@@ -96,6 +95,12 @@ export class StorageService {
 
   async completeUpload(userId: string, input: StorageCompleteInput) {
     assertUploadRules(input.fileType, input.mimeType, input.size);
+
+    // Enforce user-specific prefix to prevent cross-user overwrite/read/write
+    const expectedPrefix = `${STORAGE_FOLDERS[input.fileType]}/${userId}/`;
+    if (!input.storageKey.startsWith(expectedPrefix)) {
+      throw new BadRequestError('Invalid storage key for user');
+    }
 
     const duplicate = await storageRepository.findDuplicate(
       userId,

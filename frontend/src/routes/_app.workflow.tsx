@@ -31,6 +31,9 @@ import {
   Target,
 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
+import { QuotaBadge } from "@/components/shared/quota-badge";
+import { useUsage } from "@/hooks/use-usage";
+import { useLimitModalStore } from "@/store/limit-modal-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -179,6 +182,8 @@ const WORKFLOW_STEPS = [
 function WorkflowPage() {
   const navigate = useNavigate();
   const { sessionId } = Route.useSearch();
+  const { isLimitReached, getFeatureQuota, refetch: refetchUsage } = useUsage();
+  const { openLimitModal } = useLimitModalStore();
 
   const hasExecutedRef = useRef(false);
   const lastSessionIdRef = useRef<string | null>(null);
@@ -496,6 +501,19 @@ function WorkflowPage() {
   // Trigger execution
   const executeGeneration = async () => {
     if (!sessionId) return;
+
+    const genQuota = getFeatureQuota("RESUME_GENERATION");
+    if (genQuota.isExhausted) {
+      openLimitModal({
+        feature: "RESUME_GENERATION",
+        used: genQuota.used,
+        limit: genQuota.limit,
+        remaining: 0,
+        resetAt: genQuota.resetAt,
+      });
+      return;
+    }
+
     try {
       setExecuting(true);
       setError(null);
@@ -508,9 +526,11 @@ function WorkflowPage() {
       const response = await api.post<any>(`/workflow/${sessionId}/execute`);
       setGeneratedResume(response);
       setExecuting(false);
+      refetchUsage();
     } catch (err: any) {
       setExecuting(false);
       setError(err.response?.data?.message || err.message || "Failed to generate resume");
+      refetchUsage();
     }
   };
 
@@ -686,41 +706,45 @@ function WorkflowPage() {
             : "A visual pipeline of every step CVPilot takes to tailor your resume."
         }
         actions={
-          generatedResume ? (
-            <div className="flex gap-2 flex-wrap">
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-1.5 rounded-full bg-[#FFFEFC] border border-[rgba(55,50,47,0.14)] text-[#18181B] hover:bg-[#F4F1EC]"
-                onClick={handleDownloadPdf}
-                disabled={!pdfUrl}
-                title={pdfUrl ? "Download PDF" : "No PDF yet — switch to PDF Preview tab"}
-              >
-                <Download className="h-3.5 w-3.5" /> Download PDF
+          <div className="flex flex-wrap items-center gap-2">
+            <QuotaBadge feature="RESUME_GENERATION" />
+            <QuotaBadge feature="PDF_GENERATION" />
+            {generatedResume ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5 rounded-full bg-[#FFFEFC] border border-[rgba(55,50,47,0.14)] text-[#18181B] hover:bg-[#F4F1EC]"
+                  onClick={handleDownloadPdf}
+                  disabled={!pdfUrl}
+                  title={pdfUrl ? "Download PDF" : "No PDF yet — switch to PDF Preview tab"}
+                >
+                  <Download className="h-3.5 w-3.5" /> Download PDF
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5 rounded-full bg-[#FFFEFC] border border-[rgba(55,50,47,0.14)] text-[#18181B] hover:bg-[#F4F1EC]"
+                  onClick={executeGeneration}
+                  disabled={executing}
+                >
+                  <RotateCcw className="h-3.5 w-3.5" /> Regenerate
+                </Button>
+                <Button
+                  size="sm"
+                  className="gap-1.5 rounded-full bg-[#18181B] text-white hover:bg-[#27272A] shadow-xs px-4"
+                  onClick={handleSaveDraft}
+                  disabled={isSavingDraft}
+                >
+                  <Save className="h-3.5 w-3.5" /> {isSavingDraft ? "Saving…" : "Save to Vault"}
+                </Button>
+              </>
+            ) : error ? (
+              <Button size="sm" className="gap-1.5 rounded-full bg-[#18181B] text-white hover:bg-[#27272A] shadow-xs" onClick={executeGeneration}>
+                <RotateCcw className="h-3.5 w-3.5" /> Retry
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-1.5 rounded-full bg-[#FFFEFC] border border-[rgba(55,50,47,0.14)] text-[#18181B] hover:bg-[#F4F1EC]"
-                onClick={executeGeneration}
-                disabled={executing}
-              >
-                <RotateCcw className="h-3.5 w-3.5" /> Regenerate
-              </Button>
-              <Button
-                size="sm"
-                className="gap-1.5 rounded-full bg-[#18181B] text-white hover:bg-[#27272A] shadow-xs px-4"
-                onClick={handleSaveDraft}
-                disabled={isSavingDraft}
-              >
-                <Save className="h-3.5 w-3.5" /> {isSavingDraft ? "Saving…" : "Save to Vault"}
-              </Button>
-            </div>
-          ) : error ? (
-            <Button size="sm" className="gap-1.5 rounded-full bg-[#18181B] text-white hover:bg-[#27272A] shadow-xs" onClick={executeGeneration}>
-              <RotateCcw className="h-3.5 w-3.5" /> Retry
-            </Button>
-          ) : null
+            ) : null}
+          </div>
         }
       />
 

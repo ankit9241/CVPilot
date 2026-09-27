@@ -16,6 +16,8 @@ import linkedInRoutes from '../modules/linkedin/linkedin.routes';
 import portfolioRoutes from '../modules/portfolio/portfolio.routes';
 import benchmarkRoutes from '../modules/benchmark/benchmark.routes';
 
+import usageRoutes from '../modules/usage/usage.routes';
+
 const api: Router = Router();
 
 api.get('/health', (_req, res) =>
@@ -23,6 +25,7 @@ api.get('/health', (_req, res) =>
 );
 
 api.use('/auth', authRoutes);
+api.use('/usage', usageRoutes);
 api.use('/users', userRoutes);
 api.use('/profile', profileRoutes);
 api.use('/resumes', resumeRoutes);

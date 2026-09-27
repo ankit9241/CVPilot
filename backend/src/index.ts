@@ -15,6 +15,7 @@ import { seedTemplates } from './templates';
 export function createApp(): Application {
   const app = express();
 
+  app.set('trust proxy', 1);
   app.disable('x-powered-by');
   app.use(
     cors({
@@ -36,8 +37,10 @@ export function createApp(): Application {
         'Origin',
         'Cache-Control',
         'X-CSRF-Token',
+        'Idempotency-Key',
+        'X-Idempotency-Key',
       ],
-      exposedHeaders: ['Set-Cookie'],
+      exposedHeaders: ['Set-Cookie', 'Retry-After', 'X-Idempotent-Replayed'],
       optionsSuccessStatus: 204,
     }),
   );
@@ -45,6 +48,16 @@ export function createApp(): Application {
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },
       crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+      xContentTypeOptions: true,
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      frameguard: { action: 'deny' },
+      hsts: env.isProd
+        ? {
+            maxAge: 31536000,
+            includeSubDomains: true,
+            preload: true,
+          }
+        : false,
     }),
   );
   app.use(compression());

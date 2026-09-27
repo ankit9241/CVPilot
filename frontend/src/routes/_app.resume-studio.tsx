@@ -16,6 +16,9 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
+import { QuotaBadge } from "@/components/shared/quota-badge";
+import { useUsage } from "@/hooks/use-usage";
+import { useLimitModalStore } from "@/store/limit-modal-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +38,8 @@ function ResumeStudioPage() {
   const [company, setCompany] = useState("Google");
   const [role, setRole] = useState("Senior Frontend Engineer");
   const { user } = useAuthStore();
+  const { isLimitReached, getFeatureQuota } = useUsage();
+  const { openLimitModal } = useLimitModalStore();
 
   const [profile, setProfile] = useState<any>(null);
   const [experiences, setExperiences] = useState<any[]>([]);
@@ -99,6 +104,18 @@ function ResumeStudioPage() {
   }, []);
 
   const handleGenerate = async () => {
+    const genQuota = getFeatureQuota("RESUME_GENERATION");
+    if (genQuota.isExhausted) {
+      openLimitModal({
+        feature: "RESUME_GENERATION",
+        used: genQuota.used,
+        limit: genQuota.limit,
+        remaining: 0,
+        resetAt: genQuota.resetAt,
+      });
+      return;
+    }
+
     // 1. Validate profile completion
     const isNameMissing =
       !profile?.fullName ||
@@ -167,7 +184,8 @@ function ResumeStudioPage() {
         title="Resume Studio"
         subtitle="Paste a job, generate a precise resume, review it live."
         actions={
-          <>
+          <div className="flex flex-wrap items-center gap-2">
+            <QuotaBadge feature="RESUME_GENERATION" />
             <Button variant="outline" size="sm" className="gap-1.5 rounded-full bg-[#FFFEFC] border border-[rgba(55,50,47,0.14)] text-[#18181B] hover:bg-[#F4F1EC]" onClick={handleReset}>
               <RotateCcw className="h-3.5 w-3.5" /> Reset
             </Button>
@@ -181,19 +199,25 @@ function ResumeStudioPage() {
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" /> Preparing...
                 </>
+              ) : isLimitReached("RESUME_GENERATION") ? (
+                <>
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-300" /> Limit reached
+                </>
               ) : (
                 <>
                   <Sparkles className="h-3.5 w-3.5" /> Generate resume
                 </>
               )}
             </Button>
-          </>
+          </div>
         }
       />
 
       <div className="mt-8 grid grid-cols-12 gap-6">
         {/* LEFT FORM COLUMN */}
         <div className="col-span-12 space-y-4 lg:col-span-5">
+          {/* Quota Banner */}
+          <QuotaBadge feature="RESUME_GENERATION" variant="banner" />
           {/* Validation Alert Box */}
           {validationError && (
             <motion.div

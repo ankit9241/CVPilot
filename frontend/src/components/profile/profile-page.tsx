@@ -32,6 +32,9 @@ import {
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/shared/page-header";
+import { QuotaBadge } from "@/components/shared/quota-badge";
+import { useUsage } from "@/hooks/use-usage";
+import { useLimitModalStore } from "@/store/limit-modal-store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -590,7 +593,8 @@ export function ProfilePage() {
         title="Profile"
         subtitle="Your master profile powers every resume and tailored export."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <QuotaBadge feature="RESUME_IMPORT" />
             <Button
               size="sm"
               variant="outline"
@@ -1746,6 +1750,8 @@ interface ProfileImportModalProps {
 
 export function ProfileImportModal({ isOpen, onClose, onMerged }: ProfileImportModalProps) {
   const queryClient = useQueryClient();
+  const { isLimitReached, getFeatureQuota, refetch: refetchUsage } = useUsage();
+  const { openLimitModal } = useLimitModalStore();
   const [step, setStep] = useState<"select" | "uploading" | "review">("select");
   const [importerType, setImporterType] = useState<"resume" | "linkedin" | null>(null);
   const [loadingMessage, setLoadingMessage] = useState("");
@@ -1768,6 +1774,18 @@ export function ProfileImportModal({ isOpen, onClose, onMerged }: ProfileImportM
   if (!isOpen) return null;
 
   const triggerFileSelect = (type: "resume" | "linkedin") => {
+    const importQuota = getFeatureQuota("RESUME_IMPORT");
+    if (importQuota.isExhausted) {
+      openLimitModal({
+        feature: "RESUME_IMPORT",
+        used: importQuota.used,
+        limit: importQuota.limit,
+        remaining: 0,
+        resetAt: importQuota.resetAt,
+      });
+      return;
+    }
+
     setImporterType(type);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -1867,6 +1885,7 @@ export function ProfileImportModal({ isOpen, onClose, onMerged }: ProfileImportM
 
       await api.post("/profile/import/merge", payload);
       toast.success("Profile successfully imported and merged!");
+      refetchUsage();
       onMerged();
       onClose();
     } catch (err: any) {
@@ -3008,17 +3027,19 @@ export function ProfileImportModal({ isOpen, onClose, onMerged }: ProfileImportM
 
         {step === "select" && (
           <div className="p-6">
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-4 flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold">Import Profile</h2>
                 <p className="text-xs text-muted-foreground">
-                  Extract details to master profile success.
+                  Extract career details into your Master Profile with intelligent parsing.
                 </p>
               </div>
               <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={onClose}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
+
+            <QuotaBadge feature="RESUME_IMPORT" variant="banner" className="mb-6" />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Resume Card */}

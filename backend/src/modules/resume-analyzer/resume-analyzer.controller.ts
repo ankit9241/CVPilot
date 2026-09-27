@@ -73,6 +73,9 @@ export class ResumeAnalyzerController extends BaseController {
         (evt) => writeEvent(evt),
       );
     } catch (err: any) {
+      if (req.refundQuota) {
+        await req.refundQuota().catch(() => {});
+      }
       writeEvent({ type: 'error', error: err?.message || 'Failed to analyze resume' });
     } finally {
       res.end();

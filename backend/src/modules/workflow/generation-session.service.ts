@@ -1,6 +1,6 @@
 import { BaseService } from '../../common/base.service';
 import { prisma } from '../../prisma/client';
-import { BadRequestError } from '../../utils/errors';
+import { BadRequestError, NotFoundError, UnauthorizedError } from '../../utils/errors';
 import {
   ResumeContext,
   ParsedJobDescription,
@@ -115,11 +115,19 @@ export class GenerationSessionService extends BaseService {
   async execute(sessionId: string, userId: string): Promise<any> {
     const startTime = Date.now();
 
-    // Check if session is already running to prevent concurrent duplicates
+    // Verify session existence and ownership
     const currentSession = await prisma.generationSession.findUnique({
       where: { id: sessionId },
     });
-    if (currentSession && currentSession.status === 'PROCESSING') {
+    if (!currentSession) {
+      throw new NotFoundError('Session not found');
+    }
+    if (currentSession.userId !== userId) {
+      throw new UnauthorizedError('Unauthorized');
+    }
+
+    // Check if session is already running to prevent concurrent duplicates
+    if (currentSession.status === 'PROCESSING') {
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       if (currentSession.startedAt && currentSession.startedAt > fiveMinutesAgo) {
         console.log(

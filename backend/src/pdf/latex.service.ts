@@ -2,6 +2,8 @@ import { exec } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
+import { SECURITY_LIMITS } from '../config/limits';
+import { logger } from '../logger/logger';
 
 const execPromise = promisify(exec);
 
@@ -22,12 +24,12 @@ export class LatexService {
       return programFilesPath;
     }
 
-    // 3. Fallback to global command
+    // 3. Fallback to global command (e.g. Linux container in Render)
     return 'xelatex';
   }
 
   async compile(latexSource: string): Promise<Buffer> {
-    const tempDir = path.join(process.cwd(), 'temp', `latex-${Date.now()}`);
+    const tempDir = path.join(process.cwd(), 'temp', `latex-${Date.now()}-${Math.random().toString(36).substring(7)}`);
     fs.mkdirSync(tempDir, { recursive: true });
 
     const texFileName = 'resume.tex';
@@ -35,44 +37,47 @@ export class LatexService {
     fs.writeFileSync(texPath, latexSource, 'utf8');
 
     const binary = this.getBinaryPath();
-    // Quote paths to avoid issues with spaces in Windows directories
-    const cmd = `"${binary}" -interaction=nonstopmode -output-directory="${tempDir}" "${texPath}"`;
+    // Security: explicitly disable shell-escape to prevent arbitrary command execution via \write18
+    const cmd = `"${binary}" -interaction=nonstopmode -no-shell-escape -output-directory="${tempDir}" "${texPath}"`;
 
     try {
-      // Run compilation (max 30s timeout)
-      await execPromise(cmd, { timeout: 30000 });
+      // Run compilation with strict timeout
+      await execPromise(cmd, { timeout: SECURITY_LIMITS.timeouts.pdf });
 
       const pdfPath = path.join(tempDir, 'resume.pdf');
       if (!fs.existsSync(pdfPath)) {
         throw new Error('PDF output file was not created');
       }
 
-      const pdfBuffer = fs.readFileSync(pdfPath);
-
-      // Cleanup temp files asynchronously
-      this.cleanupTempDir(tempDir);
-
-      return pdfBuffer;
+      return fs.readFileSync(pdfPath);
     } catch (err: any) {
-      // Capture logs from output directory or compiler stdout/stderr
+      // Capture error logs for debugging
       let compileLogs = err.stdout || '';
       const logPath = path.join(tempDir, 'resume.log');
       if (fs.existsSync(logPath)) {
         compileLogs += '\n--- resume.log ---\n' + fs.readFileSync(logPath, 'utf8');
       }
 
-      this.cleanupTempDir(tempDir);
+      logger.error('LaTeX Compilation Error', {
+        err: err.message,
+        timedOut: err.killed || err.signal === 'SIGTERM',
+      });
 
-      const errorMsg = `LaTeX Compilation Failed:\n${err.stderr || err.message}\nLogs:\n${compileLogs}`;
+      const errorMsg = `LaTeX Compilation Failed: ${err.killed ? 'Process timed out after 30 seconds' : (err.message || 'Compiler error')}`;
       throw new Error(errorMsg);
+    } finally {
+      // Guaranteed cleanup in all conditions
+      this.cleanupTempDir(tempDir);
     }
   }
 
   private cleanupTempDir(dir: string) {
     try {
-      fs.rmSync(dir, { recursive: true, force: true });
-    } catch {
-      // ignore cleanup issues
+      if (fs.existsSync(dir)) {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    } catch (e) {
+      logger.warn('Failed to cleanup temp latex dir', { dir, err: String(e) });
     }
   }
 }

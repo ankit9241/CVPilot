@@ -64,7 +64,11 @@ export class GeminiProvider implements LLMClient {
       }));
 
     try {
-      const result = await this.client.models.generateContent({
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Gemini API request timed out after 60s')), 60000),
+      );
+
+      const generatePromise = this.client.models.generateContent({
         model: finalConfig.model,
         contents: conversationMessages,
         config: {
@@ -78,6 +82,8 @@ export class GeminiProvider implements LLMClient {
           thinkingConfig: { thinkingBudget: 0 },
         },
       });
+
+      const result = await Promise.race([generatePromise, timeoutPromise]);
 
       const responseText = result.text || "";
 

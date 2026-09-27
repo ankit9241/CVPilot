@@ -19,7 +19,6 @@ export const storagePresignSchema = z.object({
   size: z.coerce.number().int().positive(),
   checksum: z.string().min(32).max(128).optional(),
   replaceFileId: z.string().uuid().optional(),
-  storageKey: z.string().min(1).max(512).optional(),
 });
 
 export const storageCompleteSchema = storagePresignSchema.extend({

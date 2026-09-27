@@ -18,14 +18,30 @@ export class WorkflowController extends BaseController {
   });
 
   getSession = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user?.sub) {
+      throw new UnauthorizedError('Unauthorized');
+    }
     const session = await generationSessionRepository.findById(req.params.id);
     if (!session) {
       throw new NotFoundError('Session not found');
+    }
+    if (session.userId !== req.user.sub) {
+      throw new UnauthorizedError('Unauthorized');
     }
     return this.sendOk(res, session);
   });
 
   getLogs = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user?.sub) {
+      throw new UnauthorizedError('Unauthorized');
+    }
+    const session = await generationSessionRepository.findById(req.params.id);
+    if (!session) {
+      throw new NotFoundError('Session not found');
+    }
+    if (session.userId !== req.user.sub) {
+      throw new UnauthorizedError('Unauthorized');
+    }
     const logs = await workflowLogRepository.findBySessionId(req.params.id);
     return this.sendOk(res, logs);
   });

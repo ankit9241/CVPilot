@@ -29,6 +29,7 @@ import { api } from "../lib/api";
 import { useAuthStore } from "../store/auth-store";
 
 import { InfiniteSlider } from "@/components/shared/infinite-slider";
+import { UsageCard } from "@/components/shared/usage-card";
 
 export const Route = createFileRoute("/_app/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — CVPilot" }] }),
@@ -115,6 +116,8 @@ function DashboardPage() {
         />
 
         <QuickActions />
+
+        <UsageCard />
 
         <RecentResumeCard stats={stats} />
         <VaultShortcut />
