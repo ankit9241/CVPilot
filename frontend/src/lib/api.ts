@@ -3,7 +3,8 @@ function resolveApiBaseUrl(): string {
   if (!envUrl) {
     return "http://localhost:4000/api";
   }
-  return envUrl.replace(/\/+$/, "");
+  const clean = envUrl.replace(/\/+$/, "");
+  return clean.endsWith("/api") ? clean : `${clean}/api`;
 }
 
 export const BASE_URL = resolveApiBaseUrl();
