@@ -43,7 +43,7 @@ export const env = {
   },
 
   cors: {
-    origin: optional('CORS_ORIGIN', 'http://localhost:5173'),
+    origin: optional('CORS_ORIGIN', 'http://localhost:5173,https://cv-pilot.netlify.app'),
   },
 
   google: {

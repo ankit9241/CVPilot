@@ -16,11 +16,35 @@ export function createApp(): Application {
   const app = express();
 
   app.disable('x-powered-by');
-  app.use(helmet());
   app.use(
     cors({
-      origin: appConfig.corsOrigin,
+      origin: (origin, callback) => {
+        if (appConfig.isOriginAllowed(origin)) {
+          callback(null, true);
+        } else {
+          logger.warn(`CORS rejected origin: ${origin}`);
+          callback(null, false);
+        }
+      },
       credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'X-Requested-With',
+        'Accept',
+        'Origin',
+        'Cache-Control',
+        'X-CSRF-Token',
+      ],
+      exposedHeaders: ['Set-Cookie'],
+      optionsSuccessStatus: 204,
+    }),
+  );
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
     }),
   );
   app.use(compression());

@@ -29,8 +29,11 @@ export class AuthController extends BaseController {
     const isNewUser = !u.profile || (u.profile.completionPct ?? 0) < 20;
     const redirectPath = isNewUser ? '/onboarding' : '/dashboard';
 
-    // Prioritize origin passed in state (where user clicked login), fallback to CORS_ORIGIN
-    let frontendBaseUrl = env.cors.origin.split(',')[0].trim().replace(/\/+$/, '');
+    const originList = env.cors.origin.split(',').map((s) => s.trim().replace(/\/+$/, '')).filter(Boolean);
+    let frontendBaseUrl = env.isProd
+      ? originList.find((o) => o.startsWith('https://')) || 'https://cv-pilot.netlify.app'
+      : originList[0] || 'http://localhost:5173';
+
     if (state && (state.startsWith('http://') || state.startsWith('https://'))) {
       try {
         const parsed = new URL(state);
