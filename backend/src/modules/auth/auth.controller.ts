@@ -40,7 +40,12 @@ export class AuthController extends BaseController {
       }
     }
 
-    return res.redirect(`${frontendBaseUrl}${redirectPath}`);
+    const params = new URLSearchParams({
+      token: result.accessToken,
+      refreshToken: result.refreshToken,
+    });
+
+    return res.redirect(`${frontendBaseUrl}${redirectPath}?${params.toString()}`);
   });
 
   me = asyncHandler(async (req: Request, res: Response) => {

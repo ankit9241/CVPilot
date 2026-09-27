@@ -26,13 +26,28 @@ async function refreshSessionOnce(): Promise<boolean> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       try {
+        const storedRefreshToken = typeof window !== "undefined" ? localStorage.getItem("refreshToken") : null;
         const res = await fetch(`${BASE_URL}/auth/refresh`, {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
+          body: JSON.stringify({ refreshToken: storedRefreshToken || undefined }),
         });
-        return res.ok;
+        if (res.ok) {
+          const json = await res.json().catch(() => ({}));
+          if (json.data?.accessToken && typeof window !== "undefined") {
+            localStorage.setItem("accessToken", json.data.accessToken);
+            if (json.data.refreshToken) {
+              localStorage.setItem("refreshToken", json.data.refreshToken);
+            }
+          }
+          return true;
+        }
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+        }
+        return false;
       } catch {
         return false;
       } finally {
@@ -50,6 +65,11 @@ class ApiClient {
     const headers = new Headers(options.headers || {});
     if (!(options.body instanceof FormData)) {
       headers.set("Content-Type", "application/json");
+    }
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+    if (token && !headers.has("Authorization")) {
+      headers.set("Authorization", `Bearer ${token}`);
     }
 
     options.credentials = "include";
@@ -144,6 +164,10 @@ class ApiClient {
     const headers = new Headers(options.headers || {});
     if (!(data instanceof FormData)) {
       headers.set("Content-Type", "application/json");
+    }
+    const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+    if (token && !headers.has("Authorization")) {
+      headers.set("Authorization", `Bearer ${token}`);
     }
     options.credentials = "include";
     options.headers = headers;

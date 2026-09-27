@@ -39,10 +39,33 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (initialized) return;
     initialized = true;
     set({ isLoading: true });
+
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get("token");
+      const refreshToken = urlParams.get("refreshToken");
+
+      if (token) {
+        localStorage.setItem("accessToken", token);
+        if (refreshToken) {
+          localStorage.setItem("refreshToken", refreshToken);
+        }
+        urlParams.delete("token");
+        urlParams.delete("refreshToken");
+        const newSearch = urlParams.toString();
+        const newUrl = window.location.pathname + (newSearch ? `?${newSearch}` : "") + window.location.hash;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    }
+
     try {
       const user = await api.get<User>("/auth/me");
       set({ user, isAuthenticated: true, isLoading: false });
     } catch (err) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+      }
       if (err instanceof AuthExpiredError) {
         set({ user: null, isAuthenticated: false, isLoading: false });
         return;
@@ -51,6 +74,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
   handleSessionExpired: () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+    }
     set({ user: null, isAuthenticated: false, isLoading: false });
     if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
       window.location.assign("/login");
@@ -63,6 +90,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       await api.post("/auth/logout");
     } catch (e) {
       console.error("Logout error:", e);
+    }
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
     }
     set({ user: null, isAuthenticated: false, isLoading: false });
     if (typeof window !== "undefined") {
