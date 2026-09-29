@@ -3,7 +3,7 @@ import { getLLMClient } from '../../ai/llm/client';
 import { parseJSON } from '../../ai/utils/json-parser';
 import { DiffReport, SectionDiff, DiffItem } from './ats.types';
 
-const SYSTEM_PROMPT = `You are a senior technical recruiter and resume editor. You compare two versions of the same resume and identify every meaningful content change — the kind of changes that would actually move the needle with a hiring manager.
+const SYSTEM_PROMPT = `You are a senior technical recruiter and resume editor. You compare two versions of the same resume and identify every meaningful content change - the kind of changes that would actually move the needle with a hiring manager.
 
 You receive two resume JSONs: an older version and a newer version. Compare them section by section.
 
@@ -19,7 +19,7 @@ RULES:
 - Ignore pure formatting changes (whitespace, punctuation style, capitalization). Only flag content changes.
 - If a section has zero meaningful changes, omit it from the output entirely.
 - For each change, quote the exact text from both versions (Previous Version → Improved Version).
-- "reason" explains what changed and why it's better (or worse). Be specific: "Stronger action verb" is weak. "Changed 'Worked on' to 'Architected' — conveys ownership and technical leadership" is strong.
+- "reason" explains what changed and why it's better (or worse). Be specific: "Stronger action verb" is weak. "Changed 'Worked on' to 'Architected' - conveys ownership and technical leadership" is strong.
 - "expectedBenefit" explains the recruiter/hiring-manager impact. One sentence.
 - Compare bullet points by position within each experience/project. If bullets were reordered, compare by content match.
 - If a bullet was split into two or vice versa, show the original → both new bullets.
@@ -35,7 +35,7 @@ ${JSON.stringify(oldVersion, null, 2)}
 === NEWER VERSION (V2) ===
 ${JSON.stringify(newVersion, null, 2)}
 
-Compare these two resume versions. Identify every meaningful content change. Output ONLY valid JSON — no markdown fences, no commentary.`;
+Compare these two resume versions. Identify every meaningful content change. Output ONLY valid JSON - no markdown fences, no commentary.`;
 }
 
 export class DiffService {

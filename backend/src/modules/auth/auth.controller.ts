@@ -116,11 +116,11 @@ export class AuthController extends BaseController {
 
     try {
       const tokens = await this.service.refresh(refreshToken);
-      // Re-set BOTH cookies — sliding window keeps the session alive while active.
+      // Re-set BOTH cookies - sliding window keeps the session alive while active.
       this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
       return this.sendOk(res, tokens);
     } catch (err) {
-      // Session invalid (expired/revoked/inactive) — clear client auth state.
+      // Session invalid (expired/revoked/inactive) - clear client auth state.
       const cookieBase = this.getCookieOptions();
       res.clearCookie('accessToken', cookieBase);
       res.clearCookie('refreshToken', cookieBase);

@@ -17,7 +17,7 @@ import { validateRecommendationList } from '../modules/ats/statement-validator';
 
 const pass = (label: string) => console.log(`✅ ${label}`);
 const fail = (label: string, detail: string): never => {
-  throw new Error(`${label} — ${detail}`);
+  throw new Error(`${label} - ${detail}`);
 };
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
@@ -101,32 +101,32 @@ const seniorResume: GeneratedResume = {
 const mockJd = 'Required: React, TypeScript, Docker, PostgreSQL, Kubernetes, CI/CD, GraphQL, WebSockets';
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// EXISTING TESTS (A–N) — preserved
+// EXISTING TESTS (A–N) - preserved
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function testRecommendationRewriting() {
   console.log('\n--- Running Tech Recommendation Grounding Tests ---');
-  
+
   // A. Missing PostgreSQL cannot produce unconditional "add PostgreSQL"
   const recA = 'add PostgreSQL to your skills section';
   const cleanA = sanitizeRecommendationText(recA, mockResume, mockJd);
   console.log('  A. Missing PostgreSQL:', cleanA);
-  
+
   // B. Missing Docker cannot produce unconditional "add Docker"
   const recB = 'add Docker';
   const cleanB = sanitizeRecommendationText(recB, mockResume, mockJd);
   console.log('  B. Missing Docker:', cleanB);
-  
+
   // C. Missing Kubernetes cannot produce unconditional "add Kubernetes"
   const recC = 'add Kubernetes to your stack';
   const cleanC = sanitizeRecommendationText(recC, mockResume, mockJd);
   console.log('  C. Missing Kubernetes:', cleanC);
-  
+
   // D. Missing CI/CD cannot produce "implement CI/CD"
   const recD = 'implement CI/CD pipeline';
   const cleanD = sanitizeRecommendationText(recD, mockResume, mockJd);
   console.log('  D. Missing CI/CD:', cleanD);
-  
+
   // E. Missing GraphQL/WebSockets cannot produce unconditional add instructions
   const recE1 = 'add GraphQL';
   const recE2 = 'add WebSockets';
@@ -157,14 +157,14 @@ async function testRecommendationRewriting() {
 
 async function testSuspiciousDates() {
   console.log('\n--- Running Date Verification Tests ---');
-  
+
   // F. Suspicious date cannot produce a fabricated replacement date (e.g. change it to 2023-02)
   const recF = 'Correct the Thrive Wellness experience: change startDate to a past month (e.g. 2023-02)';
   const cleanF = sanitizeRecommendationText(recF, mockResume, mockJd);
   console.log('  F. Guess date prevention:', cleanF);
-  
+
   const expectedF = 'Verify the Thrive Wellness start date. If the displayed date is correct, retain it. If it is incorrect, replace it only with the actual start date.';
-  
+
   if (cleanF === expectedF && !cleanF.includes('2023-02')) {
     pass('Date Verification Tests');
   } else {
@@ -174,13 +174,13 @@ async function testSuspiciousDates() {
 
 async function testSkillsPreservation() {
   console.log('\n--- Running Skills Preservation Tests ---');
-  
+
   const recH = 'Replace TypeScript and React with Java because Java is in the JD';
   const cleanH = sanitizeRecommendationText(recH, mockResume, mockJd);
   console.log('  H. Skills Deletion prevention:', cleanH);
-  
+
   const expectedH = 'Prioritize JD-relevant skills such as TypeScript and React near the beginning while retaining other genuine skills.';
-  
+
   if (cleanH === expectedH) {
     pass('Skills Preservation Tests');
   } else {
@@ -190,17 +190,17 @@ async function testSkillsPreservation() {
 
 async function testMetricGrounding() {
   console.log('\n--- Running Metric Grounding Tests ---');
-  
+
   const recI = 'Increase data retrieval speed by 20%';
   const cleanI = sanitizeRecommendationText(recI, mockResume, mockJd);
   console.log('  I. Fabricated metric rewrite:', cleanI);
-  
+
   const recJ = 'Quantify the thrive wellness experience metrics like the 20+ clients served';
   const cleanJ = sanitizeRecommendationText(recJ, mockResume, mockJd);
   console.log('  J. Grounded metric preservation:', cleanJ);
-  
+
   const expectedI = 'Add a measurable outcome if you have one. Do not invent a metric.';
-  
+
   if (cleanI === expectedI && cleanJ === recJ) {
     pass('Metric Grounding Tests');
   } else {
@@ -278,7 +278,7 @@ async function testGenuineExperienceConditional() {
 async function testOverlapNotSuspicious() {
   console.log('\n--- A. Education + employment overlap NOT called suspicious ---');
 
-  const recOverlap = 'Education overlaps with employment — this is suspicious and undermines trust';
+  const recOverlap = 'Education overlaps with employment - this is suspicious and undermines trust';
   const cleanOverlap = sanitizeRecommendationText(recOverlap, mockResume, mockJd);
   console.log('  A. Overlap rewrite:', cleanOverlap);
 
@@ -415,7 +415,7 @@ async function testGenuineTechUntouched() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// NEW TESTS (O–AB) — from user spec
+// NEW TESTS (O–AB) - from user spec
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function testMissingDockerIncludeExperience() {
@@ -478,7 +478,7 @@ async function testWillingnessToLearnDocker() {
   const rec = 'Note willingness to learn Docker';
   const clean = sanitizeRecommendationText(rec, mockResume, mockJd);
   console.log('  T.', clean);
-  // Must NOT contain "willingness to learn" — either rewritten to conditional or dropped
+  // Must NOT contain "willingness to learn" - either rewritten to conditional or dropped
   if (/willingness to learn/i.test(clean)) {
     fail('T. Willingness to learn Docker', clean);
   }

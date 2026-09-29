@@ -37,7 +37,7 @@ router.post(
   atsController.recruiterReview,
 );
 
-// Intelligent job tailoring — reorder, reword, emphasize by JD relevance (AI_OPTIMIZATION quota)
+// Intelligent job tailoring - reorder, reword, emphasize by JD relevance (AI_OPTIMIZATION quota)
 router.post(
   '/tailor',
   validate(analyzeAtsSchema),
@@ -70,7 +70,7 @@ router.post(
   atsController.diff,
 );
 
-// Health dashboard — aggregated quality signals (ATS_ANALYSIS quota)
+// Health dashboard - aggregated quality signals (ATS_ANALYSIS quota)
 router.post(
   '/health',
   validate(analyzeAtsSchema),
@@ -81,7 +81,7 @@ router.post(
   atsController.health,
 );
 
-// AI interview prep — grounded in resume content (ATS_ANALYSIS quota)
+// AI interview prep - grounded in resume content (ATS_ANALYSIS quota)
 router.post(
   '/interview-prep',
   validate(interviewPrepSchema),

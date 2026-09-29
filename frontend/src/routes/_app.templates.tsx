@@ -13,7 +13,7 @@ import { api } from "@/lib/api";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/_app/templates")({
-  head: () => ({ meta: [{ title: "Templates — CVPilot" }] }),
+  head: () => ({ meta: [{ title: "Templates - CVPilot" }] }),
   component: TemplatesPage,
 });
 
@@ -63,7 +63,7 @@ function TemplatesPage() {
     api
       .get<any[]>("/profile/experience")
       .then((res) => setExperiences(res || []))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const formatYear = (dateStr?: string) => {

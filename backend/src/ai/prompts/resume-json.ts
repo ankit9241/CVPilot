@@ -15,7 +15,7 @@ Assembly rules:
 4. Cross-section check before finalizing:
    - Summary previews the experience section (does not repeat it verbatim).
    - Skills echo the technologies mentioned in experience/project bullets.
-   - Projects complement — not duplicate — experience entries.
+   - Projects complement - not duplicate - experience entries.
 5. Technical Skills: group into categories. Never delete a valid skill.
 
 Return a JSON object with:

@@ -57,7 +57,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/resume-analyzer")({
-  head: () => ({ meta: [{ title: "Resume Analyzer — CVPilot" }] }),
+  head: () => ({ meta: [{ title: "Resume Analyzer - CVPilot" }] }),
   component: AnalyzerPage,
 });
 
@@ -141,7 +141,7 @@ interface AnalysisResult {
 const MAX_SIZE_MB = 10;
 const STORAGE_KEY = "cvpilot_analyzer_session_v1";
 
-const DEFAULT_JOB_DESCRIPTION = `Full Stack Developer — AI & SaaS
+const DEFAULT_JOB_DESCRIPTION = `Full Stack Developer - AI & SaaS
 
 Location: Remote
 Experience: 1–3 years
@@ -238,7 +238,7 @@ function AnalyzerPage() {
         const parsed: PersistedState = JSON.parse(raw);
         return parsed.fileInfo || null;
       }
-    } catch {}
+    } catch { }
     return null;
   });
 
@@ -250,7 +250,7 @@ function AnalyzerPage() {
         const parsed: PersistedState = JSON.parse(raw);
         if (typeof parsed.jobDescription === "string") return parsed.jobDescription;
       }
-    } catch {}
+    } catch { }
     return DEFAULT_JOB_DESCRIPTION;
   });
 
@@ -262,7 +262,7 @@ function AnalyzerPage() {
         const parsed: PersistedState = JSON.parse(raw);
         return parsed.result || null;
       }
-    } catch {}
+    } catch { }
     return null;
   });
 
@@ -274,7 +274,7 @@ function AnalyzerPage() {
         const parsed: PersistedState = JSON.parse(raw);
         if (parsed.activeTab) return parsed.activeTab;
       }
-    } catch {}
+    } catch { }
     return "action_plan";
   });
 
@@ -336,7 +336,7 @@ function AnalyzerPage() {
     setError(null);
     try {
       sessionStorage.removeItem(STORAGE_KEY);
-    } catch {}
+    } catch { }
     toast.info("Cleared resume analysis. Upload a new resume to start.");
   };
 
@@ -950,7 +950,7 @@ function AnalyzerPage() {
                                     <Sparkles className="h-3.5 w-3.5" />
                                   </div>
                                   <h4 className="text-[13px] font-semibold text-[#18181B]">
-                                    Quick Wins — Action Verbs & Polish ({quickWins.length})
+                                    Quick Wins - Action Verbs & Polish ({quickWins.length})
                                   </h4>
                                 </div>
                                 <span className="text-[11px] font-mono text-[#18181B]/50">Targeted sentence edits</span>

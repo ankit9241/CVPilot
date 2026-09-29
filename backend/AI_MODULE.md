@@ -1,4 +1,4 @@
-# CVPilot Backend — AI Module Status
+# CVPilot Backend - AI Module Status
 
 ## ✅ Status: Production Ready
 
@@ -47,7 +47,7 @@ npx ts-node src/ai/test-gemini.ts
 
 | Document | Purpose |
 |----------|---------|
-| **[QUICK_REFERENCE.md](src/ai/QUICK_REFERENCE.md)** | Start here — configuration, troubleshooting, common tasks |
+| **[QUICK_REFERENCE.md](src/ai/QUICK_REFERENCE.md)** | Start here - configuration, troubleshooting, common tasks |
 | **[MODEL_CONFIGURATION.md](src/ai/MODEL_CONFIGURATION.md)** | Complete audit of all model configuration points |
 | **[GEMINI_SETUP.md](src/ai/GEMINI_SETUP.md)** | Detailed setup guide with examples |
 | **[PHASE_3_SUMMARY.md](src/ai/PHASE_3_SUMMARY.md)** | What changed in the final consolidation phase |

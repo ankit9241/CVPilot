@@ -1,5 +1,5 @@
 /**
- * ATS Engine V2 — Deterministic rubric scoring + AI qualitative feedback.
+ * ATS Engine V2 - Deterministic rubric scoring + AI qualitative feedback.
  *
  * Score breakdown (points, not percentages):
  *   Parseability .............. 15
@@ -37,7 +37,7 @@ export interface ATSRecruiterFeedback {
 }
 
 // ─── AI Recruiter Review ────────────────────────────────────────────────────
-// A senior-recruiter persona review — distinct from the deterministic ATS score.
+// A senior-recruiter persona review - distinct from the deterministic ATS score.
 
 export interface RecruiterReview {
   firstImpression: string;
@@ -51,7 +51,7 @@ export interface RecruiterReview {
 }
 
 // ─── Resume Quality Report ──────────────────────────────────────────────────
-// Writing & presentation quality analysis — NOT ATS scoring.
+// Writing & presentation quality analysis - NOT ATS scoring.
 
 export interface QualityReport {
   overallQualityScore: number;         // 0-100
@@ -89,7 +89,7 @@ export interface DiffReport {
 }
 
 // ─── Resume Health Report ───────────────────────────────────────────────────
-// Aggregated health dashboard — no LLM calls, pure data aggregation.
+// Aggregated health dashboard - no LLM calls, pure data aggregation.
 
 // ─── Interview Preparation ──────────────────────────────────────────────────
 
@@ -162,6 +162,6 @@ export interface ATSReport {
   recruiterFeedback?: ATSRecruiterFeedback;
   /** Categories skipped because no job description was supplied (e.g. keyword/skills/experience match). */
   notApplicable?: Array<keyof ATSScoreBreakdown>;
-  /** Categories actually scored — the max denominator for the recalculated overall score. */
+  /** Categories actually scored - the max denominator for the recalculated overall score. */
   applicableCategories?: Array<keyof ATSScoreBreakdown>;
 }

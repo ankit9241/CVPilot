@@ -8,7 +8,7 @@ import { PROMPT_VERSION } from '../prompts';
 // node serializes them into the prompt), so hashing (messages, model,
 // PROMPT_VERSION) covers all four dimensions without threading extra params
 // through every node.
-// ponytail: in-memory, per-process cache — swap for Redis if it needs to
+// ponytail: in-memory, per-process cache - swap for Redis if it needs to
 // survive restarts or be shared across instances.
 const responseCache = new Map<string, LLMResponse>();
 

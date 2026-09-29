@@ -47,7 +47,7 @@ import { cn } from "@/lib/utils";
 import { api } from "../lib/api";
 
 export const Route = createFileRoute("/_app/resume-vault")({
-  head: () => ({ meta: [{ title: "Resume Vault — CVPilot" }] }),
+  head: () => ({ meta: [{ title: "Resume Vault - CVPilot" }] }),
   component: VaultPage,
 });
 
@@ -95,13 +95,13 @@ function VaultPage() {
       <div className="container-page py-8 lg:py-10">
         <PageHeader
           title="Resume Vault"
-          subtitle="Every version of every resume — organised, searchable, always yours."
+          subtitle="Every version of every resume - organised, searchable, always yours."
         />
         <div className="editorial-card mt-8 flex flex-col items-center justify-center p-10 sm:p-14 text-center min-h-[400px]">
           <Folder className="h-12 w-12 text-muted-foreground/60" strokeWidth={1.5} />
           <div className="mt-4 font-serif text-[24px] font-normal text-foreground">Your Vault is empty</div>
           <p className="mt-2 max-w-sm text-[13.5px] leading-relaxed text-muted-foreground">
-            Generate a resume from the Resume Studio — it will automatically appear here once
+            Generate a resume from the Resume Studio - it will automatically appear here once
             complete.
           </p>
           <Button size="sm" asChild className="mt-6 gap-1.5 font-medium">
@@ -173,7 +173,7 @@ function VaultPage() {
       <PageHeader
         category="VAULT"
         title="Resume Vault"
-        subtitle="Every version of every resume — organised, searchable, always yours."
+        subtitle="Every version of every resume - organised, searchable, always yours."
         actions={<QuotaBadge feature="PDF_GENERATION" />}
       />
 
@@ -618,7 +618,7 @@ function VersionCard({
           <div className="min-w-0">
             <div className="truncate text-[13px] font-semibold">{v.name}</div>
             <div className="truncate text-[11.5px] text-muted-foreground">
-              {company} · {role || "—"}
+              {company} · {role || "-"}
             </div>
             <div className="mt-0.5 text-[11px] text-muted-foreground">
               {new Date(v.date).toLocaleDateString()}

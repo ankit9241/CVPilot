@@ -46,7 +46,7 @@ export class GeminiProvider implements LLMClient {
 
     const key = cacheKey(messages, finalConfig.model);
     const cached = responseCache.get(key);
-    // ponytail: evict cached entries that were truncated (MAX_TOKENS) — they
+    // ponytail: evict cached entries that were truncated (MAX_TOKENS) - they
     // contain incomplete JSON and would fail parsing on every retry.
     if (cached && cached.stopReason === 'MAX_TOKENS') {
       responseCache.delete(key);
@@ -77,7 +77,7 @@ export class GeminiProvider implements LLMClient {
           maxOutputTokens: finalConfig.maxTokens,
           // Support JSON output if requested via config
           responseMimeType: finalConfig.json ? 'application/json' : undefined,
-          // Disable thinking output — gemini-2.5-flash leaks chain-of-thought into
+          // Disable thinking output - gemini-2.5-flash leaks chain-of-thought into
           // result.text when thinkingBudget > 0, which breaks JSON parsing.
           thinkingConfig: { thinkingBudget: 0 },
         },
@@ -103,7 +103,7 @@ export class GeminiProvider implements LLMClient {
           outputTokens,
         },
       };
-      // ponytail: don't cache truncated responses — MAX_TOKENS finish reason means
+      // ponytail: don't cache truncated responses - MAX_TOKENS finish reason means
       // the JSON was cut mid-stream and would poison every subsequent call.
       const finishReason = result.candidates?.[0]?.finishReason;
       if (finishReason !== 'MAX_TOKENS') {
@@ -126,6 +126,6 @@ export class GeminiProvider implements LLMClient {
         return 'model';
       default:
         return 'user';
-      }
     }
+  }
 }

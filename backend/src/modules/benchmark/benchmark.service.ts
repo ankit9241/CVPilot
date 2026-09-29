@@ -33,26 +33,26 @@ function weightedScore(categories: BenchmarkReport['categories']): number {
 }
 
 function percentileLabel(score: number, role: string, seniority: string): string {
-  // ponytail: heuristic bands — no real dataset, so we're honest about the range
+  // ponytail: heuristic bands - no real dataset, so we're honest about the range
   const label =
     score >= 85 ? 'Top 10–20%' :
-    score >= 70 ? 'Top 25–40%' :
-    score >= 55 ? 'Top 40–60%' :
-    score >= 40 ? 'Bottom 40–60%' :
-                  'Bottom 20–30%';
+      score >= 70 ? 'Top 25–40%' :
+        score >= 55 ? 'Top 40–60%' :
+          score >= 40 ? 'Bottom 40–60%' :
+            'Bottom 20–30%';
   return `${label} for ${seniority.charAt(0).toUpperCase() + seniority.slice(1)} ${role}`;
 }
 
-const SYSTEM_PROMPT = `You are a principal engineer and hiring manager who has conducted 500+ technical interviews and reviewed 10,000+ resumes across frontend, backend, fullstack, mobile, data, and platform engineering roles. You know exactly what "good" looks like at each seniority level — not in theory, but because you've hired junior engineers who outperformed seniors, and passed on senior engineers whose resumes looked better than they were.
+const SYSTEM_PROMPT = `You are a principal engineer and hiring manager who has conducted 500+ technical interviews and reviewed 10,000+ resumes across frontend, backend, fullstack, mobile, data, and platform engineering roles. You know exactly what "good" looks like at each seniority level - not in theory, but because you've hired junior engineers who outperformed seniors, and passed on senior engineers whose resumes looked better than they were.
 
-Your job: benchmark this resume against realistic hiring expectations for the candidate's role and seniority level. This is NOT an ATS evaluation. Don't mention keywords or ATS compatibility — that's handled elsewhere. This is about whether this person's actual track record measures up to what hiring panels expect.
+Your job: benchmark this resume against realistic hiring expectations for the candidate's role and seniority level. This is NOT an ATS evaluation. Don't mention keywords or ATS compatibility - that's handled elsewhere. This is about whether this person's actual track record measures up to what hiring panels expect.
 
-IMPORTANT — READ THIS BEFORE SCORING:
+IMPORTANT - READ THIS BEFORE SCORING:
 1. Base expectations on the role and seniority you're given, not on what would be impressive for a different level.
 2. A senior engineer who lacks leadership experience is a real gap. A junior engineer without it is expected. Adjust the baseline accordingly.
 3. Be honest about gaps. A "meets-expectations" score for a weak area doesn't help the candidate. Name the gap specifically.
 4. Do NOT fabricate benchmark data or cite specific statistics. All ratings are based on your experience with industry hiring patterns.
-5. "justification" must quote something from the resume — actual evidence for the rating, not a generic statement.
+5. "justification" must quote something from the resume - actual evidence for the rating, not a generic statement.
 
 CATEGORY DEFINITIONS (all 0-100, with corresponding rating):
 - 0-49: below-expectations
@@ -74,7 +74,7 @@ CATEGORY DEFINITIONS (all 0-100, with corresponding rating):
 
 **writing**: Is the resume written with precision? Tight bullets, consistent past-tense action verbs, no filler, specific rather than generic. Even strong engineers often write weak bullets.
 
-**atsReadiness**: Would this resume parse cleanly? Section structure, standard headings, contact info, date formats. Not keyword-focused — structural only.
+**atsReadiness**: Would this resume parse cleanly? Section structure, standard headings, contact info, date formats. Not keyword-focused - structural only.
 
 **recruiterAppeal**: Would a 20-second scan leave a positive impression? Is the most impressive information front-loaded? Is it easy to understand what this person does and why they're interesting?
 
@@ -105,15 +105,15 @@ Summary: ${resume.summary}
 
 Experience:
 ${(resume.experiences || []).map(e =>
-  `${e.role} @ ${e.companyName} (${e.startDate || '?'} – ${e.isCurrent ? 'Present' : (e.endDate || '?')})
+    `${e.role} @ ${e.companyName} (${e.startDate || '?'} – ${e.isCurrent ? 'Present' : (e.endDate || '?')})
 ${(e.bulletPoints || []).map(b => `  • ${b}`).join('\n')}`
-).join('\n\n')}
+  ).join('\n\n')}
 
 Projects:
 ${(resume.projects || []).map(p =>
-  `${p.name} [${(p.technologies || []).join(', ')}]
+    `${p.name} [${(p.technologies || []).join(', ')}]
 ${(p.bulletPoints || []).map(b => `  • ${b}`).join('\n')}`
-).join('\n\n')}
+  ).join('\n\n')}
 
 Skills: ${(resume.skills || []).map(s => s.name).join(', ')}
 
@@ -122,7 +122,7 @@ Achievements: ${(resume.achievements || []).join('; ')}
 Education: ${(resume.education || []).map(e => `${e.degree} ${e.field ? 'in ' + e.field : ''} @ ${e.school}`).join('; ')}
 
 Benchmark this candidate as a ${seniority.toUpperCase()} ${role}. Be specific. Quote resume text in justifications.
-Output ONLY valid JSON — no markdown fences, no commentary.`;
+Output ONLY valid JSON - no markdown fences, no commentary.`;
 }
 
 // ─── Rating from score ────────────────────────────────────────────────────────
@@ -137,7 +137,7 @@ function normalizeCategory(raw: any): BenchmarkCategory {
   const score = Math.min(100, Math.max(0, Math.round(raw?.score ?? 0)));
   return {
     score,
-    rating: toRating(score),                      // derive from score — don't trust LLM's label
+    rating: toRating(score),                      // derive from score - don't trust LLM's label
     justification: raw?.justification || '',
   };
 }

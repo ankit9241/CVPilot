@@ -10,7 +10,7 @@ import { FeatureType } from '../../config/limits';
 const router: Router = Router();
 router.use(authenticate);
 
-// Standalone ATS resume checker — upload PDF/DOCX, get full analysis (Consumes ATS_ANALYSIS quota)
+// Standalone ATS resume checker - upload PDF/DOCX, get full analysis (Consumes ATS_ANALYSIS quota)
 router.post(
   '/analyze',
   fileUploadRateLimiter,

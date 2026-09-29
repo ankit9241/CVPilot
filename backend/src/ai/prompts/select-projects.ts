@@ -8,7 +8,7 @@ You are a resume strategist. Select the most relevant projects for this specific
 
 Selection rules:
 1. Select 2–3 projects that best match the target role's requirements.
-2. Projects must complement — not duplicate — the selected experience entries.
+2. Projects must complement - not duplicate - the selected experience entries.
 3. Prefer projects that demonstrate technical depth the experience section does not already cover.
 
 Technology stack rules:

@@ -1,4 +1,4 @@
-# CVPilot AI Module — Updated with Latest Google Gen AI SDK
+# CVPilot AI Module - Updated with Latest Google Gen AI SDK
 
 ## Status: ✅ PRODUCTION READY
 
@@ -12,7 +12,7 @@ The AI module has been upgraded to use Google's latest **@google/genai** SDK (v2
 |--------|--------|-------|--------|
 | **SDK** | @google/generative-ai | @google/genai v2.11.0 | ✅ Upgraded |
 | **Build** | PASSING | PASSING | ✅ No errors |
-| **Files Changed** | — | 1 (gemini.ts) | ✅ Minimal |
+| **Files Changed** | - | 1 (gemini.ts) | ✅ Minimal |
 | **External API** | LLMClient | LLMClient | ✅ Unchanged |
 | **Configuration** | Env-based | Env-based | ✅ Unchanged |
 | **Tests** | Ready | Ready | ✅ Verified |
@@ -22,20 +22,20 @@ The AI module has been upgraded to use Google's latest **@google/genai** SDK (v2
 ## What's Included
 
 ### Core Implementation
-- ✅ **GeminiLLMClient** — Uses latest @google/genai SDK
-- ✅ **AI Module Initialization** — Full setup with startup logging
-- ✅ **9-Node LangGraph Workflow** — Unchanged, still working
-- ✅ **Environment-Based Configuration** — All settings via env vars
+- ✅ **GeminiLLMClient** - Uses latest @google/genai SDK
+- ✅ **AI Module Initialization** - Full setup with startup logging
+- ✅ **9-Node LangGraph Workflow** - Unchanged, still working
+- ✅ **Environment-Based Configuration** - All settings via env vars
 
 ### Documentation
-- ✅ **GEMINI_SETUP.md** — Updated with new SDK info
-- ✅ **SDK_MIGRATION_GUIDE.md** — Detailed before/after comparison
-- ✅ **QUICK_REFERENCE.md** — Quick start guide
-- ✅ **MODEL_CONFIGURATION.md** — Configuration audit
+- ✅ **GEMINI_SETUP.md** - Updated with new SDK info
+- ✅ **SDK_MIGRATION_GUIDE.md** - Detailed before/after comparison
+- ✅ **QUICK_REFERENCE.md** - Quick start guide
+- ✅ **MODEL_CONFIGURATION.md** - Configuration audit
 
 ### Verification Tools
-- ✅ **verify-gemini-config.sh** — Configuration checker
-- ✅ **Test Script** — Complete workflow validation
+- ✅ **verify-gemini-config.sh** - Configuration checker
+- ✅ **Test Script** - Complete workflow validation
 
 ---
 
@@ -120,13 +120,13 @@ const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
 ## What Stayed The Same
 
-✅ **Environment Variables** — GEMINI_MODEL, GEMINI_TEMPERATURE, GEMINI_MAX_TOKENS, GEMINI_API_KEY
-✅ **LLMClient Interface** — No changes to public API
-✅ **LangGraph Workflow** — All 9 nodes unchanged
-✅ **Error Handling** — Preserved
-✅ **Retry Logic** — Preserved
-✅ **Token Tracking** — Preserved
-✅ **Type Safety** — Maintained with TypeScript
+✅ **Environment Variables** - GEMINI_MODEL, GEMINI_TEMPERATURE, GEMINI_MAX_TOKENS, GEMINI_API_KEY
+✅ **LLMClient Interface** - No changes to public API
+✅ **LangGraph Workflow** - All 9 nodes unchanged
+✅ **Error Handling** - Preserved
+✅ **Retry Logic** - Preserved
+✅ **Token Tracking** - Preserved
+✅ **Type Safety** - Maintained with TypeScript
 
 ---
 
@@ -167,12 +167,12 @@ npx ts-node src/ai/test-gemini.ts
 
 ## Deployment Checklist
 
-- [ ] Run `npm run build` — Verify TypeScript passes
+- [ ] Run `npm run build` - Verify TypeScript passes
 - [ ] Add `GEMINI_API_KEY` to deployment environment
 - [ ] (Optional) Set `GEMINI_MODEL` if using non-default model
-- [ ] Run `./verify-gemini-config.sh` — Verify configuration
+- [ ] Run `./verify-gemini-config.sh` - Verify configuration
 - [ ] Start application and check startup logs
-- [ ] Run `npx ts-node src/ai/test-gemini.ts` — Verify workflow
+- [ ] Run `npx ts-node src/ai/test-gemini.ts` - Verify workflow
 - [ ] Monitor first production calls for any issues
 
 ---
@@ -180,18 +180,18 @@ npx ts-node src/ai/test-gemini.ts
 ## Documentation Files
 
 ### For Getting Started
-- **`AI_MODULE.md`** — Backend AI module guide
-- **`QUICK_REFERENCE.md`** — Quick start & troubleshooting
-- **`GEMINI_SETUP.md`** — Detailed setup with new SDK info
+- **`AI_MODULE.md`** - Backend AI module guide
+- **`QUICK_REFERENCE.md`** - Quick start & troubleshooting
+- **`GEMINI_SETUP.md`** - Detailed setup with new SDK info
 
 ### For Understanding
-- **`ARCHITECTURE.md`** — System design
-- **`INTEGRATION.md`** — Integration patterns
-- **`VERIFICATION.md`** — Verification checklist
+- **`ARCHITECTURE.md`** - System design
+- **`INTEGRATION.md`** - Integration patterns
+- **`VERIFICATION.md`** - Verification checklist
 
 ### For Migration
-- **`SDK_MIGRATION_GUIDE.md`** — Before/after comparison
-- **`MODEL_CONFIGURATION.md`** — Configuration audit
+- **`SDK_MIGRATION_GUIDE.md`** - Before/after comparison
+- **`MODEL_CONFIGURATION.md`** - Configuration audit
 
 ---
 

@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/applications")({
-  head: () => ({ meta: [{ title: "Applications — CVPilot" }] }),
+  head: () => ({ meta: [{ title: "Applications - CVPilot" }] }),
   component: ApplicationsPage,
 });
 

@@ -4,7 +4,7 @@ This document tracks the development roadmap of CVPilot.
 
 ---
 
-# Phase 0 — Project Foundation ✅
+# Phase 0 - Project Foundation ✅
 
 ## Goal
 
@@ -28,7 +28,7 @@ Status: ✅ Completed
 
 ---
 
-# Phase 1 — Authentication & User System ✅
+# Phase 1 - Authentication & User System ✅
 
 ## Goal
 
@@ -49,7 +49,7 @@ Status: ✅ Completed
 
 ---
 
-# Phase 2 — Master Profile ✅
+# Phase 2 - Master Profile ✅
 
 ## Goal
 
@@ -73,7 +73,7 @@ Status: ✅ Completed
 
 ---
 
-# Phase 3 — Resume Context Builder ✅
+# Phase 3 - Resume Context Builder ✅
 
 ## Goal
 
@@ -94,7 +94,7 @@ Status: ✅ Completed
 
 ---
 
-# Phase 4 — AI Resume Generation ✅
+# Phase 4 - AI Resume Generation ✅
 
 ## Goal
 
@@ -118,7 +118,7 @@ Status: ✅ Completed
 
 ---
 
-# Phase 5 — Template Engine ✅
+# Phase 5 - Template Engine ✅
 
 ## Goal
 
@@ -139,7 +139,7 @@ Status: ✅ Completed
 
 ---
 
-# Phase 6 — PDF Generation ✅
+# Phase 6 - PDF Generation ✅
 
 ## Goal
 
@@ -161,7 +161,7 @@ Status: ✅ Completed
 
 ---
 
-# Phase 7 — Resume Import 🚧
+# Phase 7 - Resume Import 🚧
 
 ## Goal
 
@@ -182,7 +182,7 @@ Status: 🚧 In Progress
 
 ---
 
-# Phase 8 — ATS Engine ⏳
+# Phase 8 - ATS Engine ⏳
 
 ## Goal
 
@@ -203,7 +203,7 @@ Status: ⏳ Planned
 
 ---
 
-# Phase 9 — Resume Optimization Loop ⏳
+# Phase 9 - Resume Optimization Loop ⏳
 
 ## Goal
 
@@ -221,7 +221,7 @@ Status: ⏳ Planned
 
 ---
 
-# Phase 10 — Career Integrations ⏳
+# Phase 10 - Career Integrations ⏳
 
 ## Planned
 
@@ -235,7 +235,7 @@ Status: ⏳ Planned
 
 ---
 
-# Phase 11 — Cover Letter Generator ⏳
+# Phase 11 - Cover Letter Generator ⏳
 
 ## Planned
 
@@ -248,7 +248,7 @@ Status: ⏳ Planned
 
 ---
 
-# Phase 12 — Career OS ⏳
+# Phase 12 - Career OS ⏳
 
 ## Long-Term Vision
 

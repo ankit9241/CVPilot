@@ -6,7 +6,7 @@ import { ATSReport, QualityReport, RecruiterReview } from '../ats/ats.types';
 import { BadRequestError } from '../../utils/errors';
 import { deduplicateCrossEngineResults } from '../ats/ats.utils';
 
-/** Structured engine result — the frontend renders from `status`, never guesses. */
+/** Structured engine result - the frontend renders from `status`, never guesses. */
 export type EngineResult<T> =
   | { status: 'success'; data: T }
   | { status: 'failed'; error: string; data: null };
@@ -51,7 +51,7 @@ export function mapExtractedToGenerated(dto: ExtractedProfileDTO): GeneratedResu
       technologies: p.stack || [],
       bulletPoints: p.achievements || [],
     })),
-    // No synthetic skill levels — resumes do not contain proficiency ratings.
+    // No synthetic skill levels - resumes do not contain proficiency ratings.
     skills: (dto.skills || []).map((s) => ({ name: s.name, category: s.category })),
     education: (dto.educations || []).map((ed) => ({
       school: ed.school,
@@ -109,7 +109,7 @@ export class ResumeAnalyzerService {
     originalName: string,
     jobDescription?: string,
   ): Promise<ResumeAnalysisResult> {
-    // Extraction (text → structured resume) is a required first step — if it
+    // Extraction (text → structured resume) is a required first step - if it
     // fails, surface a clean 4xx, never a 500.
     let parsed: ExtractedProfileDTO;
     try {

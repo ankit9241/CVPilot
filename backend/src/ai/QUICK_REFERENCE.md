@@ -1,4 +1,4 @@
-# Gemini Configuration — Quick Reference
+# Gemini Configuration - Quick Reference
 
 ## TL;DR
 
@@ -104,7 +104,7 @@ npx ts-node src/ai/test-gemini.ts
 - A: Set `GEMINI_MODEL=gemini-2.5-flash` in `.env`
 
 **Q: Where do I change the model?**
-- A: Just set `GEMINI_MODEL=model_name` in `.env` — no code changes needed
+- A: Just set `GEMINI_MODEL=model_name` in `.env` - no code changes needed
 
 **Q: Can I use a different model temporarily?**
 - A: Yes: `GEMINI_MODEL=gemini-pro npx ts-node src/ai/test-gemini.ts`

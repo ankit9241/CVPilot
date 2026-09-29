@@ -54,7 +54,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       return next(new UnauthorizedError('Session expired due to inactivity'));
     }
 
-    // Throttled activity touch — backend is source of truth for last activity.
+    // Throttled activity touch - backend is source of truth for last activity.
     if (!user.lastActiveAt || now - user.lastActiveAt.getTime() > ACTIVITY_TOUCH_INTERVAL_MS) {
       await prisma.user.update({ where: { id: user.id }, data: { lastActiveAt: new Date() } });
     }

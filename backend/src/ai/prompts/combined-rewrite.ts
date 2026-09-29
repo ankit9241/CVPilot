@@ -15,7 +15,7 @@ CRITICAL: Do NOT write any introduction, thinking process, markdown formatting (
 PROFESSIONAL SUMMARY
 - 30–45 words exactly (see CONTENT BUDGET). Count words before finalizing.
 - Must include: Target Role, Years of Experience, Primary Technologies, Domain, and one Key Strength.
-- Must preview — not repeat word-for-word — the experience bullets below it.
+- Must preview - not repeat word-for-word - the experience bullets below it.
 - Example: "Frontend Engineer with 5+ years specializing in React, TypeScript, and design systems. Proven track record building high-performance developer tools and accessible cloud consoles at scale."
 
 BULLET POINTS (STAR METHOD)
@@ -24,7 +24,7 @@ BULLET POINTS (STAR METHOD)
 - Structure: Action Verb → Technology/Tool → Quantifiable Impact/Result.
 - Example: "Architected scalable React dashboard components using TypeScript, reducing client-side load times by 35%."
 - Prefer quantified outcomes: "improving test coverage by 85%", "handling 10k+ concurrent requests".
-- Project bullets must showcase depth that complements — not repeats — experience bullets.
+- Project bullets must showcase depth that complements - not repeats - experience bullets.
 
 === REQUIRED JSON SCHEMA ===
 {

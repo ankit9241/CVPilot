@@ -1,4 +1,4 @@
-# CVPilot Backend — AI Module Integration Complete ✅
+# CVPilot Backend - AI Module Integration Complete ✅
 
 ## Executive Summary
 
@@ -143,9 +143,9 @@ Generated Resume JSON
 
 Lowest to highest priority:
 
-1. **Compiled defaults** — `gemini-2.5-flash`, `0.7`, `4096`
-2. **Environment variables** — `GEMINI_MODEL`, `GEMINI_TEMPERATURE`, `GEMINI_MAX_TOKENS`
-3. **Runtime overrides** — Optional `config` parameter to `client.call()`
+1. **Compiled defaults** - `gemini-2.5-flash`, `0.7`, `4096`
+2. **Environment variables** - `GEMINI_MODEL`, `GEMINI_TEMPERATURE`, `GEMINI_MAX_TOKENS`
+3. **Runtime overrides** - Optional `config` parameter to `client.call()`
 
 To change model for testing:
 ```bash
@@ -160,7 +160,7 @@ All Gemini configuration now reads from environment variables:
 
 **In code** → `process.env.GEMINI_MODEL || 'gemini-2.5-flash'`
 **No hardcoded overrides** remain in production code
-**Audit complete** — verified with grep across entire backend
+**Audit complete** - verified with grep across entire backend
 
 ---
 
@@ -339,15 +339,15 @@ Status: Clean
 
 ## What's NOT Changed
 
-✅ LangGraph StateGraph — Unchanged
-✅ All 9 workflow nodes — Unchanged
-✅ All prompts — Unchanged
-✅ ResumeContext structure — Unchanged
-✅ GeneratedResume structure — Unchanged
-✅ Retry logic — Preserved
-✅ JSON validation — Preserved
-✅ Database integration — Unchanged
-✅ Express API — Unchanged
+✅ LangGraph StateGraph - Unchanged
+✅ All 9 workflow nodes - Unchanged
+✅ All prompts - Unchanged
+✅ ResumeContext structure - Unchanged
+✅ GeneratedResume structure - Unchanged
+✅ Retry logic - Preserved
+✅ JSON validation - Preserved
+✅ Database integration - Unchanged
+✅ Express API - Unchanged
 
 ---
 

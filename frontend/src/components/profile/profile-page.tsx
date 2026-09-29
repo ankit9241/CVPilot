@@ -1718,7 +1718,7 @@ function formatRange(start?: string | Date | null, end?: string | Date | null): 
   const startLabel = formatShortDate(start);
   const endLabel = formatShortDate(end) || "Present";
   if (!startLabel && !endLabel) return "";
-  return `${startLabel || "—"} → ${endLabel}`;
+  return `${startLabel || "-"} → ${endLabel}`;
 }
 
 function normalizeUrl(value: string): string | null {
@@ -1971,14 +1971,14 @@ export function ProfileImportModal({ isOpen, onClose, onMerged }: ProfileImportM
         </div>
         <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground pt-2 border-t border-border">
           <div>
-            <strong>Phone:</strong> {info.phone || "—"}
+            <strong>Phone:</strong> {info.phone || "-"}
           </div>
           <div>
-            <strong>Location:</strong> {info.location || "—"}
+            <strong>Location:</strong> {info.location || "-"}
           </div>
         </div>
         <div className="text-xs text-muted-foreground mt-2">
-          <strong>Summary:</strong> {info.summary || "—"}
+          <strong>Summary:</strong> {info.summary || "-"}
         </div>
       </div>
     );
@@ -2128,7 +2128,7 @@ export function ProfileImportModal({ isOpen, onClose, onMerged }: ProfileImportM
                       {exp.companyName} · {exp.location}
                     </p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {exp.startDate || "—"} → {exp.isCurrent ? "Present" : exp.endDate || "—"}
+                      {exp.startDate || "-"} → {exp.isCurrent ? "Present" : exp.endDate || "-"}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -2593,7 +2593,7 @@ export function ProfileImportModal({ isOpen, onClose, onMerged }: ProfileImportM
                     </h4>
                     <p className="text-xs text-muted-foreground font-medium">{ed.school}</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {ed.startDate || "—"} → {ed.endDate || "—"} {ed.gpa ? `· GPA: ${ed.gpa}` : ""}
+                      {ed.startDate || "-"} → {ed.endDate || "-"} {ed.gpa ? `· GPA: ${ed.gpa}` : ""}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -2719,7 +2719,7 @@ export function ProfileImportModal({ isOpen, onClose, onMerged }: ProfileImportM
                       Issued by: {cert.issuer}
                     </p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">
-                      Issued: {cert.issuedAt || "—"}{" "}
+                      Issued: {cert.issuedAt || "-"}{" "}
                       {cert.expiresAt ? `· Expires: ${cert.expiresAt}` : ""}
                     </p>
                   </div>
@@ -2850,7 +2850,7 @@ export function ProfileImportModal({ isOpen, onClose, onMerged }: ProfileImportM
                     <h4 className="font-semibold text-sm">{ach.title}</h4>
                     <p className="text-xs text-muted-foreground font-medium">{ach.context}</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">
-                      Date: {ach.date || "—"}
+                      Date: {ach.date || "-"}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5">

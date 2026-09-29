@@ -89,7 +89,7 @@ function aggregateReport(
       topRisks.push(`Missing ${ats.missingKeywords.length} keywords from job description: ${ats.missingKeywords.slice(0, 5).join(', ')}`);
     }
     if (ats.scoreBreakdown.impact < 3) {
-      topRisks.push('Low impact/quantification score — bullets lack measurable outcomes');
+      topRisks.push('Low impact/quantification score - bullets lack measurable outcomes');
     }
     if (ats.overallScore >= 80) {
       topStrengths.push(`Strong ATS compatibility (${ats.overallScore}/100)`);
@@ -165,7 +165,7 @@ function clamp(v: number): number {
 export class HealthService {
   /**
    * Get health report for a resume version. Uses cached result if available.
-   * Runs missing analyses (recruiter review, quality) on demand — never reruns ATS.
+   * Runs missing analyses (recruiter review, quality) on demand - never reruns ATS.
    */
   async getReport(userId: string, resumeVersionId: string): Promise<HealthReport> {
     const db = prisma as any;
@@ -190,7 +190,7 @@ export class HealthService {
     const resumeJson = version.resumeJson as GeneratedResume;
     const jobDescription = (version.session.originalJobDescription || '').trim();
 
-    // 1. ATS — reuse existing, never rerun
+    // 1. ATS - reuse existing, never rerun
     let atsReport: ATSReport | null = null;
     if (version.atsRuns?.length > 0 && version.atsRuns[0].suggestions) {
       try {
@@ -205,22 +205,22 @@ export class HealthService {
       atsReport = analyzeATS(resumeJson, jobDescription);
     }
 
-    // 2. Recruiter Review — run if missing (single LLM call)
+    // 2. Recruiter Review - run if missing (single LLM call)
     let recruiterReview: RecruiterReview | null = null;
     if (jobDescription) {
       try {
         recruiterReview = await atsService.recruiterReview(userId, resumeVersionId);
       } catch (err) {
-        console.error('[Health] Recruiter review failed — proceeding without.', err);
+        console.error('[Health] Recruiter review failed - proceeding without.', err);
       }
     }
 
-    // 3. Quality Analysis — run if missing (single LLM call)
+    // 3. Quality Analysis - run if missing (single LLM call)
     let qualityReport: QualityReport | null = null;
     try {
       qualityReport = await qualityService.analyzeQuality(resumeJson);
     } catch (err) {
-      console.error('[Health] Quality analysis failed — proceeding without.', err);
+      console.error('[Health] Quality analysis failed - proceeding without.', err);
     }
 
     // 4. Aggregate

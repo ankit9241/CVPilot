@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { useAuthStore } from "../store/auth-store";
 import { BASE_URL } from "@/lib/api";
 
+import { LogoIcon } from "@/components/shared/logo";
+
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Sign in — CVPilot" }] }),
+  head: () => ({ meta: [{ title: "Sign in - CVPilot" }] }),
   component: LoginPage,
 });
 
@@ -33,9 +35,7 @@ function LoginPage() {
       <div className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
           <Link to="/" className="inline-flex items-center gap-2.5 group">
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground shadow-soft transition-transform duration-200 group-hover:scale-105">
-              <PlaneTakeoff className="h-4 w-4" />
-            </div>
+            <LogoIcon size="md" />
             <span className="font-serif text-2xl font-medium tracking-tight text-foreground">CVPilot</span>
           </Link>
 
@@ -171,7 +171,7 @@ function LoginPage() {
           </div>
           <blockquote className="max-w-md font-sans text-[13px] leading-relaxed text-muted-foreground border-l-2 border-border pl-4">
             "It feels like Linear for job applications. Everything I need, nothing I don't."
-            <span className="mt-2 block text-foreground font-medium">— Priya M., Product Designer</span>
+            <span className="mt-2 block text-foreground font-medium">- Priya M., Product Designer</span>
           </blockquote>
         </div>
       </div>

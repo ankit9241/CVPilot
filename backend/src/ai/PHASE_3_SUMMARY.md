@@ -1,4 +1,4 @@
-# Phase 3: Model Configuration Consolidation — COMPLETE ✅
+# Phase 3: Model Configuration Consolidation - COMPLETE ✅
 
 ## Summary
 
@@ -15,7 +15,7 @@ Completed the final phase of the Gemini integration: consolidating ALL LLM model
 All Gemini model configuration now reads from environment variables with sensible defaults:
 
 ```bash
-# .env (optional — defaults applied if not set)
+# .env (optional - defaults applied if not set)
 GEMINI_MODEL=gemini-2.5-flash     # Default: gemini-2.5-flash
 GEMINI_TEMPERATURE=0.7              # Default: 0.7
 GEMINI_MAX_TOKENS=4096              # Default: 4096
@@ -56,8 +56,8 @@ The test script now validates configuration before running the workflow:
 
 ### 4. Documentation Updates
 
-- **MODEL_CONFIGURATION.md** (NEW) — Complete audit of all model configuration points
-- **GEMINI_SETUP.md** (UPDATED) — Now shows environment variable approach throughout
+- **MODEL_CONFIGURATION.md** (NEW) - Complete audit of all model configuration points
+- **GEMINI_SETUP.md** (UPDATED) - Now shows environment variable approach throughout
 - All hardcoded model examples replaced with environment variable examples
 
 ---
@@ -65,8 +65,8 @@ The test script now validates configuration before running the workflow:
 ## Files Modified/Created
 
 ### New Files
-- `src/ai/MODEL_CONFIGURATION.md` — Configuration audit and reference
-- `src/ai/PHASE_3_SUMMARY.md` — This file
+- `src/ai/MODEL_CONFIGURATION.md` - Configuration audit and reference
+- `src/ai/PHASE_3_SUMMARY.md` - This file
 
 ### Modified Files
 
@@ -190,12 +190,12 @@ ENV GEMINI_MAX_TOKENS=4096
 
 ## Key Achievements
 
-1. **Eliminated hardcoded values** — All Gemini configuration now external
-2. **Centralized configuration** — Single source of truth in environment
-3. **Visibility at startup** — Operators see exact configuration on boot
-4. **Test verification** — Automated check ensures correct model is active
-5. **Documentation aligned** — Guides reflect actual implementation
-6. **Build verified** — TypeScript compilation passes completely
+1. **Eliminated hardcoded values** - All Gemini configuration now external
+2. **Centralized configuration** - Single source of truth in environment
+3. **Visibility at startup** - Operators see exact configuration on boot
+4. **Test verification** - Automated check ensures correct model is active
+5. **Documentation aligned** - Guides reflect actual implementation
+6. **Build verified** - TypeScript compilation passes completely
 
 ---
 
@@ -254,16 +254,16 @@ ENV GEMINI_MAX_TOKENS=4096
 ## Audited Locations
 
 ✅ **Code Files**
-- `src/ai/llm/gemini.ts` — Reads env vars, no hardcoded override
-- `src/ai/init.ts` — Logs configuration, reads env vars
-- `src/ai/test-gemini.ts` — Verifies configuration before workflow
-- `src/ai/llm/claude.ts` — Hardcoded (appropriate, different provider)
+- `src/ai/llm/gemini.ts` - Reads env vars, no hardcoded override
+- `src/ai/init.ts` - Logs configuration, reads env vars
+- `src/ai/test-gemini.ts` - Verifies configuration before workflow
+- `src/ai/llm/claude.ts` - Hardcoded (appropriate, different provider)
 
 ✅ **Documentation**
-- `src/ai/GEMINI_SETUP.md` — Updated to show env var approach
-- `src/ai/ARCHITECTURE.md` — Already aligned
-- `src/ai/INTEGRATION.md` — Already aligned
-- `src/ai/VERIFICATION.md` — Already aligned
+- `src/ai/GEMINI_SETUP.md` - Updated to show env var approach
+- `src/ai/ARCHITECTURE.md` - Already aligned
+- `src/ai/INTEGRATION.md` - Already aligned
+- `src/ai/VERIFICATION.md` - Already aligned
 
 ✅ **No Hardcoded Overrides**
 - ❌ No `gemini-2.5-pro` found
@@ -277,10 +277,10 @@ ENV GEMINI_MAX_TOKENS=4096
 **The Gemini integration is complete and production-ready.**
 
 Options for next phase:
-1. **Integration Testing** — Wire to resume generation endpoints
-2. **Performance Tuning** — Optimize parallel node execution
-3. **ATS Scoring** — Add job match scoring layer (future)
-4. **PDF Generation** — Add PDF output format (future)
+1. **Integration Testing** - Wire to resume generation endpoints
+2. **Performance Tuning** - Optimize parallel node execution
+3. **ATS Scoring** - Add job match scoring layer (future)
+4. **PDF Generation** - Add PDF output format (future)
 
 ---
 
@@ -303,8 +303,8 @@ Options for next phase:
 - **Zero hardcoded model overrides** remaining in production code
 - **100% build success** (TypeScript compilation clean)
 - **All environment variables** properly read with sensible defaults
-- **API key security** — Never logged in plain text
-- **Test coverage** — Configuration verified before workflow execution
+- **API key security** - Never logged in plain text
+- **Test coverage** - Configuration verified before workflow execution
 
 ---
 

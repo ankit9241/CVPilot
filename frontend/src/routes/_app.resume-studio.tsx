@@ -29,7 +29,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/_app/resume-studio")({
-  head: () => ({ meta: [{ title: "Resume Studio — CVPilot" }] }),
+  head: () => ({ meta: [{ title: "Resume Studio - CVPilot" }] }),
   component: ResumeStudioPage,
 });
 

@@ -31,7 +31,7 @@ Required: React, Node.js, TypeScript, AWS
 Preferred: Kubernetes, GraphQL
 Nice to have: Docker`;
 
-// 1. With JD — metrics should be detected, synonyms should match (Node vs Node.js), weighted scoring.
+// 1. With JD - metrics should be detected, synonyms should match (Node vs Node.js), weighted scoring.
 const withJd = analyzeATS(resume, jd);
 const impact = withJd.detailedBreakdown.find((d) => d.category === 'Impact & Quantification');
 const kw = withJd.detailedBreakdown.find((d) => d.category === 'Keyword Match');
@@ -43,7 +43,7 @@ console.log('  impact evidence:', impact?.evidence);
 console.log('  impact deductions:', impact?.deductions);
 console.log('  matched:', withJd.matchedKeywords, 'missing:', withJd.missingKeywords);
 
-// 2. Without JD — JD-dependent categories marked N/A, overall score from structure only.
+// 2. Without JD - JD-dependent categories marked N/A, overall score from structure only.
 const noJd = analyzeATS(resume, '');
 console.log('\nWITHOUT JD');
 console.log('  overallScore:', noJd.overallScore);

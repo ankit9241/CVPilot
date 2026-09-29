@@ -53,7 +53,7 @@ const workflowSearchSchema = z.object({
 
 export const Route = createFileRoute("/_app/workflow")({
   validateSearch: (search) => workflowSearchSchema.parse(search),
-  head: () => ({ meta: [{ title: "Workflow — CVPilot" }] }),
+  head: () => ({ meta: [{ title: "Workflow - CVPilot" }] }),
   component: WorkflowPage,
 });
 
@@ -217,7 +217,7 @@ function WorkflowPage() {
       .then((res) => {
         setDbTemplates(res || []);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const handleSwitchTemplate = async (templateId: string) => {
@@ -433,7 +433,7 @@ function WorkflowPage() {
                 return currentVal;
               });
             } else if (latest.id && !pdfUrl && !(window as any)[`rendering_${latest.id}`]) {
-              // pdfUrl is null in DB — auto-trigger a render to compile and upload it
+              // pdfUrl is null in DB - auto-trigger a render to compile and upload it
               (window as any)[`rendering_${latest.id}`] = true;
               setIsRendering(true);
               console.log(
@@ -717,7 +717,7 @@ function WorkflowPage() {
                   className="gap-1.5 rounded-full bg-[#FFFEFC] border border-[rgba(55,50,47,0.14)] text-[#18181B] hover:bg-[#F4F1EC]"
                   onClick={handleDownloadPdf}
                   disabled={!pdfUrl}
-                  title={pdfUrl ? "Download PDF" : "No PDF yet — switch to PDF Preview tab"}
+                  title={pdfUrl ? "Download PDF" : "No PDF yet - switch to PDF Preview tab"}
                 >
                   <Download className="h-3.5 w-3.5" /> Download PDF
                 </Button>
@@ -914,7 +914,7 @@ function WorkflowPage() {
                             <div key={i} className="space-y-1">
                               <div className="flex justify-between text-[13.5px] font-semibold">
                                 <span>
-                                  {proj.name} {proj.role ? `— ${proj.role}` : ""}
+                                  {proj.name} {proj.role ? `- ${proj.role}` : ""}
                                 </span>
                               </div>
                               <p className="text-[12.5px] text-muted-foreground leading-relaxed italic">
@@ -1266,7 +1266,7 @@ function WorkflowPage() {
                   {generatedResume
                     ? "0s"
                     : error
-                      ? "—"
+                      ? "-"
                       : `${Math.max(0, (steps.length - progressIndex) * 2.5)}s`}
                 </div>
               </div>

@@ -2,9 +2,9 @@ import { GeneratedResume } from '../../ai/types';
 import { getLLMClient } from '../../ai/llm/client';
 import { parseJSON } from '../../ai/utils/json-parser';
 
-const SYSTEM_PROMPT = `You are an elite resume strategist who has helped 10,000+ candidates land interviews at FAANG, Big Tech, and high-growth startups. You don't just "optimize" resumes — you rebuild them to tell a targeted story for a specific role.
+const SYSTEM_PROMPT = `You are an elite resume strategist who has helped 10,000+ candidates land interviews at FAANG, Big Tech, and high-growth startups. You don't just "optimize" resumes - you rebuild them to tell a targeted story for a specific role.
 
-You receive a full resume and a job description. Your job: make this resume feel like it was written specifically for this job — without removing any experience, project, skill, achievement, education, or certificate.
+You receive a full resume and a job description. Your job: make this resume feel like it was written specifically for this job - without removing any experience, project, skill, achievement, education, or certificate.
 
 WHAT YOU MAY DO:
 - Reorder experiences so the most relevant ones come first
@@ -20,7 +20,7 @@ WHAT YOU MUST NEVER DO:
 - Never remove any experience entry, even if it seems irrelevant
 - Never remove any project, skill, certificate, achievement, or education entry
 - Never fabricate experience, metrics, or technologies that aren't in the original
-- Never invent bullet points — only rewrite existing ones for emphasis and relevance
+- Never invent bullet points - only rewrite existing ones for emphasis and relevance
 
 RANKING RULES:
 1. **Experiences**: Rank by direct relevance to the JD. Most relevant role first. If two are equally relevant, more recent comes first.
@@ -38,13 +38,13 @@ ${JSON.stringify(resume, null, 2)}
 === TARGET JOB DESCRIPTION ===
 ${jobDescription}
 
-Reorder, reword, and emphasize. Keep everything. Output ONLY the tailored resume JSON — no markdown fences, no commentary.`;
+Reorder, reword, and emphasize. Keep everything. Output ONLY the tailored resume JSON - no markdown fences, no commentary.`;
 }
 
 export class TailoringService {
   /**
    * Reorder, reword, and emphasize resume content by JD relevance.
-   * Never removes content — only changes ordering, wording, and emphasis.
+   * Never removes content - only changes ordering, wording, and emphasis.
    */
   async tailorResume(resume: GeneratedResume, jobDescription: string): Promise<GeneratedResume> {
     const client = getLLMClient();
@@ -69,39 +69,39 @@ export class TailoringService {
    * Safety net: if the LLM dropped any entry, fall back to the original.
    */
   private validateNoDroppedContent(original: GeneratedResume, tailored: GeneratedResume): GeneratedResume {
-    // Check experience count — never reduce
+    // Check experience count - never reduce
     if ((tailored.experiences?.length || 0) < (original.experiences?.length || 0)) {
-      console.warn('[Tailoring] LLM dropped experiences — using original ordering');
+      console.warn('[Tailoring] LLM dropped experiences - using original ordering');
       return original;
     }
 
-    // Check project count — never reduce
+    // Check project count - never reduce
     if ((tailored.projects?.length || 0) < (original.projects?.length || 0)) {
-      console.warn('[Tailoring] LLM dropped projects — using original ordering');
+      console.warn('[Tailoring] LLM dropped projects - using original ordering');
       return original;
     }
 
-    // Check skill count — never reduce
+    // Check skill count - never reduce
     if ((tailored.skills?.length || 0) < (original.skills?.length || 0)) {
-      console.warn('[Tailoring] LLM dropped skills — using original ordering');
+      console.warn('[Tailoring] LLM dropped skills - using original ordering');
       return original;
     }
 
-    // Check achievement count — never reduce
+    // Check achievement count - never reduce
     if ((tailored.achievements?.length || 0) < (original.achievements?.length || 0)) {
-      console.warn('[Tailoring] LLM dropped achievements — using original ordering');
+      console.warn('[Tailoring] LLM dropped achievements - using original ordering');
       return original;
     }
 
-    // Check education count — never reduce
+    // Check education count - never reduce
     if ((tailored.education?.length || 0) < (original.education?.length || 0)) {
-      console.warn('[Tailoring] LLM dropped education — using original ordering');
+      console.warn('[Tailoring] LLM dropped education - using original ordering');
       return original;
     }
 
-    // Check certificate count — never reduce
+    // Check certificate count - never reduce
     if ((tailored.certificates?.length || 0) < (original.certificates?.length || 0)) {
-      console.warn('[Tailoring] LLM dropped certificates — using original ordering');
+      console.warn('[Tailoring] LLM dropped certificates - using original ordering');
       return original;
     }
 
@@ -110,7 +110,7 @@ export class TailoringService {
     const tailoredCompanies = new Set(tailored.experiences.map(e => e.companyName.toLowerCase()));
     for (const company of originalCompanies) {
       if (!tailoredCompanies.has(company)) {
-        console.warn(`[Tailoring] LLM removed experience at "${company}" — using original`);
+        console.warn(`[Tailoring] LLM removed experience at "${company}" - using original`);
         return original;
       }
     }
@@ -120,7 +120,7 @@ export class TailoringService {
     const tailoredProjects = new Set(tailored.projects.map(p => p.name.toLowerCase()));
     for (const name of originalProjects) {
       if (!tailoredProjects.has(name)) {
-        console.warn(`[Tailoring] LLM removed project "${name}" — using original`);
+        console.warn(`[Tailoring] LLM removed project "${name}" - using original`);
         return original;
       }
     }
@@ -130,7 +130,7 @@ export class TailoringService {
     const tailoredSkills = new Set(tailored.skills.map(s => s.name.toLowerCase()));
     for (const skill of originalSkills) {
       if (!tailoredSkills.has(skill)) {
-        console.warn(`[Tailoring] LLM removed skill "${skill}" — using original`);
+        console.warn(`[Tailoring] LLM removed skill "${skill}" - using original`);
         return original;
       }
     }

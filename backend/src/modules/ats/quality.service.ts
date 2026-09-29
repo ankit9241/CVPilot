@@ -11,7 +11,7 @@ import {
   extractResumeFacts,
 } from './ats.utils';
 
-const SYSTEM_PROMPT = `You are a senior technical recruiter and professional resume writer with 18 years of experience reviewing resumes across every industry. You have reviewed over 50,000 resumes and written career guides. You evaluate resumes purely on writing quality and presentation — you do not score for ATS, keyword density, or job-fit.
+const SYSTEM_PROMPT = `You are a senior technical recruiter and professional resume writer with 18 years of experience reviewing resumes across every industry. You have reviewed over 50,000 resumes and written career guides. You evaluate resumes purely on writing quality and presentation - you do not score for ATS, keyword density, or job-fit.
 
 You receive a resume JSON and analyze it as a standalone document. Your assessment must be job-agnostic: judge the resume on its own merits, not how well it matches any particular role.
 
@@ -68,7 +68,7 @@ SCORING CRITERIA & EXPLICIT ANCHORS (each scored 1 to 5):
 
 **overallQualityScore**: Calculated as Math.round(((Grammar * 0.15 + Readability * 0.15 + Formatting * 0.15 + Parseability * 0.15 + Impact * 0.20 + Conciseness * 0.10 + Consistency * 0.10) / 5) * 100).
 
-OUTPUT SCHEMA — RETURN ONLY VALID JSON with EXACTLY these fields. Do not omit any, do not rename any, do not wrap in markdown, do not add commentary outside the JSON:
+OUTPUT SCHEMA - RETURN ONLY VALID JSON with EXACTLY these fields. Do not omit any, do not rename any, do not wrap in markdown, do not add commentary outside the JSON:
 {
   "overallQualityScore": number,
   "strengths": string[],
@@ -77,7 +77,7 @@ OUTPUT SCHEMA — RETURN ONLY VALID JSON with EXACTLY these fields. Do not omit 
   "professionalReview": string
 }
 
-- "overallQualityScore": an integer from 0 to 100 based strictly on the weighted rubric above. You MUST output this field — never omit it.
+- "overallQualityScore": an integer from 0 to 100 based strictly on the weighted rubric above. You MUST output this field - never omit it.
 - "strengths": 3-6 specific things this resume does well as a document. Quote actual text when possible.
 - "weaknesses": 3-5 specific writing/presentation problems. Quote the problematic text and explain why it fails.
 - "quickWins": 3-5 specific changes that would immediately improve quality. Each should be actionable (e.g. "Change passive phrasing to active voice in the first experience bullet").
@@ -86,7 +86,7 @@ OUTPUT SCHEMA — RETURN ONLY VALID JSON with EXACTLY these fields. Do not omit 
 CRITICAL RULES:
 - Return ONLY the JSON object above. No markdown fences, no prose before or after it.
 - Do NOT reference ATS scores, keyword matching, or job description alignment. This is a quality-only review.
-- Do NOT invent problems — only flag what you actually see in the resume text.
+- Do NOT invent problems - only flag what you actually see in the resume text.
 - Quote actual resume text in strengths and weaknesses. Generic feedback is worthless.
 - QUICK WINS RULES: Each quick win must: (1) identify one specific existing issue, (2) explain exactly where it occurs, (3) propose a factual correction, and (4) not invent new information.
 - NEVER tell the candidate to add new technologies, new projects, or new responsibilities in Quick Wins.
@@ -114,7 +114,7 @@ IMPORTANT FOR QUICK WINS:
 - Focus on writing craft: action verbs, conciseness, grammar, and metric quantification (only if genuine).
 - Never recommend adding missing technologies or job-specific skills in quickWins.
 
-Output ONLY valid JSON matching the schema — no markdown fences, no commentary.`;
+Output ONLY valid JSON matching the schema - no markdown fences, no commentary.`;
 }
 
 export type QualityParseResult =
@@ -128,7 +128,7 @@ export type QualityParseResult =
  * - never derives or invents the score from missing data
  * - optional arrays default to []; score range must be 0-100
  * Returns a structured result: QUALITY_SCORE_MISSING / QUALITY_SCORE_INVALID /
- * QUALITY_PARSE_FAILED on failure — never a silent 0.
+ * QUALITY_PARSE_FAILED on failure - never a silent 0.
  */
 export function parseQualityResponse(raw: string): QualityParseResult {
   let parsed: any = null;
@@ -179,7 +179,7 @@ export function parseQualityResponse(raw: string): QualityParseResult {
 
 function sanitizeResumeForQuality(resume: GeneratedResume): GeneratedResume {
   const isUploaded = resume.metadata?.generationSessionId?.startsWith('upload-');
-  
+
   // Clone to avoid side effects
   const clean = JSON.parse(JSON.stringify(resume));
 

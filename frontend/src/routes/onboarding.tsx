@@ -6,7 +6,6 @@ import {
   Check,
   ArrowRight,
   ArrowLeft,
-  PlaneTakeoff,
   Plus,
   Trash2,
   Sparkles,
@@ -22,6 +21,7 @@ import {
   X,
   Loader2,
 } from "lucide-react";
+import { LogoIcon } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +33,7 @@ import { useAuthStore } from "../store/auth-store";
 import { api } from "../lib/api";
 
 export const Route = createFileRoute("/onboarding")({
-  head: () => ({ meta: [{ title: "Get started — CVPilot" }] }),
+  head: () => ({ meta: [{ title: "Get started - CVPilot" }] }),
   component: OnboardingPage,
 });
 
@@ -67,7 +67,7 @@ function OnboardingPage() {
   const total = stepsMeta.length;
   const progress = Math.round((step / total) * 100);
 
-  // Basic info state (step 1) — lifted so Save&Continue can POST it
+  // Basic info state (step 1) - lifted so Save&Continue can POST it
   const [basic, setBasic] = useState<BasicData>({
     fullName: "",
     phone: "",
@@ -149,9 +149,7 @@ function OnboardingPage() {
       <header className="border-b border-border">
         <div className="container-page flex h-14 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-              <PlaneTakeoff className="h-4 w-4" />
-            </div>
+            <LogoIcon size="sm" />
             <span className="text-sm font-semibold tracking-tight">CVPilot</span>
           </Link>
           <div className="hidden items-center gap-3 text-[12px] text-muted-foreground sm:flex">
@@ -463,7 +461,7 @@ function StepSocial() {
         });
         setLinks(map);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const saveLink = async (platform: string, url: string) => {
@@ -538,7 +536,7 @@ function StepEducation() {
   const load = useCallback(async () => {
     try {
       setItems(await api.get<EduItem[]>("/profile/education"));
-    } catch {}
+    } catch { }
   }, []);
   useEffect(() => {
     load();
@@ -561,7 +559,7 @@ function StepEducation() {
     try {
       await api.delete(`/profile/education/${id}`);
       await load();
-    } catch {}
+    } catch { }
   };
 
   const set = (k: keyof EduItem) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -576,7 +574,7 @@ function StepEducation() {
       />
       <div className="mt-8 space-y-3">
         {items.length === 0 && !adding && (
-          <EmptyState label="No education added yet — click below to add." />
+          <EmptyState label="No education added yet - click below to add." />
         )}
         {items.map((e) => (
           <div
@@ -711,7 +709,7 @@ function StepExperience() {
   const load = useCallback(async () => {
     try {
       setItems(await api.get<ExpItem[]>("/profile/experience"));
-    } catch {}
+    } catch { }
   }, []);
   useEffect(() => {
     load();
@@ -734,7 +732,7 @@ function StepExperience() {
     try {
       await api.delete(`/profile/experience/${id}`);
       await load();
-    } catch {}
+    } catch { }
   };
 
   const set =
@@ -746,11 +744,11 @@ function StepExperience() {
       <StepHeader
         eyebrow="Step 4 of 9"
         title="Experience"
-        description="Every role, every impact — as a timeline you can edit."
+        description="Every role, every impact - as a timeline you can edit."
       />
       <div className="relative mt-8 space-y-4 pl-6 before:absolute before:bottom-2 before:left-2 before:top-2 before:w-px before:bg-border">
         {items.length === 0 && !adding && (
-          <EmptyState label="No experience added yet — click below to add." />
+          <EmptyState label="No experience added yet - click below to add." />
         )}
         {items.map((x) => (
           <div
@@ -911,7 +909,7 @@ function StepProjects() {
   const load = useCallback(async () => {
     try {
       setItems(await api.get<ProjItem[]>("/profile/projects"));
-    } catch {}
+    } catch { }
   }, []);
   useEffect(() => {
     load();
@@ -938,7 +936,7 @@ function StepProjects() {
     try {
       await api.delete(`/profile/projects/${id}`);
       await load();
-    } catch {}
+    } catch { }
   };
 
   const set =
@@ -954,7 +952,7 @@ function StepProjects() {
       />
       <div className="mt-8 grid grid-cols-1 gap-3">
         {items.length === 0 && !adding && (
-          <EmptyState label="No projects added yet — click below to add." />
+          <EmptyState label="No projects added yet - click below to add." />
         )}
         {items.map((p) => (
           <div
@@ -1117,7 +1115,7 @@ function StepSkills() {
   const load = useCallback(async () => {
     try {
       setSkills(await api.get<any[]>("/profile/skills"));
-    } catch {}
+    } catch { }
   }, []);
   useEffect(() => {
     load();
@@ -1140,7 +1138,7 @@ function StepSkills() {
     try {
       await api.delete(`/profile/skills/${id}`);
       await load();
-    } catch {}
+    } catch { }
   };
 
   const grouped = SKILL_CATEGORIES.reduce(
@@ -1244,7 +1242,7 @@ function StepCertificates() {
   const load = useCallback(async () => {
     try {
       setItems(await api.get<CertItem[]>("/profile/certificates"));
-    } catch {}
+    } catch { }
   }, []);
   useEffect(() => {
     load();
@@ -1267,7 +1265,7 @@ function StepCertificates() {
     try {
       await api.delete(`/profile/certificates/${id}`);
       await load();
-    } catch {}
+    } catch { }
   };
 
   const set = (k: keyof CertItem) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -1398,7 +1396,7 @@ function StepAchievements() {
   const load = useCallback(async () => {
     try {
       setItems(await api.get<AchItem[]>("/profile/achievements"));
-    } catch {}
+    } catch { }
   }, []);
   useEffect(() => {
     load();
@@ -1421,7 +1419,7 @@ function StepAchievements() {
     try {
       await api.delete(`/profile/achievements/${id}`);
       await load();
-    } catch {}
+    } catch { }
   };
 
   const set =
@@ -1568,7 +1566,7 @@ function StepReview({ onEdit }: { onEdit: (n: number) => void }) {
   }, []);
 
   const rows = [
-    { n: 1, label: "Basic info", value: user?.profile?.fullName || user?.email || "—" },
+    { n: 1, label: "Basic info", value: user?.profile?.fullName || user?.email || "-" },
     { n: 2, label: "Social links", value: `${counts.social} added` },
     { n: 3, label: "Education", value: `${counts.edu} ${counts.edu === 1 ? "entry" : "entries"}` },
     { n: 4, label: "Experience", value: `${counts.exp} ${counts.exp === 1 ? "role" : "roles"}` },

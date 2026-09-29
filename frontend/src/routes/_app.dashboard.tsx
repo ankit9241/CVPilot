@@ -32,7 +32,7 @@ import { InfiniteSlider } from "@/components/shared/infinite-slider";
 import { UsageCard } from "@/components/shared/usage-card";
 
 export const Route = createFileRoute("/_app/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — CVPilot" }] }),
+  head: () => ({ meta: [{ title: "Dashboard - CVPilot" }] }),
   component: DashboardPage,
 });
 

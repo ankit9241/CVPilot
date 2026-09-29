@@ -31,7 +31,7 @@ function assert(condition: boolean, message: string) {
 
 async function runSecuritySuite() {
   console.log('====================================================');
-  console.log('CVPilot — PRODUCTION SECURITY & USAGE TEST SUITE');
+  console.log('CVPilot - PRODUCTION SECURITY & USAGE TEST SUITE');
   console.log('====================================================\n');
 
   // --- 1. Fixed Feature Limits Verification ---

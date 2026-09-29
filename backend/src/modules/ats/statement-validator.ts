@@ -22,21 +22,21 @@ import {
 
 const STOPWORDS = new Set([
   // grammatical / structural fillers
-  'about','after','again','against','also','because','been','before','being','between','both','could',
-  'does','doing','during','each','from','have','having','here','into','just','more','most','much','must',
-  'need','never','other','over','same','should','some','such','than','that','their','them','then','there',
-  'these','they','this','those','through','under','very','were','what','when','where','which','while','with',
-  'would','your','this','there','from','been','will','also','your','their','that','with','have','were','should',
-  // resume-structural words that appear in most resumes regardless of content —
+  'about', 'after', 'again', 'against', 'also', 'because', 'been', 'before', 'being', 'between', 'both', 'could',
+  'does', 'doing', 'during', 'each', 'from', 'have', 'having', 'here', 'into', 'just', 'more', 'most', 'much', 'must',
+  'need', 'never', 'other', 'over', 'same', 'should', 'some', 'such', 'than', 'that', 'their', 'them', 'then', 'there',
+  'these', 'they', 'this', 'those', 'through', 'under', 'very', 'were', 'what', 'when', 'where', 'which', 'while', 'with',
+  'would', 'your', 'this', 'there', 'from', 'been', 'will', 'also', 'your', 'their', 'that', 'with', 'have', 'were', 'should',
+  // resume-structural words that appear in most resumes regardless of content -
   // they must not count as evidence overlap.
-  'certified','certificate','certification','certifications','graduated','graduate','graduates','degree',
-  'developer','developers','engineer','engineers','engineering','experience','experienced','role','roles',
-  'company','companies','university','universities','school','team','product','platform','systems','system',
-  'skills','skill','building','built','working','strong','solid','excellent','good','great','technical',
-  'demonstrated','demonstrates','demonstrating','showing','shown','provide','provides','provided','including',
-  'across','overall','several','various','multiple','extensive','years','year','senior','junior','middle',
-  'professional','professionally','results','result','impactful','position','positions','responsibilities',
-  'responsibility','projects','project','leader','leadership','solutions','solution','work','worked',
+  'certified', 'certificate', 'certification', 'certifications', 'graduated', 'graduate', 'graduates', 'degree',
+  'developer', 'developers', 'engineer', 'engineers', 'engineering', 'experience', 'experienced', 'role', 'roles',
+  'company', 'companies', 'university', 'universities', 'school', 'team', 'product', 'platform', 'systems', 'system',
+  'skills', 'skill', 'building', 'built', 'working', 'strong', 'solid', 'excellent', 'good', 'great', 'technical',
+  'demonstrated', 'demonstrates', 'demonstrating', 'showing', 'shown', 'provide', 'provides', 'provided', 'including',
+  'across', 'overall', 'several', 'various', 'multiple', 'extensive', 'years', 'year', 'senior', 'junior', 'middle',
+  'professional', 'professionally', 'results', 'result', 'impactful', 'position', 'positions', 'responsibilities',
+  'responsibility', 'projects', 'project', 'leader', 'leadership', 'solutions', 'solution', 'work', 'worked',
 ]);
 
 const RATING_RE =
@@ -136,7 +136,7 @@ function rejectReason(statement: string, resume: GeneratedResume, ctx: {
     }
   }
 
-  // 7. Token-overlap floor — a positive statement must share vocabulary with the
+  // 7. Token-overlap floor - a positive statement must share vocabulary with the
   //    resume, otherwise it is ungrounded generic filler.
   const stTokens = meaningfulTokens(statement);
   if (stTokens.length > 0) {
@@ -209,7 +209,7 @@ function resumeStrengthObservations(resume: GeneratedResume): string[] {
 function resumeWeaknessObservations(resume: GeneratedResume): string[] {
   const out: string[] = [];
   const txt = extractAllResumeText(resume);
-  if (!hasMetric(txt)) out.push('Limited quantified impact — add numbers, percentages, or dollar amounts.');
+  if (!hasMetric(txt)) out.push('Limited quantified impact - add numbers, percentages, or dollar amounts.');
   if ((resume.experiences?.length ?? 0) === 0) out.push('No professional experience documented.');
   if ((resume.skills?.length ?? 0) === 0) out.push('No technical skills listed.');
   return out;

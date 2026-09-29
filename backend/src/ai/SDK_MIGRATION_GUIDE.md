@@ -6,11 +6,11 @@ The Gemini LLM provider has been upgraded to use the latest **@google/genai** SD
 
 ## Why Migrate?
 
-- ✅ **Latest SDK** — More modern, actively maintained by Google
-- ✅ **Better future-proof** — Recommended by Google for current & future models
-- ✅ **Simplified API** — Cleaner, more intuitive interface
-- ✅ **Better performance** — Optimized implementation
-- ✅ **Improved TypeScript support** — Better type definitions
+- ✅ **Latest SDK** - More modern, actively maintained by Google
+- ✅ **Better future-proof** - Recommended by Google for current & future models
+- ✅ **Simplified API** - Cleaner, more intuitive interface
+- ✅ **Better performance** - Optimized implementation
+- ✅ **Improved TypeScript support** - Better type definitions
 
 ## What Changed
 
@@ -81,20 +81,20 @@ const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
 ## Build Status
 
-✅ **Migration Complete** — TypeScript build passes
-✅ **All Tests Ready** — Test script verified
-✅ **No Breaking Changes** — External API unchanged
+✅ **Migration Complete** - TypeScript build passes
+✅ **All Tests Ready** - Test script verified
+✅ **No Breaking Changes** - External API unchanged
 
 ## Affected Files
 
 Only one file needed updating:
-- `src/ai/llm/gemini.ts` — Now uses @google/genai SDK
+- `src/ai/llm/gemini.ts` - Now uses @google/genai SDK
 
 All other files remain unchanged:
-- `src/ai/init.ts` — No changes needed
-- `src/ai/test-gemini.ts` — No changes needed
-- `src/ai/graph/langgraph-workflow.ts` — No changes needed
-- All public APIs — No changes needed
+- `src/ai/init.ts` - No changes needed
+- `src/ai/test-gemini.ts` - No changes needed
+- `src/ai/graph/langgraph-workflow.ts` - No changes needed
+- All public APIs - No changes needed
 
 ## Verification
 
@@ -126,18 +126,18 @@ To revert to the old SDK (not recommended):
 
 ## What Stays The Same
 
-✅ **Environment variables** — GEMINI_MODEL, GEMINI_TEMPERATURE, etc.
-✅ **LLMClient interface** — Unchanged
-✅ **LangGraph workflow** — Unchanged
-✅ **Error handling** — Preserved
-✅ **Retry logic** — Preserved
-✅ **Token tracking** — Preserved
-✅ **Public APIs** — All unchanged
+✅ **Environment variables** - GEMINI_MODEL, GEMINI_TEMPERATURE, etc.
+✅ **LLMClient interface** - Unchanged
+✅ **LangGraph workflow** - Unchanged
+✅ **Error handling** - Preserved
+✅ **Retry logic** - Preserved
+✅ **Token tracking** - Preserved
+✅ **Public APIs** - All unchanged
 
 ## Documentation Updates
 
-- ✅ `src/ai/GEMINI_SETUP.md` — Updated with new SDK info
-- ✅ `src/ai/llm/gemini.ts` — Comments updated
+- ✅ `src/ai/GEMINI_SETUP.md` - Updated with new SDK info
+- ✅ `src/ai/llm/gemini.ts` - Comments updated
 - ✅ This migration guide added
 
 ## Compatibility

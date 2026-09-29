@@ -21,7 +21,7 @@ bun install
 bun run dev
 ```
 
-There is no root-level dev script — start each side independently.
+There is no root-level dev script - start each side independently.
 
 ## Architecture
 
@@ -30,9 +30,9 @@ Two fully independent apps that communicate over REST. No shared packages. The r
 
 ### Backend: `backend/src/`
 
-**Express app** (`index.ts`): Middleware stack → routes → `initializeAIModule()` (fatal on failure) → `connectDatabase()` + `seedTemplates()`. Falls into "dummy mode" if DB is unavailable — controllers return static fixtures from `constants/dummy-data.ts` rather than crashing.
+**Express app** (`index.ts`): Middleware stack → routes → `initializeAIModule()` (fatal on failure) → `connectDatabase()` + `seedTemplates()`. Falls into "dummy mode" if DB is unavailable - controllers return static fixtures from `constants/dummy-data.ts` rather than crashing.
 
-**Module layout** — feature code lives under `src/modules/{feature}/`:
+**Module layout** - feature code lives under `src/modules/{feature}/`:
 ```
 auth/  profile/  resume/  vault/  workflow/  template/  application/  settings/  ats/
 ```
@@ -57,7 +57,7 @@ Each module owns its own routes, controller, service, and repository. The root `
 
 ### Frontend: `frontend/src/`
 
-**TanStack Start** (SSR, Vite 8, React 19). File-based routing via TanStack Router; generated route tree is at `src/routeTree.gen.ts` — do not edit manually.
+**TanStack Start** (SSR, Vite 8, React 19). File-based routing via TanStack Router; generated route tree is at `src/routeTree.gen.ts` - do not edit manually.
 
 Key dependencies: Radix UI (full suite), Tailwind v4, Zustand (state), Zod + react-hook-form, Framer Motion, `@xyflow/react` (flow/graph visualization, likely the workflow step UI), Recharts (analytics), `react-dropzone` (file upload).
 

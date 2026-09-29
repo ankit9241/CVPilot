@@ -15,7 +15,7 @@ import { getLLMClient } from '../../ai/llm/client';
 import { parseJSON } from '../../ai/utils/json-parser';
 import { validateRecruiterStatements, validateRecommendationList } from './statement-validator';
 
-const SYSTEM_PROMPT_RECRUITER_REVIEW = `You are a senior technical recruiter with 15+ years of experience hiring engineers at top-tier companies (FAANG, unicorn startups, high-growth Series A-D). You have reviewed thousands of resumes and conducted hundreds of interviews. You have a reputation for being brutally honest but fair — candidates and hiring managers both respect your judgment because you're never vague, never diplomatic, and never wrong.
+const SYSTEM_PROMPT_RECRUITER_REVIEW = `You are a senior technical recruiter with 15+ years of experience hiring engineers at top-tier companies (FAANG, unicorn startups, high-growth Series A-D). You have reviewed thousands of resumes and conducted hundreds of interviews. You have a reputation for being brutally honest but fair - candidates and hiring managers both respect your judgment because you're never vague, never diplomatic, and never wrong.
 
 Your job: give a candid, senior-recruiter review of this candidate for this specific role. Write like a human recruiter, not like an AI. No bullet-point padding, no filler, no "great communicator" platitudes. If something is weak, say why. If something is strong, say what specifically makes it strong.
 
@@ -31,7 +31,7 @@ FORMAT RULES:
 
 PRIORITY ORDERING (non-negotiable):
 - Always evaluate in this order: (1) required qualifications, (2) strongly relevant demonstrated experience, (3) major resume weaknesses, (4) preferred/nice-to-have gaps.
-- Missing nice-to-have or optional technologies are LOW priority — do NOT treat them like missing core qualifications.
+- Missing nice-to-have or optional technologies are LOW priority - do NOT treat them like missing core qualifications.
 - If multiple technologies from the JD are absent from the resume, consolidate them into ONE weakness statement rather than listing each separately. Example: "The JD mentions PostgreSQL, Docker, Kubernetes, CI/CD, and GraphQL, but none are demonstrated in the resume." Do NOT create one weakness per technology.
 - Do not repeat the same finding across weaknesses, biggestConcerns, topImprovements, and strengths. Each section must contain genuinely distinct observations.
 
@@ -43,12 +43,12 @@ ACKNOWLEDGE EXISTING EVIDENCE (non-negotiable):
 GROUNDING RULES (non-negotiable):
 - Every positive and negative observation MUST be grounded in text that actually appears in the resume. If a claim cannot be tied to a specific bullet, section, company, project, date, or number in the resume, do not make it.
 - Never invent: dates, skill ratings, proficiency levels, missing education, years of experience, achievements, companies, or technologies. If the resume does not show it, it does not exist.
-- Do not mention skill "levels" or ratings — they are not present in the resume.
+- Do not mention skill "levels" or ratings - they are not present in the resume.
 - If information is genuinely absent (e.g. no graduation date), say it is absent rather than guessing a value.
 
 INFERENCE CONTROL (non-negotiable):
 - Distinguish three things in your review: FACT (stated in the resume), INFERENCE (your judgment derived from it), and RECOMMENDATION (a suggested next step). Never present an inference or a recommendation as a fact.
-- A role is "future-dated" ONLY if its start date is AFTER the analysis date provided in the prompt. A start date on or before the analysis date is in the PAST — never call it "future-dated", "inaccurate", or "suspicious".
+- A role is "future-dated" ONLY if its start date is AFTER the analysis date provided in the prompt. A start date on or before the analysis date is in the PAST - never call it "future-dated", "inaccurate", or "suspicious".
 - Overlapping education, student-organization, and employment dates are NORMAL and completely plausible (students work while studying). Never describe overlapping dates as impossible, fraudulent, fabricated, contradictory, future-dated, inaccurate, suspicious, or an "integrity concern".
 - Report a date contradiction ONLY when ONE of these is true:
   1. a single record has an end date before its own start date, OR
@@ -65,9 +65,9 @@ EXPERIENCE DURATION (non-negotiable):
 
 RECOMMENDATION GROUNDING (non-negotiable):
 - Every recommendation must fall into exactly one of these forms:
-  A. Resume improvement — e.g. "Quantify the Thrive Wellness bullets if measurable outcomes are available."
-  B. Missing-skill disclosure — e.g. "PostgreSQL is required by the JD but is not demonstrated in the resume."
-  C. Genuine-experience reminder — e.g. "If you have genuine Docker experience, add it with a supporting project or experience bullet."
+  A. Resume improvement - e.g. "Quantify the Thrive Wellness bullets if measurable outcomes are available."
+  B. Missing-skill disclosure - e.g. "PostgreSQL is required by the JD but is not demonstrated in the resume."
+  C. Genuine-experience reminder - e.g. "If you have genuine Docker experience, add it with a supporting project or experience bullet."
 - NEVER tell the candidate to "add", "learn", "implement", or "claim" a technology they do not possess merely to raise an ATS score. This applies to every technology: Docker, Kubernetes, PostgreSQL, GraphQL, WebSockets, CI/CD, GitHub Actions, and any other missing skill.
 - NEVER suggest creating fake projects, fabricating experience, or inventing metrics to improve the resume.
 - For a technology required by the JD but absent from the resume, state ONLY that it is not demonstrated, and add the conditional "If you have genuine experience with X, add it with evidence." Do not instruct them to fabricate or pad it.
@@ -120,7 +120,7 @@ function sanitizeResumeForLLM(resume: GeneratedResume): GeneratedResume {
 function buildRecruiterReviewPrompt(resume: GeneratedResume, jobDescription: string, report: ATSReport): string {
   const jdSection = jobDescription.trim()
     ? `=== TARGET JOB DESCRIPTION ===\n${jobDescription}`
-    : `=== TARGET JOB DESCRIPTION ===\nNone provided — assess the candidate's overall marketability and resume quality (general assessment, not role-specific).`;
+    : `=== TARGET JOB DESCRIPTION ===\nNone provided - assess the candidate's overall marketability and resume quality (general assessment, not role-specific).`;
 
   // Anchor "today" so the reviewer can judge past vs future dates correctly.
   const today = new Date();
@@ -158,7 +158,7 @@ PERSONALIZATION & GROUNDING MANDATE:
 - If a skill is listed in Skills without experience evidence, advise tying that skill to the specific role where it was applied.
 - For missing JD technologies, state factually that they are not demonstrated; use conditional phrasing only ("If you have genuine experience with X, add it with supporting evidence; otherwise leave it out").
 
-Write your review now. Output ONLY valid JSON matching the schema provided — no markdown, no fences, no commentary outside the JSON.`;
+Write your review now. Output ONLY valid JSON matching the schema provided - no markdown, no fences, no commentary outside the JSON.`;
 }
 
 export class AtsService {
@@ -203,7 +203,7 @@ export class AtsService {
     // 3. Deterministic scoring
     const report = analyzeATS(enrichedResume, jobDescription);
 
-    // 4. AI qualitative review (non-blocking on failure — report stands on its own)
+    // 4. AI qualitative review (non-blocking on failure - report stands on its own)
     try {
       const feedback = await this.generateAIReview(
         enrichedResume,
@@ -212,7 +212,7 @@ export class AtsService {
       );
       report.recruiterFeedback = feedback;
     } catch (err) {
-      console.error('[ATS] AI review failed — proceeding with deterministic report only.', err);
+      console.error('[ATS] AI review failed - proceeding with deterministic report only.', err);
     }
 
     // 5. Save ATSRun record
@@ -269,21 +269,21 @@ export class AtsService {
 
   /**
    * Run deterministic ATS scoring + AI recruiter feedback on an arbitrary
-   * (uploaded) resume — no ResumeVersion/DB required. Stateless.
+   * (uploaded) resume - no ResumeVersion/DB required. Stateless.
    */
   async analyzeResume(resume: GeneratedResume, jobDescription: string): Promise<ATSReport> {
     const report = analyzeATS(resume, jobDescription);
     try {
       report.recruiterFeedback = await this.generateAIReview(resume, jobDescription, report);
     } catch (err) {
-      console.error('[ATS] AI review failed — proceeding with deterministic report only.', err);
+      console.error('[ATS] AI review failed - proceeding with deterministic report only.', err);
     }
     return report;
   }
 
   /**
    * Run a senior-recruiter persona review against an arbitrary (uploaded)
-   * resume + JD. Stateless — no ResumeVersion/DB required.
+   * resume + JD. Stateless - no ResumeVersion/DB required.
    */
   /**
    * Run a senior-recruiter persona review against an arbitrary (uploaded)
@@ -391,7 +391,7 @@ export class AtsService {
 
   /**
    * Send resume + JD + deterministic ATS report to LLM for qualitative feedback.
-   * The LLM does NOT produce scores — only recruiter-oriented text.
+   * The LLM does NOT produce scores - only recruiter-oriented text.
    */
   private async generateAIReview(
     resume: GeneratedResume,
@@ -411,7 +411,7 @@ export class AtsService {
 You will receive:
 1. The candidate's resume JSON
 2. The target job description
-3. A deterministic ATS score report (scores are computed algorithmically — do NOT modify or re-score them)
+3. A deterministic ATS score report (scores are computed algorithmically - do NOT modify or re-score them)
 4. A deterministic opportunity & evidence dossier
 
 YOUR TASK: Provide qualitative recruiter feedback ONLY. Do NOT produce any scores.
@@ -447,7 +447,7 @@ Respond with a JSON object matching this exact shape:
 
 Rules:
 - Each array should have 3-6 items.
-- Be specific to THIS resume and THIS job — generic advice is useless.
+- Be specific to THIS resume and THIS job - generic advice is useless.
 - Ground every observation in the resume text: quote the exact bullet or section. Never invent dates, skill ratings, years of experience, achievements, or missing information. Never claim the resume "lacks metrics" or "has no quantified impact" when it contains numbers such as hours, users, percentages, $, or "+N" figures.
 - GROUNDING & GAP CONSTRAINTS:
   - Do NOT recommend adding technologies that already appear in the resume.
@@ -465,7 +465,7 @@ Rules:
   * SKILLS CONTEXTUALIZATION: If a skill is listed in Skills without project evidence, recommend demonstrating how that skill was applied in a specific role/project.
 - "keywordRecommendations": If a technology required by the JD is missing from the resume, format ONLY as conditional: "The JD mentions X, but X is not demonstrated in the resume. If you have genuine experience with X, add it with supporting evidence." NEVER instruct the candidate to add, learn, or claim technologies or experience they do not have.
 - "formattingAdvice": structural changes to improve ATS parsing.
-- Do NOT mention or modify scores — they are fixed.
+- Do NOT mention or modify scores - they are fixed.
 
 Respond with ONLY the JSON object, no markdown fences.`;
 

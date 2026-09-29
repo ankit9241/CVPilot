@@ -312,7 +312,7 @@ export interface FitResult {
 }
 
 /**
- * Dynamic Fit Engine V1 — Intelligent Resume Layout.
+ * Dynamic Fit Engine V1 - Intelligent Resume Layout.
  *
  * Estimates content height before rendering, then applies 7 adaptive
  * compression passes in priority order, re-estimating after each pass:
@@ -589,7 +589,7 @@ function trimWords(text: string, maxWords: number): string {
   if (!text) return '';
   const words = text.trim().split(/\s+/);
   if (words.length <= maxWords) return text;
-  
+
   let truncated = words.slice(0, maxWords).join(' ');
   if (!truncated.endsWith('.')) {
     truncated += '.';
@@ -618,7 +618,7 @@ export function preprocessAndBudgetResume(resumeJson: any): any {
   let maxSkillsCount = isOnePage ? 15 : 24;
   let maxCertificates = isOnePage ? 1 : 2;
   let maxAchievements = isOnePage ? 2 : 3;
-  
+
   let maxBullets = isOnePage ? 3 : 4;
   let maxBulletWords = isOnePage ? 22 : 25;
   let maxSummaryWords = isOnePage ? 45 : 65;
@@ -659,7 +659,7 @@ export function preprocessAndBudgetResume(resumeJson: any): any {
   const trimmedProjects = projects.slice(0, maxProjects).map((proj: any) => {
     let bullets = proj.bulletPoints || [];
     bullets = bullets.slice(0, maxBullets).map((b: string) => trimWords(b, maxBulletWords));
-    
+
     let techs = Array.isArray(proj.technologies) ? proj.technologies : [];
     // Sort tech stack by recruiter significance rank
     techs = techs

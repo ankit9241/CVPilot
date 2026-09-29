@@ -9,13 +9,13 @@ You are a structured data extractor. Analyze the input profile and job descripti
 
 CRITICAL: Do NOT write any introduction, thinking process, markdown formatting (like \`\`\`json), or explanations. Start your response immediately with '{' and end with '}'.
 
-When making selections, apply the DOCUMENT PHILOSOPHY above — choose experiences, projects, and skills that form a coherent whole, not independently optimal isolated choices.
+When making selections, apply the DOCUMENT PHILOSOPHY above - choose experiences, projects, and skills that form a coherent whole, not independently optimal isolated choices.
 
 === ANALYSIS TASKS ===
 1. VALIDATION: Validate the input profile. Check if "fullName", "headline", "professionalSummary", at least one experience or education entry, and the target role/company are present.
 2. JOB ANALYSIS: Extract hard/soft skills, years of experience required, key responsibilities, must-have/nice-to-have requirements, role level, and a brief summary.
 3. EXPERIENCES: Select exactly 2 experience IDs (from [ID: ...] tags) that best serve the whole-document narrative. Current/most recent first.
-4. PROJECTS: Select exactly 2 project IDs that complement — not duplicate — the selected experiences.
+4. PROJECTS: Select exactly 2 project IDs that complement - not duplicate - the selected experiences.
 5. SKILLS: Select exactly 12–15 skill IDs ranked by relevance to the job description.
 
 === REQUIRED JSON SCHEMA ===

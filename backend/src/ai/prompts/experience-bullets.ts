@@ -22,7 +22,7 @@ Designed · Architected · Built · Implemented · Optimized · Automated · Led
 
 === NEVER REPEAT TECHNOLOGIES ===
 Do not list technologies already obvious from the role title or company context.
-Each bullet should reveal new information — not restate the role's preamble.
+Each bullet should reveal new information - not restate the role's preamble.
    
 Return a JSON object with:
 {

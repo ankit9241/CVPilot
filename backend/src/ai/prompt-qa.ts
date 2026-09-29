@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Prompt QA — validates all refactored prompts produce correct output
+ * Prompt QA - validates all refactored prompts produce correct output
  * across 5 experience levels: Student, Fresher, 2 YoE, 5 YoE, 10 YoE.
  *
  * Run: npx ts-node src/ai/prompt-qa.ts
@@ -420,7 +420,7 @@ async function callLLMWithJSON(
       return parseJSON<any>(res.content);
     } catch (err) {
       if (attempt < tries - 1) {
-        console.log(`  ⚠ ${label} — parse failed, retrying (${attempt + 1}/${tries})`);
+        console.log(`  ⚠ ${label} - parse failed, retrying (${attempt + 1}/${tries})`);
       } else {
         throw err;
       }
@@ -441,13 +441,13 @@ function detectUnprofessionalTone(text: string): string[] {
 
 function countBullets(persona: QAPersona, resume: GeneratedResume): number {
   return resume.experiences.reduce((s, e) => s + e.bulletPoints.length, 0)
-       + resume.projects.reduce((s, p) => s + p.bulletPoints.length, 0);
+    + resume.projects.reduce((s, p) => s + p.bulletPoints.length, 0);
 }
 
 // ─── QA Runner ───────────────────────────────────────────────────────────────
 
 async function runPromptQA(): Promise<void> {
-  console.log('🧪 Prompt QA — Resume Generation Validation\n');
+  console.log('🧪 Prompt QA - Resume Generation Validation\n');
   console.log('='.repeat(70));
 
   // Initialize
@@ -517,7 +517,7 @@ async function runPromptQA(): Promise<void> {
         result.summary.errors.push(`Weak phrases in summary: ${weakInSummary.join(', ')}`);
       }
 
-      console.log(`  Summary    ${result.summary.pass ? CHECK_EMOJI.pass : CHECK_EMOJI.fail} ${result.summary.wordCount} words${result.summary.errors.length ? ' — ' + result.summary.errors.join('; ') : ''}`);
+      console.log(`  Summary    ${result.summary.pass ? CHECK_EMOJI.pass : CHECK_EMOJI.fail} ${result.summary.wordCount} words${result.summary.errors.length ? ' - ' + result.summary.errors.join('; ') : ''}`);
 
       // ── Step 2: Experience Bullets ────────────────────────────────────
       // Build experiences in the format the prompt expects
@@ -561,7 +561,7 @@ async function runPromptQA(): Promise<void> {
         }
       }
 
-      console.log(`  Experience ${result.experienceBullets.pass ? CHECK_EMOJI.pass : CHECK_EMOJI.fail} avg ${result.experienceBullets.avgWords} words/bullet${result.experienceBullets.errors.length ? ' — ' + result.experienceBullets.errors.join('; ') : ''}`);
+      console.log(`  Experience ${result.experienceBullets.pass ? CHECK_EMOJI.pass : CHECK_EMOJI.fail} avg ${result.experienceBullets.avgWords} words/bullet${result.experienceBullets.errors.length ? ' - ' + result.experienceBullets.errors.join('; ') : ''}`);
 
       // ── Step 3: Project Bullets ───────────────────────────────────────
       const projData = persona.projects.map((p) => ({
@@ -615,7 +615,7 @@ async function runPromptQA(): Promise<void> {
         }
       }
 
-      console.log(`  Projects   ${result.projectBullets.pass ? CHECK_EMOJI.pass : CHECK_EMOJI.fail} avg ${result.projectBullets.avgWords} words/bullet, max ${result.projectBullets.maxTechs} techs${result.projectBullets.errors.length ? ' — ' + result.projectBullets.errors.join('; ') : ''}`);
+      console.log(`  Projects   ${result.projectBullets.pass ? CHECK_EMOJI.pass : CHECK_EMOJI.fail} avg ${result.projectBullets.avgWords} words/bullet, max ${result.projectBullets.maxTechs} techs${result.projectBullets.errors.length ? ' - ' + result.projectBullets.errors.join('; ') : ''}`);
 
       // ── Step 4: Resume JSON (Compile) ─────────────────────────────────
       // Build the input the resume-json prompt expects
@@ -719,7 +719,7 @@ async function runPromptQA(): Promise<void> {
       }
 
       const resumeStatus = result.resume.pass ? CHECK_EMOJI.pass : CHECK_EMOJI.fail;
-      console.log(`  Resume     ${resumeStatus} ${result.resume.totalWordCount} words${result.resume.errors.length ? ' — ' + result.resume.errors.join('; ') : ''}`);
+      console.log(`  Resume     ${resumeStatus} ${result.resume.totalWordCount} words${result.resume.errors.length ? ' - ' + result.resume.errors.join('; ') : ''}`);
 
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -739,7 +739,7 @@ async function runPromptQA(): Promise<void> {
 
   // ─── Final Report ──────────────────────────────────────────────────────────
   console.log('\n\n' + '='.repeat(70));
-  console.log('📊 PROMPT QA — FINAL REPORT');
+  console.log('📊 PROMPT QA - FINAL REPORT');
   console.log('='.repeat(70));
 
   const allPass = results.every((r) => r.overallPass);

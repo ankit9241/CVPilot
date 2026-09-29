@@ -167,7 +167,7 @@ Respond with the compressed resume JSON. The output MUST follow the exact same J
   ): Promise<GeneratedResume> {
     const bd = report.scoreBreakdown;
 
-    const prompt = `You are an expert resume optimizer. You receive a resume, an ATS report, and a job description. Your job is to fix real weaknesses identified by the ATS — not to blindly increase keyword density.
+    const prompt = `You are an expert resume optimizer. You receive a resume, an ATS report, and a job description. Your job is to fix real weaknesses identified by the ATS - not to blindly increase keyword density.
 
 === INPUTS ===
 Job Description:
@@ -195,17 +195,17 @@ ${JSON.stringify(feedback, null, 2)}
 
 === RULES ===
 - Do not blindly increase keywords. Fix only real weaknesses.
-- Never stuff keywords — natural inclusion only.
+- Never stuff keywords - natural inclusion only.
 - Never invent experience, credentials, projects, or metrics.
 - Maintain the exact same JSON schema and key names as the input.
 
 === PRIORITIES (in order) ===
-1. Missing required skills — integrate naturally into summary or experience bullets.
-2. Weak summary — rewrite to be punchy, 30–45 words, role + tech + impact.
-3. Long bullets — trim to 15–20 words. Remove filler, merge repetitive ideas.
-4. Poor readability — replace passive voice, remove weak verbs, add action verbs.
-5. Missing quantified impact — strengthen metrics language where factual.
-6. Weak action verbs — replace "worked on", "responsible for", "helped" with strong verbs.
+1. Missing required skills - integrate naturally into summary or experience bullets.
+2. Weak summary - rewrite to be punchy, 30–45 words, role + tech + impact.
+3. Long bullets - trim to 15–20 words. Remove filler, merge repetitive ideas.
+4. Poor readability - replace passive voice, remove weak verbs, add action verbs.
+5. Missing quantified impact - strengthen metrics language where factual.
+6. Weak action verbs - replace "worked on", "responsible for", "helped" with strong verbs.
 
 Respond with the optimized resume JSON. Do not write any other explanation or text.`;
 

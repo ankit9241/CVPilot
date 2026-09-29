@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "../store/auth-store";
+import { LogoIcon } from "@/components/shared/logo";
 import {
   ArrowRight,
-  PlaneTakeoff,
   Sparkles,
   ScanSearch,
   Archive,
@@ -36,13 +36,13 @@ import { InfiniteSlider } from "@/components/shared/infinite-slider";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CVPilot — AI-powered Resume Intelligence Platform" },
+      { title: "CVPilot - AI-powered Resume Intelligence Platform" },
       {
         name: "description",
         content:
-          "CVPilot is a calm, premium workspace to craft, analyse and manage every resume — tailored to every role.",
+          "CVPilot is a calm, premium workspace to craft, analyse and manage every resume - tailored to every role.",
       },
-      { property: "og:title", content: "CVPilot — Resume Intelligence" },
+      { property: "og:title", content: "CVPilot - Resume Intelligence" },
       {
         property: "og:description",
         content: "Craft, analyse and manage every resume in one quiet workspace.",
@@ -130,9 +130,7 @@ function SiteNav() {
     <header className="sticky top-3 sm:top-4 z-50 w-full flex justify-center items-center py-2">
       <div className="w-full max-w-[760px] h-12 sm:h-14 px-3.5 sm:px-6 bg-[#FFFEFC]/90 backdrop-blur-md border border-[rgba(55,50,47,0.12)] shadow-[0px_4px_20px_rgba(0,0,0,0.03),0px_0px_0px_2px_white] rounded-full flex justify-between items-center transition-all duration-300">
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="grid h-6 w-6 sm:h-7 sm:w-7 place-items-center rounded-full bg-[#18181B] text-white shadow-xs transition-transform duration-200 group-hover:scale-105">
-            <PlaneTakeoff className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-          </div>
+          <LogoIcon size="sm" />
           <span className="font-serif text-lg sm:text-xl font-medium tracking-tight text-[#18181B]">CVPilot</span>
         </Link>
 
@@ -392,8 +390,8 @@ function OperationsSection() {
                     setProgress(0);
                   }}
                   className={`cursor-pointer rounded-xl p-4 sm:p-5 border text-left transition-all duration-300 relative overflow-hidden ${isActive
-                      ? "bg-[#F8F6F3] border-[rgba(55,50,47,0.16)] shadow-xs"
-                      : "bg-transparent border-transparent hover:bg-[#F8F6F3]/50"
+                    ? "bg-[#F8F6F3] border-[rgba(55,50,47,0.16)] shadow-xs"
+                    : "bg-transparent border-transparent hover:bg-[#F8F6F3]/50"
                     }`}
                 >
                   <h3 className="text-[15px] sm:text-[16px] font-semibold text-[#37322F] tracking-tight">
@@ -515,7 +513,7 @@ const featureItems = [
   {
     icon: Archive,
     title: "Resume Vault",
-    desc: "Every version of every resume — organised, version-tracked and searchable.",
+    desc: "Every version of every resume - organised, version-tracked and searchable.",
   },
   {
     icon: Workflow,
@@ -549,7 +547,7 @@ function Features() {
           align="center"
           eyebrow="Platform Surfaces"
           title="Everything a modern job search needs"
-          description="Six calm surfaces that work in concert — from initial draft to final application send."
+          description="Six calm surfaces that work in concert - from initial draft to final application send."
         />
         <div className="mt-10 sm:mt-14 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featureItems.map((f) => (
@@ -645,7 +643,7 @@ function ArchitecturePipelineBentoSection() {
           The Architecture Behind Every Resume
         </h2>
         <p className="mt-3 sm:mt-4 text-[14px] sm:text-[18px] text-[#605A57] max-w-2xl mx-auto font-sans leading-relaxed px-2">
-          From master profile indexing to AI keyword optimization and real-time PDF compilation — inspect, tweak, and automate every step.
+          From master profile indexing to AI keyword optimization and real-time PDF compilation - inspect, tweak, and automate every step.
         </p>
 
         {/* 1. Step-by-Step Architecture Pipeline */}
@@ -729,7 +727,7 @@ function ATSSection() {
             <span className="text-[#18181B]/60 italic">without sounding like one.</span>
           </h2>
           <p className="mt-3 sm:mt-4 text-[14px] sm:text-[16px] leading-relaxed text-[#18181B]/70">
-            Every resume is scored against a real ATS rubric — keyword coverage, formatting, action
+            Every resume is scored against a real ATS rubric - keyword coverage, formatting, action
             verbs, and quantitative impact. You get the exact score and actionable edits to raise it.
           </p>
           <ul className="mt-5 sm:mt-6 space-y-2.5 sm:space-y-3 text-[13px] sm:text-[14px]">
@@ -1051,8 +1049,8 @@ function BrilliancePricing() {
             <button
               onClick={() => setBillingPeriod("annually")}
               className={`px-4 sm:px-5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-all ${billingPeriod === "annually"
-                  ? "bg-[#37322F] text-white shadow-xs"
-                  : "text-[#605A57] hover:text-[#37322F]"
+                ? "bg-[#37322F] text-white shadow-xs"
+                : "text-[#605A57] hover:text-[#37322F]"
                 }`}
             >
               Annually
@@ -1060,8 +1058,8 @@ function BrilliancePricing() {
             <button
               onClick={() => setBillingPeriod("monthly")}
               className={`px-4 sm:px-5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-medium transition-all ${billingPeriod === "monthly"
-                  ? "bg-[#37322F] text-white shadow-xs"
-                  : "text-[#605A57] hover:text-[#37322F]"
+                ? "bg-[#37322F] text-white shadow-xs"
+                : "text-[#605A57] hover:text-[#37322F]"
                 }`}
             >
               Monthly
@@ -1249,9 +1247,7 @@ function SiteFooter() {
       <div className="mx-auto max-w-5xl px-3 sm:px-4 grid grid-cols-1 gap-8 sm:gap-10 md:grid-cols-[1fr_2fr]">
         <div>
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="grid h-7 w-7 sm:h-8 sm:w-8 place-items-center rounded-full bg-[#18181B] text-white">
-              <PlaneTakeoff className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            </div>
+            <LogoIcon size="md" />
             <span className="font-serif text-lg sm:text-xl font-medium tracking-tight text-[#18181B]">CVPilot</span>
           </Link>
           <p className="mt-3 sm:mt-4 max-w-sm text-[13px] sm:text-[14px] leading-relaxed text-[#18181B]/60">

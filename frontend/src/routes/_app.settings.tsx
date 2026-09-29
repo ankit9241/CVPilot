@@ -38,7 +38,7 @@ import { toast } from "sonner";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/_app/settings")({
-  head: () => ({ meta: [{ title: "Settings — CVPilot" }] }),
+  head: () => ({ meta: [{ title: "Settings - CVPilot" }] }),
   component: SettingsPage,
 });
 
@@ -50,14 +50,14 @@ const nav: {
   label: string;
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
 }[] = [
-  { key: "profile", label: "Profile", icon: User },
-  { key: "security", label: "Security", icon: Shield },
-  { key: "notifications", label: "Notifications", icon: Bell },
-  { key: "preferences", label: "Preferences", icon: Settings2 },
-  { key: "connected", label: "Connected accounts", icon: Link2 },
-  { key: "appearance", label: "Appearance", icon: Palette },
-  { key: "danger", label: "Danger zone", icon: AlertTriangle },
-];
+    { key: "profile", label: "Profile", icon: User },
+    { key: "security", label: "Security", icon: Shield },
+    { key: "notifications", label: "Notifications", icon: Bell },
+    { key: "preferences", label: "Preferences", icon: Settings2 },
+    { key: "connected", label: "Connected accounts", icon: Link2 },
+    { key: "appearance", label: "Appearance", icon: Palette },
+    { key: "danger", label: "Danger zone", icon: AlertTriangle },
+  ];
 
 function SettingsPage() {
   const [active, setActive] = useState<Key>("profile");

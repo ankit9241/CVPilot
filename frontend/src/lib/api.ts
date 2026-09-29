@@ -124,7 +124,7 @@ class ApiClient {
           if (ok) {
             return this.request<T>(path, options, true);
           }
-          // Refresh failed — session is genuinely expired.
+          // Refresh failed - session is genuinely expired.
           onAuthExpiredHandler?.();
           throw new AuthExpiredError();
         }

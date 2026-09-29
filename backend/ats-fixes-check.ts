@@ -1,9 +1,9 @@
 /**
  * Regression checks for the four Phase-32 follow-up fixes:
- * 1. Metric detection (impact) — "+N", "%", units must be detected.
- * 2. Keyword synonym dedupe — nodejs/node.js, rest/restful count once.
- * 3. Recruiter prompt — inference-control rules present (text assertion).
- * 4. Quality parsing — valid-but-partial JSON must not be rejected.
+ * 1. Metric detection (impact) - "+N", "%", units must be detected.
+ * 2. Keyword synonym dedupe - nodejs/node.js, rest/restful count once.
+ * 3. Recruiter prompt - inference-control rules present (text assertion).
+ * 4. Quality parsing - valid-but-partial JSON must not be rejected.
  *
  * Run: npx tsx ats-fixes-check.ts
  */
@@ -57,7 +57,7 @@ assert(/NEVER tell the candidate to "add", "learn", "implement", or "claim" a te
 assert(/If you have genuine experience with X, add it with evidence/.test(serviceSrc), 'prompt: conditional genuine-experience phrasing');
 assert(/Docker, Kubernetes, PostgreSQL, GraphQL, WebSockets, CI\/CD, GitHub Actions/.test(serviceSrc), 'prompt: covers listed missing-tech examples');
 
-// ── 4. Quality contract — canonical schema (STEP 6) ─────────────────────────
+// ── 4. Quality contract - canonical schema (STEP 6) ─────────────────────────
 const full = { overallQualityScore: 82, strengths: [], weaknesses: [], quickWins: [], professionalReview: '' };
 const r1 = parseQualityResponse(JSON.stringify(full));
 assert(r1.ok && r1.report.overallQualityScore === 82, '1. complete response -> PASS');

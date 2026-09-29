@@ -80,13 +80,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CVPilot — AI-powered Resume Intelligence Platform" },
+      { title: "CVPilot - AI-powered Resume Intelligence Platform" },
       {
         name: "description",
         content:
-          "CVPilot is a calm, premium workspace to craft, analyse and manage every resume — tailored to every role.",
+          "CVPilot is a calm, premium workspace to craft, analyse and manage every resume - tailored to every role.",
       },
-      { property: "og:title", content: "CVPilot — Resume Intelligence" },
+      { property: "og:title", content: "CVPilot - Resume Intelligence" },
       {
         property: "og:description",
         content: "Craft, analyse and manage every resume in one quiet workspace.",
@@ -99,7 +99,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "apple-touch-icon", href: "/favicon.svg" },
     ],
   }),
   shellComponent: RootShell,

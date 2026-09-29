@@ -10,7 +10,7 @@ export { resumeJsonPrompt } from './resume-json';
 export { combinedAnalysisPrompt } from './combined-analysis';
 export { combinedRewritePrompt } from './combined-rewrite';
 
-// Shared prompt constants — import from './shared' directly in prompt files to avoid circular imports.
+// Shared prompt constants - import from './shared' directly in prompt files to avoid circular imports.
 export { GLOBAL_RULES, DOCUMENT_PHILOSOPHY, CONTENT_BUDGET } from './shared';
 
 // Bumped when any prompt text changes, so the LLM response cache invalidates.

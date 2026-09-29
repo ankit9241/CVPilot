@@ -18,6 +18,8 @@ import { mainNav, bottomNav } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "../../store/auth-store";
 
+import { LogoIcon } from "@/components/shared/logo";
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
@@ -41,9 +43,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-[rgba(55,50,47,0.10)] bg-[#F8F6F3]">
       <SidebarHeader className="px-3 py-4 bg-[#F8F6F3]">
         <Link to="/dashboard" className="flex items-center gap-2.5 px-1.5 group">
-          <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#18181B] text-white shadow-xs transition-transform duration-200 group-hover:scale-105">
-            <PlaneTakeoff className="h-3.5 w-3.5" />
-          </div>
+          <LogoIcon size="sm" className="shrink-0" />
           {!collapsed && (
             <div className="flex min-w-0 flex-col">
               <span className="font-serif text-xl font-medium tracking-tight text-[#18181B] leading-none">

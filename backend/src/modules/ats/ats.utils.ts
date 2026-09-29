@@ -178,7 +178,7 @@ export function textHasKeyword(text: string, kw: string): boolean {
 
 // Every keyword form -> its canonical concept (the SYNONYMS key). Used to stop
 // "nodejs" + "node.js" + "rest api" + "restful" from counting as separate
-// concepts — each concept is matched exactly once.
+// concepts - each concept is matched exactly once.
 const CONCEPT_OF: Record<string, string> = (() => {
   const map: Record<string, string> = {};
   for (const [canon, forms] of Object.entries(SYNONYMS)) {
@@ -229,7 +229,7 @@ function matchKeywordWeighted(resume: GeneratedResume, kw: string): number {
 /**
  * Presence-based match strength. A keyword found anywhere in the resume
  * (experience/project/summary/skills, synonym- or partial-aware) counts as
- * matched — section weighting is used only for evidence ordering, not to
+ * matched - section weighting is used only for evidence ordering, not to
  * halve a genuine match.
  */
 function keywordMatchStrength(resume: GeneratedResume, kw: string): number {
@@ -297,7 +297,7 @@ export function analyzeParseability(resume: GeneratedResume, jd: string = ''): {
   const text = extractAllResumeText(resume);
   const hasEmail = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/.test(text);
   if (hasEmail) { score += 1; }
-  else { warnings.push('Email not found in resume text — ATS may fail to extract contact info.'); }
+  else { warnings.push('Email not found in resume text - ATS may fail to extract contact info.'); }
   // Phone heuristic: 7+ digit sequences
   const hasPhone = /\b\d{7,}\b/.test(text);
   if (hasPhone) { score += 1; }
@@ -308,22 +308,22 @@ export function analyzeParseability(resume: GeneratedResume, jd: string = ''): {
     score += 1;
     const validExp = resume.experiences.filter((e) => e.companyName && e.role);
     if (validExp.length > 0) score += 1;
-    else { warnings.push('Experience entries missing company name or role — hard for ATS to parse.'); }
+    else { warnings.push('Experience entries missing company name or role - hard for ATS to parse.'); }
   } else {
-    errors.push('No experience section found — ATS cannot extract work history.');
+    errors.push('No experience section found - ATS cannot extract work history.');
   }
 
   // Education extraction (0–1)
   if (resume.education && resume.education.length > 0) { score += 1; }
-  else { warnings.push('No education section found — ATS may flag as incomplete profile.'); }
+  else { warnings.push('No education section found - ATS may flag as incomplete profile.'); }
 
   // Skills extraction (0–2)
   if (resume.skills && resume.skills.length > 0) {
     score += 1;
     if (resume.skills.length >= 3) score += 1;
-    else { warnings.push('Very few skills listed — ATS keyword matching will be weak.'); }
+    else { warnings.push('Very few skills listed - ATS keyword matching will be weak.'); }
   } else {
-    warnings.push('No skills section found — critical for ATS keyword extraction.');
+    warnings.push('No skills section found - critical for ATS keyword extraction.');
   }
 
   // Dates (0–2)
@@ -333,9 +333,9 @@ export function analyzeParseability(resume: GeneratedResume, jd: string = ''): {
     score += 1;
     const allHaveDates = exps.every((e) => e.startDate);
     if (allHaveDates) score += 1;
-    else { warnings.push('Some experience entries missing start date — ATS may rank them lower.'); }
+    else { warnings.push('Some experience entries missing start date - ATS may rank them lower.'); }
   } else if (exps.length > 0) {
-    warnings.push('Experience entries have no dates — ATS cannot determine career timeline.');
+    warnings.push('Experience entries have no dates - ATS cannot determine career timeline.');
   }
 
   // Section recognition (0–3)
@@ -349,19 +349,19 @@ export function analyzeParseability(resume: GeneratedResume, jd: string = ''): {
   score += Math.min(3, presentSections.length);
 
   if (presentSections.length < 3) {
-    warnings.push(`Only ${presentSections.length}/5 standard sections detected — ATS may classify as low quality.`);
+    warnings.push(`Only ${presentSections.length}/5 standard sections detected - ATS may classify as low quality.`);
   }
 
   // Penalty for very short resume
   const wc = wordCount(text);
   if (wc < 80) {
-    errors.push('Resume is extremely sparse (under 80 words) — ATS may reject or rank very low.');
+    errors.push('Resume is extremely sparse (under 80 words) - ATS may reject or rank very low.');
     score = Math.max(0, score - 3);
   }
 
   score = clamp(score, 0, 15);
 
-  if (score >= 13) strengths.push('Excellent ATS parseability — all sections and contact info detected.');
+  if (score >= 13) strengths.push('Excellent ATS parseability - all sections and contact info detected.');
   if (errors.length === 0 && warnings.length <= 1) strengths.push('Clean structure that ATS parsers can extract without issues.');
 
   return { score, warnings, errors, strengths, description: `Parseability score: ${score}/15. ${presentSections.length}/5 sections present.` };
@@ -401,11 +401,11 @@ export function analyzeFormatting(resume: GeneratedResume): {
   else if (wc >= 250 && wc <= 550) strengths.push('Word count is in the optimal 1-page range.');
   else { score -= 1; warnings.push(`Word count (${wc}) is slightly off the optimal 1-page range.`); }
 
-  // Bullet formatting — penalize length variance, not just consistency presence.
+  // Bullet formatting - penalize length variance, not just consistency presence.
   const bullets = getAllBullets(resume);
   if (bullets.length === 0) {
     score -= 2;
-    warnings.push('No bullet points found — formatting assessment limited.');
+    warnings.push('No bullet points found - formatting assessment limited.');
   } else {
     const lengths = bullets.map((b) => b.trim().length);
     const avgLen = lengths.reduce((a, b) => a + b, 0) / lengths.length;
@@ -442,10 +442,10 @@ function analyzeKeywordMatch(jd: string, resume: GeneratedResume): {
   const jdKeywords = extractJdKeywords(jd);
 
   if (jdKeywords.length === 0) {
-    // JD present but mentions no tech keywords — nothing required, nothing missed.
+    // JD present but mentions no tech keywords - nothing required, nothing missed.
     return {
       score: 20, matched: [], missing: [],
-      strengths: ['No technical keywords detected in the JD — nothing required to match.'],
+      strengths: ['No technical keywords detected in the JD - nothing required to match.'],
       warnings: [],
       evidence: [], deductions: [], reason: 'No technical keywords in the JD.',
     };
@@ -466,7 +466,7 @@ function analyzeKeywordMatch(jd: string, resume: GeneratedResume): {
   }
 
   // Per-tier match strength (synonym + partial aware), tiered weights:
-  // required 0.6, preferred 0.25, optional 0.15 — missing optional barely hurts.
+  // required 0.6, preferred 0.25, optional 0.15 - missing optional barely hurts.
   const tierWeight: Record<string, number> = { required: 0.6, preferred: 0.25, optional: 0.15 };
   const matched: string[] = [];
   const missing: string[] = [];
@@ -513,10 +513,10 @@ function analyzeKeywordMatch(jd: string, resume: GeneratedResume): {
     warnings.push(`Missing keywords: ${missing.slice(0, 5).map(capitalizeWord).join(', ')}.`);
   }
   if (stuffedCount > 0) {
-    warnings.push(`Keyword stuffing detected for ${stuffedCount} term(s) — ATS may flag as spam.`);
+    warnings.push(`Keyword stuffing detected for ${stuffedCount} term(s) - ATS may flag as spam.`);
   }
   if (matched.length / jdKeywords.length >= 0.8) strengths.push('Strong keyword alignment with the job description.');
-  if (matched.length / jdKeywords.length < 0.4) warnings.push('Low keyword match — resume will rank poorly in ATS filters.');
+  if (matched.length / jdKeywords.length < 0.4) warnings.push('Low keyword match - resume will rank poorly in ATS filters.');
 
   const reason = deductions.length > 0
     ? `Matched ${matched.length}/${jdKeywords.length} keywords. Missing ${deductions.length} ${deductions.length === 1 ? 'term' : 'terms'} (required/optional weighted).`
@@ -537,9 +537,9 @@ function analyzeSkillsMatch(jd: string, resume: GeneratedResume): {
   const jdSkills = extractJdKeywords(jd);
 
   if (jdSkills.length === 0) {
-    // JD present but mentions no tech skills — nothing required, nothing missed.
+    // JD present but mentions no tech skills - nothing required, nothing missed.
     return {
-      score: 15, warnings: [], strengths: ['No specific skills required in JD — nothing to miss.'],
+      score: 15, warnings: [], strengths: ['No specific skills required in JD - nothing to miss.'],
       evidence: [], deductions: [], reason: 'No skills required in the JD.',
     };
   }
@@ -599,11 +599,11 @@ function analyzeSkillsMatch(jd: string, resume: GeneratedResume): {
     strengths.push('Matches 100% of required skills.');
   }
   if (candidateSkills.length === 0) {
-    warnings.push('No skills listed on resume — critical for ATS matching.');
+    warnings.push('No skills listed on resume - critical for ATS matching.');
   }
   const extraSkills = candidateSkills.filter((s) => !jdSkills.some((k) => textHasKeyword(s, k)));
   if (extraSkills.length > 3) {
-    warnings.push(`${extraSkills.length} skills listed that are not mentioned in the JD — may dilute focus.`);
+    warnings.push(`${extraSkills.length} skills listed that are not mentioned in the JD - may dilute focus.`);
   }
 
   const reason = deductions.length > 0
@@ -627,7 +627,7 @@ function analyzeExperienceRelevance(jd: string, resume: GeneratedResume): {
   const experiences = resume.experiences || [];
   const jdLower = jd.toLowerCase();
 
-  // YoE (0–3) — one factor among several, not the primary gate.
+  // YoE (0–3) - one factor among several, not the primary gate.
   // Unknown/missing dates are skipped gracefully (never guessed).
   let totalMonths = 0;
   for (const exp of experiences) {
@@ -678,7 +678,7 @@ function analyzeExperienceRelevance(jd: string, resume: GeneratedResume): {
   if (roleMatchScore >= 4) strengths.push('Previous roles strongly match the target position.');
   else if (roleMatchScore < 2 && experiences.length > 0) warnings.push('Previous roles do not clearly overlap with the target position.');
 
-  // Technology relevance (0–3) — synonym-aware
+  // Technology relevance (0–3) - synonym-aware
   const jdTechs = extractJdKeywords(jd);
   const expText = experiences
     .map((e) => [e.description || '', ...(e.bulletPoints || [])].join(' '))
@@ -694,7 +694,7 @@ function analyzeExperienceRelevance(jd: string, resume: GeneratedResume): {
   score += Math.round(Math.min(3, techRatio * 3));
   if (techRatio > 0.6) strengths.push('Experience demonstrates strong technology overlap with the job.');
 
-  // Qualitative signals (0–3) — production, ownership, architecture, AI,
+  // Qualitative signals (0–3) - production, ownership, architecture, AI,
   // scale, quantified impact, complexity, leadership.
   const allExpText = experiences
     .map((e) => [e.role, e.description || '', ...(e.bulletPoints || [])].join(' '))
@@ -897,12 +897,12 @@ export function analyzeReadability(resume: GeneratedResume): {
     const longBullets = wordCounts.filter((w) => w > 40).length;
     if (longBullets > 0) {
       score -= 1;
-      warnings.push(`${longBullets} bullet(s) exceed 40 words — too verbose.`);
+      warnings.push(`${longBullets} bullet(s) exceed 40 words - too verbose.`);
     }
     const shortBullets = wordCounts.filter((w) => w < 8).length;
     if (shortBullets > 2) {
       score -= 0.5;
-      warnings.push(`${shortBullets} bullet(s) are very short (< 8 words) — add more detail.`);
+      warnings.push(`${shortBullets} bullet(s) are very short (< 8 words) - add more detail.`);
     }
   }
 
@@ -918,7 +918,7 @@ export function analyzeReadability(resume: GeneratedResume): {
   }
   if (hasExcessive) {
     score -= 0.5;
-    warnings.push('Some sections have excessive bullet points (6+) — trim to keep concise.');
+    warnings.push('Some sections have excessive bullet points (6+) - trim to keep concise.');
   }
 
   // Filler / buzzwords (0–1)
@@ -928,13 +928,13 @@ export function analyzeReadability(resume: GeneratedResume): {
     if (fullText.includes(filler)) fillerHits++;
   }
   if (fillerHits === 0) {
-    strengths.push('No filler buzzwords detected — writing is clear and direct.');
+    strengths.push('No filler buzzwords detected - writing is clear and direct.');
   } else if (fillerHits <= 2) {
     score -= 0.5;
-    warnings.push(`Detected ${fillerHits} filler buzzword(s) — consider replacing with specific language.`);
+    warnings.push(`Detected ${fillerHits} filler buzzword(s) - consider replacing with specific language.`);
   } else {
     score -= 1;
-    warnings.push(`Detected ${fillerHits} filler buzzwords — significantly weakens readability.`);
+    warnings.push(`Detected ${fillerHits} filler buzzwords - significantly weakens readability.`);
   }
 
   return { score: clamp(score, 0, 5), warnings, strengths };
@@ -960,7 +960,7 @@ export function analyzeImpact(resume: GeneratedResume): {
   const evidence: string[] = [];
   const deductions: string[] = [];
 
-  // Metrics (0–3) — the primary driver. A metric-bearing bullet gets strong credit
+  // Metrics (0–3) - the primary driver. A metric-bearing bullet gets strong credit
   // even when its wording is not a textbook action verb.
   const metricBullets = bullets.filter((b) => hasMetric(b));
   const metricRatio = metricBullets.length / bullets.length;
@@ -970,7 +970,7 @@ export function analyzeImpact(resume: GeneratedResume): {
     evidence.push(...metricBullets.slice(0, 3).map((b) => `✓ ${truncate(b, 90)}`));
   } else if (metricRatio >= 0.3) {
     score += 2;
-    warnings.push(`Only ${Math.round(metricRatio * 100)}% of bullets include metrics — aim for 50%+.`);
+    warnings.push(`Only ${Math.round(metricRatio * 100)}% of bullets include metrics - aim for 50%+.`);
     evidence.push(...metricBullets.slice(0, 2).map((b) => `✓ ${truncate(b, 90)}`));
   } else if (metricRatio >= 0.15) {
     score += 1;
@@ -980,7 +980,7 @@ export function analyzeImpact(resume: GeneratedResume): {
     deductions.push(`Only ${Math.round(metricRatio * 100)}% of bullets have quantified metrics`);
   }
 
-  // Action verbs (0–1) — a small bonus, not a gate. Metric-rich bullets must not
+  // Action verbs (0–1) - a small bonus, not a gate. Metric-rich bullets must not
   // lose points purely for non-textbook wording.
   let actionVerbCount = 0;
   for (const b of bullets) {
@@ -994,7 +994,7 @@ export function analyzeImpact(resume: GeneratedResume): {
   } else if (verbRatio >= 0.3) {
     score += 0.5;
   } else {
-    warnings.push(`Weak action verb usage (${Math.round(verbRatio * 100)}%) — most bullets lack strong openings.`);
+    warnings.push(`Weak action verb usage (${Math.round(verbRatio * 100)}%) - most bullets lack strong openings.`);
   }
 
   // Business outcomes (0–1)
@@ -1012,12 +1012,12 @@ export function analyzeImpact(resume: GeneratedResume): {
   } else if (outcomeRatio >= 0.1) {
     score += 0.5;
   } else {
-    warnings.push('Bullet points focus on activities rather than outcomes — describe the impact of your work.');
+    warnings.push('Bullet points focus on activities rather than outcomes - describe the impact of your work.');
     deductions.push('Few bullets quantify business outcomes');
   }
 
   const finalScore = clamp(Math.round(score * 2) / 2, 0, 5);
-  const reason = `Impact ${finalScore}/5 — ${Math.round(metricRatio * 100)}% metrics, ${Math.round(verbRatio * 100)}% action verbs, ${Math.round(outcomeRatio * 100)}% outcome-focused.`;
+  const reason = `Impact ${finalScore}/5 - ${Math.round(metricRatio * 100)}% metrics, ${Math.round(verbRatio * 100)}% action verbs, ${Math.round(outcomeRatio * 100)}% outcome-focused.`;
   return { score: finalScore, warnings, strengths, evidence, deductions, reason };
 }
 
@@ -1038,7 +1038,7 @@ const NATURAL_MAXES: Record<keyof ATSScoreBreakdown, number> = {
 
 // Rubric weights. JD-relevance dominates (keyword+skills+experience = 70) over
 // structural categories (30) so that a totally unrelated resume can score below
-// 20, a partial match lands ~40-60, and a strong match reaches ~75-90 — without
+// 20, a partial match lands ~40-60, and a strong match reaches ~75-90 - without
 // any post-hoc rescaling.
 const ATS_MAXES: Record<keyof ATSScoreBreakdown, number> = {
   parseability: 5,
@@ -1078,7 +1078,7 @@ const NOT_APPLICABLE_STUB: ScorerResult = {
   missing: [],
   warnings: [],
   strengths: [],
-  description: 'Not applicable — add a job description to evaluate.',
+  description: 'Not applicable - add a job description to evaluate.',
 };
 
 /**
@@ -1087,7 +1087,7 @@ const NOT_APPLICABLE_STUB: ScorerResult = {
  *
  * When NO job description is supplied, JD-dependent categories
  * (keyword match, skills match, experience relevance) are marked
- * "not applicable" and EXCLUDED from the overall score — they neither
+ * "not applicable" and EXCLUDED from the overall score - they neither
  * inflate nor deflate it. The overall score is recalculated over the
  * applicable categories only.
  */
@@ -1159,7 +1159,7 @@ export function analyzeATS(
   const overallScore =
     applicableMax > 0 ? clamp(Math.round((applicableSum / applicableMax) * 1000) / 10, 0, 100) : 0;
 
-  // Detailed breakdown — excludes N/A categories so downstream consumers
+  // Detailed breakdown - excludes N/A categories so downstream consumers
   // (e.g. recruiter prompt) never see a misleading "0/20".
   const detailedBreakdown: ATSReport['detailedBreakdown'] = [];
   const pushCategory = (
@@ -1238,7 +1238,7 @@ function formatTechName(t: string): string {
 
 function isMetricGrounded(match: string, normResume: string): boolean {
   const cleanMatch = match.toLowerCase().trim();
-  
+
   // 1. Percentage match (e.g. 20%)
   if (cleanMatch.includes('%') || cleanMatch.includes('percent')) {
     const digits = cleanMatch.match(/\d+(?:\.\d+)?/);
@@ -1294,7 +1294,7 @@ function hasActualDateContradiction(resume: GeneratedResume): boolean {
       if (start > end) return true;
     }
   }
-  
+
   const today = new Date();
   for (const exp of experiences) {
     if (exp.startDate) {
@@ -1829,12 +1829,12 @@ export function sanitizeRecommendationText(
   // 1. Check if the statement is already a safe/grounded statement.
   const lowerStatement = statement.toLowerCase();
   const isAlreadyGrounded = lowerStatement.includes('genuine experience') ||
-                            lowerStatement.includes('if you have experience') ||
-                            lowerStatement.includes('not demonstrated') ||
-                            lowerStatement.includes('is demonstrated') ||
-                            (lowerStatement.includes('no ') && lowerStatement.includes('demonstrated'));
+    lowerStatement.includes('if you have experience') ||
+    lowerStatement.includes('not demonstrated') ||
+    lowerStatement.includes('is demonstrated') ||
+    (lowerStatement.includes('no ') && lowerStatement.includes('demonstrated'));
 
-  // 2. Fabricated date replacements — run BEFORE the year/metric check so that
+  // 2. Fabricated date replacements - run BEFORE the year/metric check so that
   //    "change 2026-02 to 2023-02" is caught here (with a date-verification
   //    rewrite) rather than falling through to the metric check and producing
   //    the wrong "Do not invent a metric" message.
@@ -1856,7 +1856,7 @@ export function sanitizeRecommendationText(
     const yrB = parseInt(dateMatch[2], 10);
     const yearsInResume = (resume.experiences || []).flatMap((e) => [
       e.startDate ? parseInt(e.startDate.slice(0, 4), 10) : null,
-      e.endDate   ? parseInt(e.endDate.slice(0, 4), 10) : null,
+      e.endDate ? parseInt(e.endDate.slice(0, 4), 10) : null,
     ]).filter(Boolean) as number[];
     const bothPresent = yearsInResume.includes(yrA) && yearsInResume.includes(yrB);
     if (!bothPresent) {
@@ -1907,13 +1907,13 @@ export function sanitizeRecommendationText(
     }
   }
 
-  // 4. Unsupported years-of-experience claim — run BEFORE the generic digit
+  // 4. Unsupported years-of-experience claim - run BEFORE the generic digit
   //    check so that "2+ years" is caught as a YoE claim rather than as an
   //    ungrounded metric.
   const YOE_PATTERN = /\b(\d+(?:\.\d+)?)\+?\s*(?:years?|yoe|yrs?|yr)\b/gi;
   let yoeMatch;
   let hasUnsupportedYoE = false;
-  
+
   let totalMonths = 0;
   for (const exp of resume.experiences || []) {
     const start = exp.startDate ? new Date(exp.startDate) : null;
@@ -2048,7 +2048,7 @@ export function sanitizeRecommendationText(
     return ''; // Drop recommendation if no real formatting inconsistency
   }
 
-  // 7b. Fabricated coursework check — run BEFORE missing tech check so that
+  // 7b. Fabricated coursework check - run BEFORE missing tech check so that
   //     coursework recommendations mentioning subjects like AI/ML or Web Development
   //     are rewritten to the safe coursework phrasing.
   const ADD_COURSE_RE = /\b(?:add|include|list|mention|insert)\b[^.]*\b(?:coursework|courses?|classes)\b|\b(?:coursework|courses?|classes)\b[^.]*\b(?:add|include|list|mention|insert)\b/i;
@@ -2414,7 +2414,7 @@ export function deduplicateRecommendations(statements: string[]): string[] {
     const concept = getStatementConcept(trimmed);
     if (concept) {
       if (seenConcepts.has(concept)) {
-        // Concept already represented — keep the more informative / longer finding
+        // Concept already represented - keep the more informative / longer finding
         const existingIdx = result.findIndex((r) => getStatementConcept(r) === concept);
         if (existingIdx >= 0 && trimmed.length > result[existingIdx].length + 20) {
           result[existingIdx] = trimmed;
