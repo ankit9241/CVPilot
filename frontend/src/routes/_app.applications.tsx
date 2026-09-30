@@ -90,9 +90,10 @@ function ApplicationsPage() {
         <div className="relative grid grid-cols-1 gap-0 lg:grid-cols-[1fr_1fr]">
           <div className="relative overflow-hidden p-8 lg:p-10">
             <div className="relative">
-              <span className="editorial-pill mb-3">
-                <Sparkles className="h-3.5 w-3.5 text-[#18181B]" /> Landing soon
-              </span>
+              <div className="flex items-center gap-1.5 mb-3 text-xs font-mono font-medium text-[#18181B]/70 uppercase tracking-wider">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                Coming Soon
+              </div>
               <h2 className="font-serif text-[26px] font-normal leading-tight tracking-tight text-[#18181B] sm:text-[32px]">
                 A quiet inbox for every job you apply to.
               </h2>

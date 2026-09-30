@@ -16,7 +16,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="flex-1 overflow-x-hidden border-l border-r border-[rgba(55,50,47,0.10)] bg-[#F8F6F3]"
+            className="flex-1 overflow-x-hidden bg-[#F8F6F3]"
           >
             {children}
           </motion.main>

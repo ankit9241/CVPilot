@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LogOut, PlaneTakeoff } from "lucide-react";
+import { LogOut, Gauge } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -17,7 +17,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { mainNav, bottomNav } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "../../store/auth-store";
-
+import { useUsage, FEATURE_INFO } from "@/hooks/use-usage";
+import { useLimitModalStore } from "@/store/limit-modal-store";
 import { LogoIcon } from "@/components/shared/logo";
 
 export function AppSidebar() {
@@ -25,6 +26,8 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { user, logout } = useAuthStore();
+  const { getFeatureQuota } = useUsage();
+  const { openLimitModal } = useLimitModalStore();
 
   const isActive = (url: string) =>
     url === "/dashboard" ? pathname === url : pathname.startsWith(url);
@@ -38,6 +41,20 @@ export function AppSidebar() {
       .join("")
       .toUpperCase();
   };
+
+  const featureKeys = Object.keys(FEATURE_INFO);
+  let totalUsed = 0;
+  let totalLimit = 0;
+
+  featureKeys.forEach((key) => {
+    const q = getFeatureQuota(key);
+    totalUsed += q.used;
+    totalLimit += q.limit;
+  });
+
+  const totalRemaining = Math.max(0, totalLimit - totalUsed);
+  const totalPercentage = totalLimit > 0 ? Math.min(100, Math.round((totalUsed / totalLimit) * 100)) : 0;
+  const isAllExhausted = totalRemaining === 0;
 
   return (
     <Sidebar collapsible="icon" className="border-r border-[rgba(55,50,47,0.10)] bg-[#F8F6F3]">
@@ -91,6 +108,76 @@ export function AppSidebar() {
 
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
+            {/* Single Monthly Quota Progress Bar above Settings */}
+            {!collapsed ? (
+              <div className="mb-2 px-1">
+                <button
+                  type="button"
+                  onClick={() => openLimitModal({ showAll: true })}
+                  className="w-full text-left rounded-xl border border-[rgba(55,50,47,0.12)] bg-[#FFFEFC] p-2.5 transition-all duration-200 hover:border-[rgba(55,50,47,0.22)] hover:bg-[#F4F1EC]/70 hover:shadow-xs group cursor-pointer"
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[12px] font-medium text-[#18181B] tracking-tight">
+                      Monthly Quota
+                    </span>
+                    <span
+                      className={cn(
+                        "text-[10px] font-semibold px-1.5 py-0.5 rounded-md",
+                        totalRemaining > 0
+                          ? "bg-emerald-500/10 text-emerald-700"
+                          : "bg-rose-500/10 text-rose-700"
+                      )}
+                    >
+                      {totalRemaining} left
+                    </span>
+                  </div>
+
+                  {/* Single Progress Bar */}
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#E8E5DF]">
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-all duration-300",
+                        isAllExhausted
+                          ? "bg-rose-500"
+                          : totalPercentage >= 85
+                            ? "bg-amber-500"
+                            : "bg-emerald-600"
+                      )}
+                      style={{ width: `${Math.max(totalPercentage, 4)}%` }}
+                    />
+                  </div>
+
+                  <div className="mt-1.5 flex items-center justify-between text-[10px] text-[#787774] font-mono">
+                    <span>{totalUsed}/{totalLimit} used</span>
+                    <span className="group-hover:text-[#18181B] transition-colors">
+                      View limits &rarr;
+                    </span>
+                  </div>
+                </button>
+              </div>
+            ) : (
+              <SidebarMenu className="mb-1">
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    tooltip={`Monthly Quota: ${totalRemaining} credits left (Click to view all)`}
+                    onClick={() => openLimitModal({ showAll: true })}
+                    className="h-9 rounded-xl text-[13px] font-medium text-[#18181B]/70 hover:bg-[#F4F1EC] hover:text-[#18181B] cursor-pointer"
+                  >
+                    <div className="relative flex items-center justify-center">
+                      <Gauge className="h-4 w-4 shrink-0 text-[#18181B]" />
+                      <span
+                        className={cn(
+                          "absolute -top-1 -right-1 h-2 w-2 rounded-full ring-1 ring-white",
+                          totalRemaining > 0 ? "bg-emerald-500" : "bg-rose-500"
+                        )}
+                      />
+                    </div>
+                    <span>Quota</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            )}
+
             <SidebarMenu>
               {bottomNav.map((item) => (
                 <SidebarMenuItem key={item.url}>

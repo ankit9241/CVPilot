@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, Star, Check, X, Search, Sparkles } from "lucide-react";
+import { Eye, Star, Check, X, Search, Plus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,10 +92,9 @@ function TemplatesPage() {
       <PageHeader
         title="Templates"
         subtitle="Elegant, ATS-friendly starting points curated for every discipline."
-        category="GALLERY"
         actions={
           <Button size="sm" className="gap-1.5 rounded-full bg-[#18181B] text-white hover:bg-[#27272A] shadow-xs">
-            <Sparkles className="h-3.5 w-3.5" /> Request a template
+            <Plus className="h-3.5 w-3.5" /> Request a template
           </Button>
         }
       />
@@ -208,7 +207,7 @@ function TemplatesPage() {
                         <span className="font-serif text-[18px] font-normal text-[#18181B]">{t.name}</span>
                         {t.isPremium && (
                           <Badge variant="secondary" className="rounded-full text-[9.5px] font-mono bg-[#18181B]/5 text-[#18181B] border border-[rgba(55,50,47,0.10)]">
-                            <Sparkles className="mr-0.5 h-2.5 w-2.5" /> Premium
+                            Premium
                           </Badge>
                         )}
                       </div>

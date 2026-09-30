@@ -1145,7 +1145,7 @@ function WorkflowPage() {
           {session?.status === "COMPLETED" && session.summary && (
             <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5 shadow-soft space-y-4 font-sans">
               <div className="flex items-center gap-2 text-[13.5px] font-bold text-primary">
-                <Sparkles className="h-4 w-4 animate-pulse" /> Generation Summary
+                <CheckCircle2 className="h-4 w-4" /> Generation Summary
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-[12.5px]">
                 <div className="space-y-0.5">

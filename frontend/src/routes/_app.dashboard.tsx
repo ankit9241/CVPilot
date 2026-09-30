@@ -3,21 +3,18 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sparkles,
   FileText,
   Shield,
   Wand2,
+  ScanSearch,
+  LayoutTemplate,
   ArrowRight,
   ArrowUpRight,
   Archive,
   Plus,
   Upload,
-  Bot,
-  User as UserIcon,
+  UserCheck,
   X,
-  Play,
-  ScanSearch,
-  LayoutTemplate,
   Zap,
 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
@@ -28,7 +25,6 @@ import { cn } from "@/lib/utils";
 import { api } from "../lib/api";
 import { useAuthStore } from "../store/auth-store";
 
-import { InfiniteSlider } from "@/components/shared/infinite-slider";
 import { UsageCard } from "@/components/shared/usage-card";
 
 export const Route = createFileRoute("/_app/dashboard")({
@@ -75,15 +71,12 @@ function DashboardPage() {
             </Button>
             <Button size="sm" asChild className="gap-1.5 rounded-full bg-[#18181B] text-white hover:bg-[#27272A] shadow-xs">
               <Link to="/resume-studio">
-                <Sparkles className="h-3.5 w-3.5" /> New resume
+                <Plus className="h-3.5 w-3.5" /> New resume
               </Link>
             </Button>
           </>
         }
       />
-
-      {/* Infinite Ticker Marquee matching Landing Page */}
-      <DashboardTickerMarquee />
 
       <div className="mt-8 grid grid-cols-12 gap-4">
         {/* Welcome + quick actions */}
@@ -121,9 +114,6 @@ function DashboardPage() {
 
         <RecentResumeCard stats={stats} />
         <VaultShortcut />
-
-        <ActivityTimeline stats={stats} />
-        <RightColumn />
       </div>
 
       <AnimatePresence>
@@ -134,40 +124,6 @@ function DashboardPage() {
           />
         )}
       </AnimatePresence>
-    </div>
-  );
-}
-
-function DashboardTickerMarquee() {
-  const tickerStats = [
-    { value: "100%", label: "ATS Score Accuracy", dept: "EVALUATION" },
-    { value: "< 40s", label: "Tailoring Speed", dept: "INTELLIGENCE" },
-    { value: "Zero", label: "AI Hallucination", dept: "PRECISION" },
-    { value: "SOC 2", label: "Vault Security", dept: "PRIVACY" },
-    { value: "PDF & TeX", label: "Export Formats", dept: "COMPLETENESS" },
-  ];
-
-  return (
-    <div className="relative border-y border-[rgba(55,50,47,0.08)] bg-[#F4F1EC]/60 py-3.5 select-none overflow-hidden my-4 rounded-2xl">
-      <div className="w-full relative overflow-hidden">
-        <InfiniteSlider speed={35} gap={48}>
-          {tickerStats.map((stat, i) => (
-            <div key={i} className="flex items-center gap-3 whitespace-nowrap">
-              <span className="font-serif text-2xl font-normal text-[#18181B] tracking-tight">
-                {stat.value}
-              </span>
-              <span className="text-[10.5px] text-[#18181B]/60 uppercase tracking-widest font-mono">
-                {stat.label}
-                <span className="block text-[8.5px] text-[#18181B]/40 font-sans mt-0.5">
-                  {stat.dept}
-                </span>
-              </span>
-            </div>
-          ))}
-        </InfiniteSlider>
-        <div className="bg-gradient-to-r from-[#F8F6F3] to-transparent absolute inset-y-0 left-0 w-12 pointer-events-none z-10" />
-        <div className="bg-gradient-to-l from-[#F8F6F3] to-transparent absolute inset-y-0 right-0 w-12 pointer-events-none z-10" />
-      </div>
     </div>
   );
 }
@@ -195,9 +151,10 @@ function WelcomeCard() {
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_50%_0%,rgba(55,50,47,0.06),transparent_75%)]" />
             <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <span className="editorial-pill mb-3">
-                  <Sparkles className="h-3.5 w-3.5 text-[#18181B]" /> AI Tailoring Active
-                </span>
+                <div className="flex items-center gap-1.5 mb-3 text-xs font-mono font-medium text-[#18181B]/70 uppercase tracking-wider">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                  AI Tailoring Active
+                </div>
                 <h2 className="font-serif text-[26px] sm:text-[32px] font-normal leading-tight tracking-tight text-[#18181B]">
                   Your next application is 40 seconds away.
                 </h2>
@@ -327,7 +284,7 @@ function QuickActions() {
   const actions = [
     {
       to: "/resume-studio",
-      icon: Sparkles,
+      icon: Wand2,
       title: "Generate resume",
       body: "Tailor to a job description in 40s.",
       dept: "INTELLIGENCE",
@@ -361,12 +318,9 @@ function QuickActions() {
   return (
     <div className="col-span-12 my-2">
       <div className="mb-3 flex items-baseline justify-between">
-        <div className="flex items-center gap-2">
-          <span className="editorial-pill">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#18181B]" />
-            QUICK ACTIONS
-          </span>
-        </div>
+        <h3 className="font-mono text-xs font-semibold uppercase tracking-wider text-[#18181B]/70">
+          Quick Actions
+        </h3>
         <span className="font-mono text-[11px] text-[#18181B]/50 uppercase tracking-widest">Press ⌘K for commands</span>
       </div>
       <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
@@ -417,7 +371,7 @@ function RecentResumeCard({ stats }: { stats: any }) {
           </p>
           <Button size="sm" asChild className="mt-5 gap-1.5 rounded-full bg-[#18181B] text-white hover:bg-[#27272A]">
             <Link to="/resume-studio">
-              <Sparkles className="h-3.5 w-3.5" /> Start tailoring
+              <ArrowRight className="h-3.5 w-3.5" /> Start tailoring
             </Link>
           </Button>
         </div>
@@ -565,130 +519,6 @@ function VaultShortcut() {
   );
 }
 
-function ActivityTimeline({ stats }: { stats: any }) {
-  const activities = stats?.activities || [];
-
-  return (
-    <div className="col-span-12 lg:col-span-8">
-      <div className="editorial-card">
-        <div className="flex items-center justify-between border-b border-[rgba(55,50,47,0.10)] px-5 py-4">
-          <div className="text-[13px] font-semibold text-[#18181B]">Recent activity</div>
-        </div>
-        {activities.length === 0 ? (
-          <div className="p-8 text-center text-[12.5px] text-[#18181B]/50 font-sans">
-            No recent activity to show.
-          </div>
-        ) : (
-          <ol className="relative divide-y divide-[rgba(55,50,47,0.08)]">
-            {activities.map((a: any) => {
-              const isAI =
-                a.action.toLowerCase().includes("ai") ||
-                a.action.toLowerCase().includes("generate");
-              return (
-                <li key={a.id} className="flex items-start gap-3 px-5 py-4">
-                  <div
-                    className={cn(
-                      "grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[rgba(55,50,47,0.12)]",
-                      isAI ? "bg-[#18181B] text-white" : "bg-[#FFFEFC] text-[#18181B]/70",
-                    )}
-                  >
-                    {isAI ? <Bot className="h-3.5 w-3.5" /> : <UserIcon className="h-3.5 w-3.5" />}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[13px]">
-                      <span className="font-medium text-[#18181B]">You</span>{" "}
-                      <span className="text-[#18181B]/70">{a.action}</span>
-                    </div>
-                    <div className="text-[11.5px] text-[#18181B]/50 font-mono mt-0.5">
-                      {new Date(a.timestamp).toLocaleString()}
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function RightColumn() {
-  const suggestions: string[] = [];
-  const notifications: any[] = [];
-
-  return (
-    <div className="col-span-12 space-y-4 lg:col-span-4">
-      <div className="editorial-card p-5">
-        <div className="flex items-center gap-2 text-[13px] font-semibold text-[#18181B]">
-          <Sparkles className="h-3.5 w-3.5 text-[#18181B]" /> AI suggestions
-        </div>
-        {suggestions.length === 0 ? (
-          <div className="mt-4 text-center text-[12.5px] text-[#18181B]/50 py-6 font-sans">
-            No suggestions available. Create and analyze a resume in the studio to get AI
-            suggestions.
-          </div>
-        ) : (
-          <ul className="mt-4 space-y-3">
-            {suggestions.map((s) => (
-              <li
-                key={s}
-                className="rounded-xl border border-[rgba(55,50,47,0.08)] bg-[#F8F6F3] p-3 text-[12.5px] leading-relaxed text-[#18181B]/85"
-              >
-                {s}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div className="editorial-card p-5">
-        <div className="flex items-center justify-between">
-          <div className="text-[13px] font-semibold text-[#18181B]">Applications</div>
-          <Badge variant="secondary" className="rounded-full text-[10px] font-mono bg-[#18181B]/5 text-[#18181B] border border-[rgba(55,50,47,0.10)]">
-            Coming soon
-          </Badge>
-        </div>
-        <p className="mt-2 text-[12.5px] leading-relaxed text-[#18181B]/60 font-sans">
-          Track every application, status and follow-up from one focused inbox.
-        </p>
-        <Button size="sm" variant="outline" className="mt-4 w-full rounded-full bg-[#FFFEFC] border border-[rgba(55,50,47,0.14)] text-[#18181B] hover:bg-[#F4F1EC]">
-          Join waitlist
-        </Button>
-      </div>
-
-      <div className="editorial-card">
-        <div className="border-b border-[rgba(55,50,47,0.10)] px-5 py-4 text-[13px] font-semibold text-[#18181B]">
-          Notifications
-        </div>
-        {notifications.length === 0 ? (
-          <div className="p-8 text-center text-[12.5px] text-[#18181B]/50 font-sans">
-            No new notifications.
-          </div>
-        ) : (
-          <ul className="divide-y divide-[rgba(55,50,47,0.08)]">
-            {notifications.map((n) => (
-              <li key={n.id} className="flex items-start gap-3 px-5 py-3">
-                <span
-                  className={cn(
-                    "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
-                    n.unread ? "bg-[#18181B]" : "bg-[rgba(55,50,47,0.20)]",
-                  )}
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="text-[13px] font-medium text-[#18181B]">{n.title}</div>
-                  <div className="text-[12px] text-[#18181B]/60 font-sans">{n.body}</div>
-                  <div className="mt-0.5 text-[11px] text-[#18181B]/40 font-mono">{n.when}</div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function CompletionToast({ pct, onClose }: { pct: number; onClose: () => void }) {
   return (
     <motion.div
@@ -708,7 +538,7 @@ function CompletionToast({ pct, onClose }: { pct: number; onClose: () => void })
         </button>
         <div className="flex items-start gap-3">
           <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#18181B] text-white">
-            <Sparkles className="h-4 w-4" />
+            <UserCheck className="h-4 w-4" />
           </div>
           <div className="min-w-0">
             <div className="text-[13.5px] font-semibold text-[#18181B]">Finish your profile</div>

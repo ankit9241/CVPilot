@@ -1,6 +1,6 @@
 import { useUsage, FEATURE_INFO } from "@/hooks/use-usage";
 import { useLimitModalStore } from "@/store/limit-modal-store";
-import { Sparkles, AlertCircle, RefreshCw } from "lucide-react";
+import { CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface QuotaBadgeProps {
@@ -51,7 +51,7 @@ export function QuotaBadge({
         ) : quota.isExhausted ? (
           <AlertCircle className="h-3 w-3 text-rose-600" />
         ) : showIcon ? (
-          <Sparkles className="h-3 w-3 text-emerald-600" />
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
         ) : null}
         <span>
           {quota.isExhausted ? (
@@ -84,7 +84,7 @@ export function QuotaBadge({
             </div>
           ) : (
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100/80 text-emerald-700 shadow-2xs">
-              <Sparkles className="h-4 w-4 text-emerald-600" />
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
             </div>
           )}
           <div>
@@ -135,7 +135,7 @@ export function QuotaBadge({
       ) : quota.isExhausted ? (
         <AlertCircle className="h-3.5 w-3.5 text-rose-600" />
       ) : showIcon ? (
-        <Sparkles className="h-3.5 w-3.5 text-emerald-600 group-hover:rotate-12 transition-transform" />
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
       ) : null}
       <span>
         {quota.isExhausted ? (

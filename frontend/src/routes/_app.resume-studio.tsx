@@ -205,7 +205,7 @@ function ResumeStudioPage() {
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-3.5 w-3.5" /> Generate resume
+                  <Wand2 className="h-3.5 w-3.5" /> Generate resume
                 </>
               )}
             </Button>

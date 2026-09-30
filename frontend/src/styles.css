@@ -207,8 +207,6 @@
   max-width: 1140px;
   margin-inline: auto;
   padding-inline: 1.5rem;
-  border-left: 1px solid rgba(55, 50, 47, 0.10);
-  border-right: 1px solid rgba(55, 50, 47, 0.10);
   background-color: #F8F6F3;
   min-height: 100vh;
 }

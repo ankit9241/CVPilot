@@ -12,7 +12,6 @@ import {
   LayoutTemplate,
   FileText,
   Check,
-  Star,
   Wand2,
   Cpu,
   Target,
@@ -104,7 +103,7 @@ function LandingPage() {
   return (
     <div className="w-full min-h-screen bg-[#F8F6F3] text-[#18181B] font-sans selection:bg-[#18181B]/10 overflow-x-hidden flex flex-col justify-start items-center">
       {/* Outer grid boundary frame matching Brilliance SaaS editorial layout */}
-      <div className="w-full max-w-[1140px] px-3 sm:px-6 lg:px-8 relative flex flex-col min-h-screen border-l border-r border-[rgba(55,50,47,0.10)] bg-[#F8F6F3]">
+      <div className="w-full max-w-[1140px] px-3 sm:px-6 lg:px-8 relative flex flex-col min-h-screen bg-[#F8F6F3]">
         <SiteNav />
         <main className="w-full flex flex-col">
           <Hero />

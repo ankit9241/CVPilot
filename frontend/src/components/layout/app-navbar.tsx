@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Bell, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -71,16 +71,6 @@ export function AppNavbar() {
             ⌘K
           </kbd>
         </div>
-
-        <button
-          aria-label="Notifications"
-          className="relative grid h-8 w-8 place-items-center rounded-full text-[#18181B]/70 transition-colors hover:bg-[#F4F1EC] hover:text-[#18181B]"
-        >
-          <Bell className="h-4 w-4" />
-          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-[#18181B]" />
-        </button>
-
-        <Separator orientation="vertical" className="mx-1 h-5 bg-[rgba(55,50,47,0.10)]" />
 
         <Avatar className="h-8 w-8 border border-[rgba(55,50,47,0.12)]">
           {user?.profile?.avatarUrl && (

@@ -106,7 +106,7 @@ function VaultPage() {
           </p>
           <Button size="sm" asChild className="mt-6 gap-1.5 font-medium">
             <Link to="/resume-studio">
-              <Sparkles className="h-3.5 w-3.5" /> Go to Resume Studio
+              <ArrowRight className="h-3.5 w-3.5" /> Go to Resume Studio
             </Link>
           </Button>
         </div>

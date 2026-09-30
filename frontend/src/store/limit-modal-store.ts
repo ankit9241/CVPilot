@@ -8,6 +8,7 @@ export interface LimitModalData {
   limit?: number;
   remaining?: number;
   resetAt?: string;
+  showAll?: boolean;
 }
 
 interface LimitModalState {

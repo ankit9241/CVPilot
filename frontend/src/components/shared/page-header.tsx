@@ -39,12 +39,6 @@ export function PageHeader({
       <div className={cn("flex flex-col gap-4 relative z-10", align === "center" && "items-center")}>
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center mb-3">
-              <span className="editorial-pill">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#18181B]" />
-                {badgeText}
-              </span>
-            </div>
             <h1 className="font-serif text-[36px] sm:text-[48px] lg:text-[54px] font-normal leading-[1.08] tracking-tight text-[#18181B]">
               {title}
             </h1>
