@@ -19,12 +19,10 @@ function clearAuthCookies(res: Response) {
 }
 
 export async function authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
-  let token = req.cookies?.accessToken;
   const header = req.headers.authorization;
-
-  if (!token && header?.startsWith('Bearer ')) {
-    token = header.slice('Bearer '.length).trim();
-  }
+  let token = header?.startsWith('Bearer ')
+    ? header.slice('Bearer '.length).trim()
+    : req.cookies?.accessToken;
 
   if (!token) {
     return next(new UnauthorizedError('Missing authentication token'));
@@ -34,7 +32,17 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
   try {
     payload = verifyAccessToken(token);
   } catch {
-    return next(new UnauthorizedError('Invalid or expired token'));
+    // If header token was invalid but a cookie exists, or vice versa, attempt fallback
+    if (header && req.cookies?.accessToken && token !== req.cookies.accessToken) {
+      try {
+        payload = verifyAccessToken(req.cookies.accessToken);
+        token = req.cookies.accessToken;
+      } catch {
+        return next(new UnauthorizedError('Invalid or expired token'));
+      }
+    } else {
+      return next(new UnauthorizedError('Invalid or expired token'));
+    }
   }
 
   try {
@@ -68,18 +76,22 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 
 // Optional variant – attaches user if present, never rejects.
 export function attachUserIfPresent(req: Request, _res: Response, next: NextFunction): void {
-  let token = req.cookies?.accessToken;
   const header = req.headers.authorization;
-
-  if (!token && header?.startsWith('Bearer ')) {
-    token = header.slice(7).trim();
-  }
+  const token = header?.startsWith('Bearer ')
+    ? header.slice(7).trim()
+    : req.cookies?.accessToken;
 
   if (token) {
     try {
       req.user = verifyAccessToken(token);
     } catch {
-      /* silent */
+      if (header && req.cookies?.accessToken && token !== req.cookies.accessToken) {
+        try {
+          req.user = verifyAccessToken(req.cookies.accessToken);
+        } catch {
+          /* silent */
+        }
+      }
     }
   }
   next();

@@ -3,6 +3,7 @@ import { BaseController } from '../../common/base.controller';
 import { asyncHandler } from '../../utils/async-handler';
 import { authService, AuthService } from './auth.service';
 import { env } from '../../config/env';
+import { appConfig } from '../../config/app';
 import { UnauthorizedError } from '../../utils/errors';
 
 export class AuthController extends BaseController {
@@ -20,18 +21,7 @@ export class AuthController extends BaseController {
       try {
         const parsed = new URL(rawOrigin);
         const originToVerify = parsed.origin.toLowerCase();
-        const originList = env.cors.origin
-          .split(',')
-          .map((s) => s.trim().replace(/\/+$/, ''))
-          .filter(Boolean);
-        const isAllowedConfigured = originList.some(
-          (o) => o.toLowerCase() === originToVerify,
-        );
-        const isAllowedLocalDev =
-          !env.isProd &&
-          (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(originToVerify));
-
-        if (isAllowedConfigured || isAllowedLocalDev) {
+        if (appConfig.isOriginAllowed(originToVerify)) {
           safeState = parsed.origin;
         }
       } catch {
@@ -68,14 +58,7 @@ export class AuthController extends BaseController {
       try {
         const parsed = new URL(state);
         const originToVerify = parsed.origin.toLowerCase();
-        const isAllowedConfigured = originList.some(
-          (o) => o.toLowerCase() === originToVerify,
-        );
-        const isAllowedLocalDev =
-          !env.isProd &&
-          (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(originToVerify));
-
-        if (isAllowedConfigured || isAllowedLocalDev) {
+        if (appConfig.isOriginAllowed(originToVerify)) {
           frontendBaseUrl = parsed.origin;
         }
       } catch {

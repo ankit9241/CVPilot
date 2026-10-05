@@ -121,6 +121,7 @@ async function runSecuritySuite() {
   if (failedTests > 0) {
     process.exit(1);
   }
+  process.exit(0);
 }
 
 void runSecuritySuite();

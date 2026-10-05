@@ -31,6 +31,33 @@ interface AuthState {
 
 let initialized = false;
 
+function extractUrlTokens() {
+  if (typeof window === "undefined") return;
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+    const refreshToken = urlParams.get("refreshToken");
+
+    if (token) {
+      localStorage.setItem("accessToken", token);
+      if (refreshToken) {
+        localStorage.setItem("refreshToken", refreshToken);
+      }
+      urlParams.delete("token");
+      urlParams.delete("refreshToken");
+      const newSearch = urlParams.toString();
+      const newUrl =
+        window.location.pathname + (newSearch ? `?${newSearch}` : "") + window.location.hash;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  } catch {
+    // Ignore in non-browser contexts
+  }
+}
+
+// Immediately parse tokens if page just redirected from Google OAuth
+extractUrlTokens();
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
@@ -40,23 +67,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     initialized = true;
     set({ isLoading: true });
 
-    if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get("token");
-      const refreshToken = urlParams.get("refreshToken");
-
-      if (token) {
-        localStorage.setItem("accessToken", token);
-        if (refreshToken) {
-          localStorage.setItem("refreshToken", refreshToken);
-        }
-        urlParams.delete("token");
-        urlParams.delete("refreshToken");
-        const newSearch = urlParams.toString();
-        const newUrl = window.location.pathname + (newSearch ? `?${newSearch}` : "") + window.location.hash;
-        window.history.replaceState({}, document.title, newUrl);
-      }
-    }
+    extractUrlTokens();
 
     try {
       const user = await api.get<User>("/auth/me");

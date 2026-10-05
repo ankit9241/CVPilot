@@ -33,7 +33,7 @@ async function refreshSessionOnce(): Promise<boolean> {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ refreshToken: storedRefreshToken || undefined }),
+          body: JSON.stringify(storedRefreshToken ? { refreshToken: storedRefreshToken } : {}),
         });
         if (res.ok) {
           const json = await res.json().catch(() => ({}));
@@ -104,7 +104,7 @@ class ApiClient {
     }
 
     const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-    if (token && !headers.has("Authorization")) {
+    if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }
 
@@ -215,7 +215,7 @@ class ApiClient {
       headers.set("Content-Type", "application/json");
     }
     const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-    if (token && !headers.has("Authorization")) {
+    if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }
     options.credentials = "include";
