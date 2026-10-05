@@ -2,11 +2,19 @@ import { useLimitModalStore } from "@/store/limit-modal-store";
 
 function resolveApiBaseUrl(): string {
   const envUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
-  if (!envUrl) {
-    return "http://localhost:4000/api";
+  if (envUrl) {
+    const clean = envUrl.replace(/\/+$/, "");
+    return clean.endsWith("/api") ? clean : `${clean}/api`;
   }
-  const clean = envUrl.replace(/\/+$/, "");
-  return clean.endsWith("/api") ? clean : `${clean}/api`;
+  // In production deployments (Netlify, Vercel, etc.), automatically fallback to deployed backend
+  if (
+    typeof window !== "undefined" &&
+    !window.location.hostname.includes("localhost") &&
+    !window.location.hostname.includes("127.0.0.1")
+  ) {
+    return "https://cvpilot-emhy.onrender.com/api";
+  }
+  return "http://localhost:4000/api";
 }
 
 export const BASE_URL = resolveApiBaseUrl();
